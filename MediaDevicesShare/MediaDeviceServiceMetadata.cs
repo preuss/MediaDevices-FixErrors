@@ -127,7 +127,5 @@ namespace MediaDevices
         /// Boolean value that indicates whether the object is the default Device Metadata CAB object. The Device Metadata service must have only one object that is marked as default.
         /// </summary>
         public bool DefaultCAB { get; private set; }
-
-        /// <summary>
     }
 }

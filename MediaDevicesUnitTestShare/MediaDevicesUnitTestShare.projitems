@@ -23,8 +23,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)MicrosoftLumia650UnitTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MicrosoftLumia950UnitTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MicrosoftVolumeUnitTest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)NiconCoolpixA300.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NiconCoolpixA300UnitTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NokiaLumia630UnitTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SamsungA40UnitTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestCases\ReadonlyUnitTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestCases\UnitTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestCases\WritableUnitTest.cs" />

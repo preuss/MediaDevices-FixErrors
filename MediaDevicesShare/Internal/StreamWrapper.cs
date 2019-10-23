@@ -79,7 +79,11 @@ namespace MediaDevices.Internal
             {
                 CheckDisposed();
                 System.Runtime.InteropServices.ComTypes.STATSTG stat;
+#if NETCOREAPP
+                this.stream.Stat(out stat, 0);
+#else
                 this.stream.Stat(out stat, 1); //STATFLAG_NONAME
+#endif
                 return stat.cbSize;
             }
         }
