@@ -93,7 +93,7 @@ namespace MediaDevices
             }
             set
             {
-                this.item.SetDateCreated(value.GetValueOrDefault(DateTime.Now));
+                this.item.SetDateCreated(value);
             }
         }
 
@@ -108,7 +108,7 @@ namespace MediaDevices
             }
             set
             {
-                this.item.SetDateModified(value.GetValueOrDefault(DateTime.Now));
+                this.item.SetDateModified(value);
             }
         }
 
@@ -123,7 +123,7 @@ namespace MediaDevices
             }
             set
             {
-                this.item.SetDateAuthored(value.GetValueOrDefault(DateTime.Now));
+                this.item.SetDateAuthored(value);
             }
         }
 

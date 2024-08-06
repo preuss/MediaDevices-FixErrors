@@ -679,6 +679,10 @@ namespace MediaDevices
 
         #region Public Methods
 
+        public void ConnectAsReadonly() {
+            Connect(MediaDeviceAccess.GenericRead, MediaDeviceShare.Read, false);
+        }
+
         /// <summary>
         /// Connect to the portable device.
         /// </summary>
@@ -770,18 +774,36 @@ namespace MediaDevices
             }
             this.device.Cancel();
         }
-        
-        /// <summary>
-        /// Returns an enumerable collection of directory names in a specified path.
-        /// </summary>
-        /// <param name="path">The directory to search.</param>
-        /// <returns>An enumerable collection of directory names in the directory specified by path.</returns>
-        /// <exception cref="System.IO.IOException">path is a file name.</exception>
-        /// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
-        /// <exception cref="System.ArgumentNullException">path is null.</exception>
-        /// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
-        /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-        public IEnumerable<string> EnumerateDirectories(string path)
+
+		public IEnumerable<MediaDirectoryInfo> EnumerateDirectoriesAsDirectoryInfo(string path) {
+			if(path == null) {
+				throw new ArgumentNullException(nameof(path));
+			}
+			if(!IsPath(path)) {
+				throw new ArgumentException("Invalide path", nameof(path));
+			}
+			if(!this.IsConnected) {
+				throw new NotConnectedException("Not connected");
+			}
+
+			Item item = Item.FindFolder(this, path);
+			if(item == null) {
+				throw new DirectoryNotFoundException($"Director {path} not found.");
+			}
+			return item.GetChildren().Where(i => i.Type != ItemType.File).Select(i => new MediaDirectoryInfo(this, i));
+		}
+
+		/// <summary>
+		/// Returns an enumerable collection of directory names in a specified path.
+		/// </summary>
+		/// <param name="path">The directory to search.</param>
+		/// <returns>An enumerable collection of directory names in the directory specified by path.</returns>
+		/// <exception cref="System.IO.IOException">path is a file name.</exception>
+		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+		/// <exception cref="System.ArgumentNullException">path is null.</exception>
+		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+		public IEnumerable<string> EnumerateDirectories(string path)
         {
             if (path == null)
             {
@@ -841,17 +863,35 @@ namespace MediaDevices
         }
 
 
-        /// <summary>
-        /// Returns an enumerable collection of file names in a specified path.
-        /// </summary>
-        /// <param name="path">The directory to search.</param>
-        /// <returns>An enumerable collection of file names in the directory specified by path.</returns>
-        /// <exception cref="System.IO.IOException">path is a file name.</exception>
-        /// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
-        /// <exception cref="System.ArgumentNullException">path is null.</exception>
-        /// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
-        /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-        public IEnumerable<string> EnumerateFiles(string path)
+		public IEnumerable<MediaFileInfo> EnumerateFilesAsFileInfo(string path) {
+			if(path == null) {
+				throw new ArgumentNullException(nameof(path));
+			}
+			if(!IsPath(path)) {
+				throw new ArgumentException("Invalide path", nameof(path));
+			}
+			if(!this.IsConnected) {
+				throw new NotConnectedException("Not connected");
+			}
+
+			Item item = Item.FindFolder(this, path);
+			if(item == null) {
+				throw new DirectoryNotFoundException($"Director {path} not found.");
+			}
+			return item.GetChildren().Where(i => i.Type == ItemType.File).Select(i => new MediaFileInfo(this, i));
+		}
+
+		/// <summary>
+		/// Returns an enumerable collection of file names in a specified path.
+		/// </summary>
+		/// <param name="path">The directory to search.</param>
+		/// <returns>An enumerable collection of file names in the directory specified by path.</returns>
+		/// <exception cref="System.IO.IOException">path is a file name.</exception>
+		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+		/// <exception cref="System.ArgumentNullException">path is null.</exception>
+		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+		public IEnumerable<string> EnumerateFiles(string path)
         {
             if (path == null)
             {
@@ -910,17 +950,35 @@ namespace MediaDevices
             return item.GetChildren(pattern, searchOption).Where(i => i.Type == ItemType.File).Select(i => i.FullName);
         }
 
-        /// <summary>
-        /// Returns an enumerable collection of file-system entries in a specified path.
-        /// </summary>
-        /// <param name="path">The directory to search.</param>
-        /// <returns>An enumerable collection of file-system entries in the directory specified by path.</returns>
-        /// <exception cref="System.IO.IOException">path is a file name.</exception>
-        /// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
-        /// <exception cref="System.ArgumentNullException">path is null.</exception>
-        /// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
-        /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-        public IEnumerable<string> EnumerateFileSystemEntries(string path)
+		public IEnumerable<MediaFileInfo> EnumerateFileSystemEntriesAsFileInfo(string path) {
+			if(path == null) {
+				throw new ArgumentNullException(nameof(path));
+			}
+			if(!IsPath(path)) {
+				throw new ArgumentException("Invalide path", nameof(path));
+			}
+			if(!this.IsConnected) {
+				throw new NotConnectedException("Not connected");
+			}
+
+			Item item = Item.FindFolder(this, path);
+			if(item == null) {
+				throw new DirectoryNotFoundException($"Director {path} not found.");
+			}
+			return item.GetChildren().Select(i => new MediaFileInfo(this, i));
+		}
+
+		/// <summary>
+		/// Returns an enumerable collection of file-system entries in a specified path.
+		/// </summary>
+		/// <param name="path">The directory to search.</param>
+		/// <returns>An enumerable collection of file-system entries in the directory specified by path.</returns>
+		/// <exception cref="System.IO.IOException">path is a file name.</exception>
+		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+		/// <exception cref="System.ArgumentNullException">path is null.</exception>
+		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+		public IEnumerable<string> EnumerateFileSystemEntries(string path)
         {
             if (path == null)
             {
@@ -979,6 +1037,10 @@ namespace MediaDevices
             return item.GetChildren(FilterToRegex(searchPattern), searchOption).Select(i => i.FullName);
         }
 
+        public MediaDirectoryInfo[] GetDirectoriesAsDirectoryInfo(string path) {
+            return EnumerateDirectoriesAsDirectoryInfo(path).ToArray();
+        }
+
         /// <summary>
         /// Returns an array of directory names in a specified path.
         /// </summary>
@@ -1010,6 +1072,10 @@ namespace MediaDevices
         public string[] GetDirectories(string path, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
             return EnumerateDirectories(path, searchPattern, searchOption).ToArray();
+        }
+
+        public MediaFileInfo[] GetFilesAsFileInfo(string path) {
+            return EnumerateFilesAsFileInfo(path).ToArray();
         }
 
         /// <summary>
@@ -1442,7 +1508,7 @@ namespace MediaDevices
                 throw new NotConnectedException("Not connected");
             }
 
-            var item = Item.FindItem(this, path);
+			Item item = Item.FindItem(this, path);
             if (item == null)
             {
                 throw new FileNotFoundException($"{path} not found.", path);

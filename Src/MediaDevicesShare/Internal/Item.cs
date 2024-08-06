@@ -254,8 +254,8 @@ namespace MediaDevices.Internal
                                 break;
 
                             case ObjectProperties.DateAuthored:
-                                this.DateAuthored = val;
-                                break;
+								this.DateAuthored = val;
+								break;
 
                             case ObjectProperties.CanDelete:
                                 this.CanDelete = val;
@@ -638,8 +638,19 @@ namespace MediaDevices.Internal
 
             Refresh();
         }
+		internal void SetDateCreated(DateTime? value) {
+			IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+			IPortableDeviceValues result;
 
-        internal void SetDateModified(DateTime value)
+			using(PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value)) {
+				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref val.Value);
+				this.device.deviceProperties.SetValues(this.Id, portableDeviceValues, out result);
+				ComTrace.WriteObject(result);
+			}
+
+			Refresh();
+		}
+		internal void SetDateModified(DateTime value)
         {
             IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
             IPortableDeviceValues result;
@@ -653,8 +664,19 @@ namespace MediaDevices.Internal
 
             Refresh();
         }
-        
-        internal void SetDateAuthored(DateTime value)
+		internal void SetDateModified(DateTime? value) {
+			IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+			IPortableDeviceValues result;
+
+			using(PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value)) {
+				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref val.Value);
+				this.device.deviceProperties.SetValues(this.Id, portableDeviceValues, out result);
+				ComTrace.WriteObject(result);
+			}
+
+			Refresh();
+		}
+		internal void SetDateAuthored(DateTime value)
         {
             IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
             IPortableDeviceValues result;
@@ -668,8 +690,19 @@ namespace MediaDevices.Internal
 
             Refresh();
         }
+		internal void SetDateAuthored(DateTime? value) {
+			IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+			IPortableDeviceValues result;
 
-        #endregion
-    }
+			using(PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value)) {
+				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref val.Value);
+				this.device.deviceProperties.SetValues(this.Id, portableDeviceValues, out result);
+				ComTrace.WriteObject(result);
+			}
+
+			Refresh();
+		}
+		#endregion
+	}
 }
 

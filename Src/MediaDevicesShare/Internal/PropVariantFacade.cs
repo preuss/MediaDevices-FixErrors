@@ -198,6 +198,20 @@ namespace MediaDevices.Internal
             return DateTime.FromOADate(this.Value.dateVal);
         }
 
+        public DateTime? ToNullableDate() {
+			if(this.Value.vt == PropVariantType.VT_ERROR) {
+				Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
+				return null;
+			}
+
+			if(this.Value.vt != PropVariantType.VT_DATE) {
+				throw new InvalidOperationException($"ToDate does not work for value type {this.Value.vt}");
+			}
+
+            DateTime dateTime = DateTime.FromOADate(this.Value.dateVal);
+			return DateTime.MinValue.Equals(dateTime) ? null : (DateTime?)dateTime;
+		}
+
         public bool ToBool()
         {
             if (this.Value.vt == PropVariantType.VT_ERROR)
@@ -298,8 +312,14 @@ namespace MediaDevices.Internal
             pv.Value.dateVal = value.ToOADate();
             return pv;
         }
+		public static PropVariantFacade DateTimeToPropVariant(DateTime? value) {
+			PropVariantFacade pv = new PropVariantFacade();
+			pv.Value.vt = PropVariantType.VT_DATE;
+			pv.Value.dateVal = value?.ToOADate() ?? DateTime.MinValue.ToOADate();
+			return pv;
+		}
 
-        public static implicit operator string(PropVariantFacade val)
+		public static implicit operator string(PropVariantFacade val)
         {
             return val.ToString();
         }
@@ -314,7 +334,12 @@ namespace MediaDevices.Internal
             return val.ToDate();
         }
 
-        public static implicit operator Guid(PropVariantFacade val)
+		public static implicit operator DateTime?(PropVariantFacade val)
+        {
+			return val.ToNullableDate();
+		}
+
+		public static implicit operator Guid(PropVariantFacade val)
         {
             return val.ToGuid();
         }
