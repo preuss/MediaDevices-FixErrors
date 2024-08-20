@@ -1,4 +1,5 @@
 ﻿using MediaDevices.Internal;
+using MediaDevices.Progress;
 using MediaDevices.WMDM;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace MediaDevices
@@ -28,7 +30,7 @@ namespace MediaDevices
         private IPortableDeviceValues deviceValues;
         private string friendlyName = string.Empty;
         private string eventCookie;
-        private EventCallback eventCallback;        
+        private EventCallback eventCallback;
 
         #endregion
 
@@ -94,7 +96,7 @@ namespace MediaDevices
         {
             try
             {
-                deviceManager = (IPortableDeviceManager)new PortableDeviceManager(); 
+                deviceManager = (IPortableDeviceManager)new PortableDeviceManager();
                 serviceManager = (IPortableDeviceServiceManager)deviceManager;
 
                 //var x = new MediaDevMgr();
@@ -214,7 +216,7 @@ namespace MediaDevices
             this.DeviceId = deviceId;
             this.IsCaseSensitive = false;
 
-            
+
             uint count = 256;
             try
             {
@@ -574,7 +576,7 @@ namespace MediaDevices
         {
             get
             {
-                
+
                 if (!this.IsConnected)
                 {
                     throw new NotConnectedException("Not connected");
@@ -710,7 +712,7 @@ namespace MediaDevices
             // need to restrict its identity, specify SECURITY_IMPERSONATION so that we work with all devices.
             clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_SECURITY_QUALITY_OF_SERVICE, (uint)Security.IMPERSONATION);
 
-            
+
             if (access != MediaDeviceAccess.Default)
             {
                 clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_DESIRED_ACCESS, (uint)access);
@@ -793,17 +795,17 @@ namespace MediaDevices
 			return item.GetChildren().Where(i => i.Type != ItemType.File).Select(i => new MediaDirectoryInfo(this, i));
 		}
 
-		/// <summary>
-		/// Returns an enumerable collection of directory names in a specified path.
-		/// </summary>
-		/// <param name="path">The directory to search.</param>
-		/// <returns>An enumerable collection of directory names in the directory specified by path.</returns>
-		/// <exception cref="System.IO.IOException">path is a file name.</exception>
-		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
-		/// <exception cref="System.ArgumentNullException">path is null.</exception>
-		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
-		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<string> EnumerateDirectories(string path)
+        /// <summary>
+        /// Returns an enumerable collection of directory names in a specified path.
+        /// </summary>
+        /// <param name="path">The directory to search.</param>
+        /// <returns>An enumerable collection of directory names in the directory specified by path.</returns>
+        /// <exception cref="System.IO.IOException">path is a file name.</exception>
+        /// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+        /// <exception cref="System.ArgumentNullException">path is null.</exception>
+        /// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+        /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+        public IEnumerable<string> EnumerateDirectories(string path)
         {
             if (path == null)
             {
@@ -881,17 +883,17 @@ namespace MediaDevices
 			return item.GetChildren().Where(i => i.Type == ItemType.File).Select(i => new MediaFileInfo(this, i));
 		}
 
-		/// <summary>
-		/// Returns an enumerable collection of file names in a specified path.
-		/// </summary>
-		/// <param name="path">The directory to search.</param>
-		/// <returns>An enumerable collection of file names in the directory specified by path.</returns>
-		/// <exception cref="System.IO.IOException">path is a file name.</exception>
-		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
-		/// <exception cref="System.ArgumentNullException">path is null.</exception>
-		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
-		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<string> EnumerateFiles(string path)
+        /// <summary>
+        /// Returns an enumerable collection of file names in a specified path.
+        /// </summary>
+        /// <param name="path">The directory to search.</param>
+        /// <returns>An enumerable collection of file names in the directory specified by path.</returns>
+        /// <exception cref="System.IO.IOException">path is a file name.</exception>
+        /// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+        /// <exception cref="System.ArgumentNullException">path is null.</exception>
+        /// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+        /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+        public IEnumerable<string> EnumerateFiles(string path)
         {
             if (path == null)
             {
@@ -968,17 +970,17 @@ namespace MediaDevices
 			return item.GetChildren().Select(i => new MediaFileInfo(this, i));
 		}
 
-		/// <summary>
-		/// Returns an enumerable collection of file-system entries in a specified path.
-		/// </summary>
-		/// <param name="path">The directory to search.</param>
-		/// <returns>An enumerable collection of file-system entries in the directory specified by path.</returns>
-		/// <exception cref="System.IO.IOException">path is a file name.</exception>
-		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
-		/// <exception cref="System.ArgumentNullException">path is null.</exception>
-		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
-		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<string> EnumerateFileSystemEntries(string path)
+        /// <summary>
+        /// Returns an enumerable collection of file-system entries in a specified path.
+        /// </summary>
+        /// <param name="path">The directory to search.</param>
+        /// <returns>An enumerable collection of file-system entries in the directory specified by path.</returns>
+        /// <exception cref="System.IO.IOException">path is a file name.</exception>
+        /// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+        /// <exception cref="System.ArgumentNullException">path is null.</exception>
+        /// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+        /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+        public IEnumerable<string> EnumerateFileSystemEntries(string path)
         {
             if (path == null)
             {
@@ -1033,7 +1035,7 @@ namespace MediaDevices
             {
                 throw new DirectoryNotFoundException($"Director {path} not found.");
             }
-            
+
             return item.GetChildren(FilterToRegex(searchPattern), searchOption).Select(i => i.FullName);
         }
 
@@ -1258,10 +1260,68 @@ namespace MediaDevices
             {
                 throw new FileNotFoundException($"File {path} not found.");
             }
-            
+
             using (Stream sourceStream = item.OpenRead())
             {
                 sourceStream.CopyTo(stream);
+            }
+        }
+
+        /// <summary>
+        /// Download data from a file on a portable device to a stream.
+        /// </summary>
+        /// <param name="path">The path to the file.</param>
+        /// <param name="stream">The stream to download to.</param>
+        /// <param name="progress">The progress reporter.</param>
+        /// <param name="readBufferSize">The buffer size, default is 8192 bytes.</param>
+        /// <exception cref="System.IO.IOException">path is a file name.</exception>
+        /// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+        /// <exception cref="System.ArgumentNullException">path is null.</exception>
+        /// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+        /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+        public void DownloadFile(string path, Stream stream, IProgress<FileProgressReport> progress, int readBufferSize = 8192)
+        {
+            if (path == null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+            if (!IsPath(path))
+            {
+                throw new ArgumentException("Invalide path", nameof(path));
+            }
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+            if (!this.IsConnected)
+            {
+                throw new NotConnectedException("Not connected");
+            }
+
+            Item item = Item.FindFile(this, path);
+            if (item == null)
+            {
+                throw new FileNotFoundException($"File {path} not found.");
+            }
+
+            using (Stream sourceStream = item.OpenRead())
+            {
+				DateTime startDateTime = System.DateTime.Now;
+				
+				byte[] buffer = new byte[readBufferSize];
+                int bytesRead;
+                ulong totalBytesRead = 0;
+
+                DateTime reportDateTime;
+                while ((bytesRead = sourceStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    reportDateTime = System.DateTime.Now;
+                    stream.Write(buffer, 0, bytesRead);
+                    totalBytesRead += (ulong)bytesRead;
+
+                    // Report progress
+                    progress.Report(new FileProgressReport(totalBytesRead, item.Size, startDateTime, reportDateTime, reportDateTime.Subtract(startDateTime)));
+                }
             }
         }
 
@@ -1441,7 +1501,7 @@ namespace MediaDevices
                 throw new NotConnectedException("Not connected");
             }
 
-            Item item = Item.FindFile(this, path); 
+            Item item = Item.FindFile(this, path);
             if (item == null)
             {
                 throw new FileNotFoundException($"File {path} not found.");
@@ -1602,6 +1662,53 @@ namespace MediaDevices
             using (Stream sourceStream = OpenReadFromPersistentUniqueId(persistentUniqueId))
             {
                 sourceStream.CopyTo(stream);
+            }
+        }
+
+        /// <summary>
+        /// Download data from a file on a portable device to a stream identified by a Persistent Unique Id.
+        /// </summary>
+        /// <param name="persistentUniqueId">Persistent Unique Id of the file.</param>
+        /// <param name="stream">The stream to download to.</param>
+        /// <param name="progress">The progress reporter.</param>
+        /// <param name="readBufferSize">The buffer size, default is 8192 bytes.</param>
+        /// <exception cref="System.ArgumentNullException">persistentUniqueId is null or empty.</exception>
+        /// <exception cref="System.ArgumentNullException">stream is null.</exception>
+        /// <exception cref="System.IO.FileNotFoundException">persistentUniqueId not found.</exception>
+        /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+        public void DownloadFileFromPersistentUniqueId(string persistentUniqueId, Stream stream, IProgress<FileProgressReport> progress, int readBufferSize = 8192)
+        {
+            if (string.IsNullOrEmpty(persistentUniqueId))
+            {
+                throw new ArgumentNullException(nameof(persistentUniqueId));
+            }
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+            if (!this.IsConnected)
+            {
+                throw new NotConnectedException("Not connected");
+            }
+
+            using (Stream sourceStream = OpenReadFromPersistentUniqueId(persistentUniqueId))
+            {
+                DateTime startDateTime = System.DateTime.Now;
+
+                byte[] buffer = new byte[readBufferSize];
+                int bytesRead;
+                ulong totalBytesRead = 0;
+
+                DateTime reportDateTime;
+                while ((bytesRead = sourceStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    reportDateTime = System.DateTime.Now;
+                    stream.Write(buffer, 0, bytesRead);
+                    totalBytesRead += (ulong)bytesRead;
+
+                    // Report progress
+                    progress.Report(new FileProgressReport(totalBytesRead, (ulong) sourceStream.Length, startDateTime, reportDateTime, reportDateTime.Subtract(startDateTime)));
+                }
             }
         }
 
@@ -1815,7 +1922,7 @@ namespace MediaDevices
             }
 
             try
-            { 
+            {
                 this.deviceCapabilities.GetSupportedEvents(out IPortableDevicePropVariantCollection events);
                 return events.ToEnum<Events>();
             }
@@ -1866,7 +1973,7 @@ namespace MediaDevices
                     cmd.WriteResults();
                     return new List<string>();
                 }
-                
+
                 return cmd.GetPropVariants(WPD.PROPERTY_DEVICE_HINTS_CONTENT_LOCATIONS).Select(c => Item.Create(this, c).FullName);
             }
             catch (COMException ex)
@@ -1980,7 +2087,7 @@ namespace MediaDevices
             {
                 throw new ArgumentNullException(nameof(functionalObject));
             }
-            
+
             Command cmd = Command.Create(WPD.COMMAND_SMS_SEND);
             cmd.Add(WPD.PROPERTY_COMMON_COMMAND_TARGET, functionalObject);
             cmd.Add(WPD.PROPERTY_SMS_RECIPIENT, recipient);
@@ -2023,7 +2130,7 @@ namespace MediaDevices
             {
                 throw new ArgumentNullException(nameof(functionalObject));
             }
-            
+
             Command cmd = Command.Create(WPD.COMMAND_STILL_IMAGE_CAPTURE_INITIATE);
             cmd.Add(WPD.PROPERTY_COMMON_COMMAND_TARGET, functionalObject);
             return cmd.Send(this.device);
@@ -2037,35 +2144,35 @@ namespace MediaDevices
 
             switch (eventEnum)
             {
-            case Events.ObjectAdded:
-                this.ObjectAdded?.Invoke(this, new ObjectAddedEventArgs(eventEnum, this, eventParameters));
-                break;
-            case Events.ObjectRemoved:
-                this.ObjectRemoved?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
-                break;
-            case Events.ObjectUpdated:
-                this.ObjectUpdated?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
-                break;
-            case Events.DeviceReset:
-                this.DeviceReset?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
-                break;
-            case Events.DeviceCapabilitiesUpdated:
-                this.DeviceCapabilitiesUpdated?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
-                break;
-            case Events.StorageFormat:
-                this.StorageFormat?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
-                break;
-            case Events.ObjectTransferRequest:
-                this.ObjectTransferRequest?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
-                break;
-            case Events.DeviceRemoved:
-                this.DeviceRemoved?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
-                break;
-            case Events.ServiceMethodComplete:
-                this.ServiceMethodComplete?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
-                break;
-            default:
-                break;
+                case Events.ObjectAdded:
+                    this.ObjectAdded?.Invoke(this, new ObjectAddedEventArgs(eventEnum, this, eventParameters));
+                    break;
+                case Events.ObjectRemoved:
+                    this.ObjectRemoved?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
+                    break;
+                case Events.ObjectUpdated:
+                    this.ObjectUpdated?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
+                    break;
+                case Events.DeviceReset:
+                    this.DeviceReset?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
+                    break;
+                case Events.DeviceCapabilitiesUpdated:
+                    this.DeviceCapabilitiesUpdated?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
+                    break;
+                case Events.StorageFormat:
+                    this.StorageFormat?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
+                    break;
+                case Events.ObjectTransferRequest:
+                    this.ObjectTransferRequest?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
+                    break;
+                case Events.DeviceRemoved:
+                    this.DeviceRemoved?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
+                    break;
+                case Events.ServiceMethodComplete:
+                    this.ServiceMethodComplete?.Invoke(this, new MediaDeviceEventArgs(eventEnum, this, eventParameters));
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -2122,7 +2229,7 @@ namespace MediaDevices
                 this.deviceProperties.GetSupportedProperties(storageObjectId, out IPortableDeviceKeyCollection ppKeys);
                 ComTrace.WriteObject(ppKeys);
                 this.deviceProperties.GetValues(storageObjectId, keys, out IPortableDeviceValues values);
-           
+
                 values.TryGetUnsignedIntegerValue(WPD.STORAGE_TYPE, out uint type);
                 info.Type = (StorageType)type;
 
@@ -2286,7 +2393,7 @@ namespace MediaDevices
             cmd.Send(this.device);
             respCode = cmd.GetInt(WPD.PROPERTY_MTP_EXT_RESPONSE_CODE);
             return cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_RESPONSE_PARAMS).Select(p => p.ToInt());
-        }        
+        }
 
         /// <summary>
         /// Retrieves the vendor extension description string.
@@ -2340,9 +2447,9 @@ namespace MediaDevices
             //    s.Close();
 
             //}
-            
+
             // not supported by old frameworks
-            #pragma warning disable IDE0066
+#pragma warning disable IDE0066
             switch (service)
             {
                 case MediaDeviceServices.Status:
@@ -2355,8 +2462,8 @@ namespace MediaDevices
                     return services.Select(s => new MediaDeviceService(this, s));
             }
         }
-           
-            
+
+
         #endregion
 
         #region Internal Methods
@@ -2370,7 +2477,7 @@ namespace MediaDevices
         {
             return this.IsCaseSensitive ? a == b : string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
         }
-        
+
         internal static string FilterToRegex(string filter)
         {
             if (filter == null || filter == "*" || filter == "*.*")
