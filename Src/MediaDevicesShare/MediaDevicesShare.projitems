@@ -97,6 +97,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ObjectAddedEventArgs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OperationState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PowerSource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Progress\FileProgressReport.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Roaming.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StorageAccessCapability.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StorageType.cs" />
