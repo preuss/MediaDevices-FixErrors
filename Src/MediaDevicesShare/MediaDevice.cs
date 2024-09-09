@@ -1617,7 +1617,8 @@ namespace MediaDevices
         /// <returns>Array with all drives of the device.</returns>
         public MediaDriveInfo[] GetDrives()
         {
-            return this.FunctionalObjects(FunctionalCategory.Storage)?.Select(o => new MediaDriveInfo(this, o)).ToArray();
+            return this.FunctionalObjects(FunctionalCategory.Storage)?.Select(o => new MediaDriveInfo(this, o)).ToArray() 
+                ?? Array.Empty<MediaDriveInfo>();
         }
 
         /// <summary>
