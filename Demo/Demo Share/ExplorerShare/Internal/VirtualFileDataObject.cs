@@ -923,33 +923,65 @@ namespace ExplorerCtrl.Internal
                 int GiveFeedback(uint dwEffect);
             }
 
-            [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "2#", Justification = "Win32 API.")]
-            [DllImport("shell32.dll")]
+#if NET7_0_OR_GREATER
+            [LibraryImport("shell32.dll")]
             public static extern int SHCreateStdEnumFmtEtc(uint cfmt, FORMATETC[] afmt, out IEnumFORMATETC ppenumFormatEtc);
+#else
+			[SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "2#", Justification = "Win32 API.")]
+			[DllImport("shell32.dll")]
+			public static extern int SHCreateStdEnumFmtEtc(uint cfmt, FORMATETC[] afmt, out IEnumFORMATETC ppenumFormatEtc);
+#endif
 
-            [return: MarshalAs(UnmanagedType.Interface)]
-            [DllImport("ole32.dll", PreserveSig = false)]
-            public static extern IStream CreateStreamOnHGlobal(IntPtr hGlobal, [MarshalAs(UnmanagedType.Bool)] bool fDeleteOnRelease);
+#if NET7_0_OR_GREATER
+			[return: MarshalAs(UnmanagedType.Interface)]
+			[LibraryImport("ole32.dll")]
+			public static extern IStream CreateStreamOnHGlobal(IntPtr hGlobal, [MarshalAs(UnmanagedType.Bool)] bool fDeleteOnRelease);
+#else
+			[return: MarshalAs(UnmanagedType.Interface)]
+			[DllImport("ole32.dll", PreserveSig = false)]
+			public static extern IStream CreateStreamOnHGlobal(IntPtr hGlobal, [MarshalAs(UnmanagedType.Bool)] bool fDeleteOnRelease);
+#endif
 
-            [DllImport("ole32.dll", CharSet = CharSet.Auto, ExactSpelling = true, PreserveSig = false)]
+#if NET7_0_OR_GREATER
+			[LibraryImport("ole32.dll")]
             public static extern void DoDragDrop(System.Runtime.InteropServices.ComTypes.IDataObject dataObject, IDropSource dropSource, int allowedEffects, int[] finalEffect);
+#else
+			[DllImport("ole32.dll", CharSet = CharSet.Auto, ExactSpelling = true, PreserveSig = false)]
+			public static extern void DoDragDrop(System.Runtime.InteropServices.ComTypes.IDataObject dataObject, IDropSource dropSource, int allowedEffects, int[] finalEffect);
+#endif
 
-            [DllImport("kernel32.dll")]
-            public static extern IntPtr GlobalLock(IntPtr hMem);
+#if NET7_0_OR_GREATER
+			[LibraryImport("kernel32.dll")]
+			public static extern IntPtr GlobalLock(IntPtr hMem);
+#else
+			[DllImport("kernel32.dll")]
+			public static extern IntPtr GlobalLock(IntPtr hMem);
+#endif
 
-            [return: MarshalAs(UnmanagedType.Bool)]
-            [DllImport("kernel32.dll")]
+#if NET7_0_OR_GREATER
+			[return: MarshalAs(UnmanagedType.Bool)]
+            [LibraryImport("kernel32.dll")]
             public static extern bool GlobalUnlock(IntPtr hMem);
+#else
+			[return: MarshalAs(UnmanagedType.Bool)]
+			[DllImport("kernel32.dll")]
+			public static extern bool GlobalUnlock(IntPtr hMem);
+#endif
 
-            [DllImport("kernel32.dll")]
+#if NET7_0_OR_GREATER
+			[LibraryImport("kernel32.dll")]
             public static extern IntPtr GlobalSize(IntPtr handle);
+#else
+			[DllImport("kernel32.dll")]
+			public static extern IntPtr GlobalSize(IntPtr handle);
+#endif
 
-            /// <summary>
-            /// Returns true iff the HRESULT is a success code.
-            /// </summary>
-            /// <param name="hr">HRESULT to check.</param>
-            /// <returns>True iff a success code.</returns>
-            public static bool SUCCEEDED(int hr)
+			/// <summary>
+			/// Returns true iff the HRESULT is a success code.
+			/// </summary>
+			/// <param name="hr">HRESULT to check.</param>
+			/// <returns>True iff a success code.</returns>
+			public static bool SUCCEEDED(int hr)
             {
                 return (0 <= hr);
             }
