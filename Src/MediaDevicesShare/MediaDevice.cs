@@ -2279,7 +2279,7 @@ namespace MediaDevices
         /// </summary>
         /// <returns>List of vendor extended operation code.</returns>
         /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-        public IEnumerable<int> VendorOpcodes()
+        public IEnumerable<uint> VendorOpcodes()
         {
             if (!this.IsConnected)
             {
@@ -2289,7 +2289,7 @@ namespace MediaDevices
             Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_GET_SUPPORTED_VENDOR_OPCODES);
             cmd.Send(this.device);
             var list = cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_VENDOR_OPERATION_CODES);
-            return list.Select(p => p.ToInt());
+            return list.Select(p => p.ToUInt());
         }
 
         /// <summary>
@@ -2300,7 +2300,7 @@ namespace MediaDevices
         /// <param name="respCode">Response code</param>
         /// <returns>Output parameters</returns>
         /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-        public IEnumerable<int> VendorExcecute(int opCode, IEnumerable<int> inputParams, out int respCode)
+        public IEnumerable<uint> VendorExcecute(uint opCode, IEnumerable<uint> inputParams, out uint respCode)
         {
             if (!this.IsConnected)
             {
@@ -2311,8 +2311,8 @@ namespace MediaDevices
             cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_CODE, opCode);
             cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_PARAMS, inputParams);
             cmd.Send(this.device);
-            respCode = cmd.GetInt(WPD.PROPERTY_MTP_EXT_RESPONSE_CODE);
-            return cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_RESPONSE_PARAMS).Select(p => p.ToInt());
+            respCode = cmd.GetUInt(WPD.PROPERTY_MTP_EXT_RESPONSE_CODE);
+            return cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_RESPONSE_PARAMS).Select(p => p.ToUInt());
         }
 
         /// <summary>
@@ -2322,7 +2322,7 @@ namespace MediaDevices
         /// <param name="inputParams">Input parameters.</param>
         /// <returns>Returned as a context identifier for subsequent data transfer</returns>
         /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-        public IEnumerable<int> VendorExcecuteRead(int opCode, IEnumerable<int> inputParams)
+        public IEnumerable<uint> VendorExcecuteRead(uint opCode, IEnumerable<uint> inputParams)
         {
             if (!this.IsConnected)
             {
@@ -2334,17 +2334,17 @@ namespace MediaDevices
             cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_PARAMS, inputParams);
             cmd.Send(this.device);
             var list = cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_VENDOR_OPERATION_CODES).ToList();
-            return list.Select(p => p.ToInt()); //.ToList();
+            return list.Select(p => p.ToUInt()); //.ToList();
         }
 
-        /// <summary>
-        /// Sends a MTP command block followed by a data phase with data from Host to Device 
-        /// </summary>
-        /// <param name="opCode">Operational code of the vendor command.</param>
-        /// <param name="inputParams">Input parameters.</param>
-        /// <returns>Returned as a context identifier for subsequent data transfer</returns>
-        /// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-        public IEnumerable<int> VendorExcecuteWrite(int opCode, IEnumerable<int> inputParams)
+		/// <summary>
+		/// Sends a MTP command block followed by a data phase with data from Host to Device 
+		/// </summary>
+		/// <param name="opCode">Operational code of the vendor command.</param>
+		/// <param name="inputParams">Input parameters.</param>
+		/// <returns>Returned as a context identifier for subsequent data transfer</returns>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+		public IEnumerable<uint> VendorExcecuteWrite(uint opCode, IEnumerable<uint> inputParams)
         {
             if (!this.IsConnected)
             {
@@ -2356,7 +2356,7 @@ namespace MediaDevices
             cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_PARAMS, inputParams);
             cmd.Send(this.device);
             var list = cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_VENDOR_OPERATION_CODES).ToList();
-            return list.Select(p => p.ToInt()); //.ToList();
+            return list.Select(p => p.ToUInt()); //.ToList();
         }
 
 
@@ -2387,13 +2387,13 @@ namespace MediaDevices
         /// <param name="context">The context idetifier returned in previous calls.</param>
         /// <param name="respCode">the response code to the vendor operation code.</param>
         /// <returns>identifying response params if any</returns>
-        public IEnumerable<int> VendorEndTransfer(string context, out int respCode)
+        public IEnumerable<uint> VendorEndTransfer(string context, out uint respCode)
         {
             Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_END_DATA_TRANSFER);
             cmd.Add(WPD.PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
             cmd.Send(this.device);
-            respCode = cmd.GetInt(WPD.PROPERTY_MTP_EXT_RESPONSE_CODE);
-            return cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_RESPONSE_PARAMS).Select(p => p.ToInt());
+            respCode = cmd.GetUInt(WPD.PROPERTY_MTP_EXT_RESPONSE_CODE);
+            return cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_RESPONSE_PARAMS).Select(p => p.ToUInt());
         }
 
         /// <summary>

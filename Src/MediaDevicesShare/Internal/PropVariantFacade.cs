@@ -289,14 +289,6 @@ namespace MediaDevices.Internal
             return pv;
         }
 
-        //public static PropVariantFacade UIntToPropVariant(uint value)
-        //{
-        //    PropVariantFacade pv = new PropVariantFacade();
-        //    pv.Value.vt = PropVariantType.VT_UI4;
-        //    pv.Value.inner.ulVal = value;
-        //    return pv;
-        //}
-
         public static PropVariantFacade IntToPropVariant(int value)
         {
             PropVariantFacade pv = new PropVariantFacade();
@@ -305,7 +297,15 @@ namespace MediaDevices.Internal
             return pv;
         }
 
-        public static PropVariantFacade DateTimeToPropVariant(DateTime value)
+        public static PropVariantFacade UIntToPropVariant(uint value)
+        {
+			PropVariantFacade pv = new PropVariantFacade();
+			pv.Value.vt = PropVariantType.VT_UI4;
+			pv.Value.uintVal = value;
+			return pv;
+		}
+
+		public static PropVariantFacade DateTimeToPropVariant(DateTime value)
         {
             PropVariantFacade pv = new PropVariantFacade();
             pv.Value.vt = PropVariantType.VT_DATE;

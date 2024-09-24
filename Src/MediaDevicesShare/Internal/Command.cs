@@ -52,7 +52,18 @@ namespace MediaDevices.Internal
             this.values.SetIPortableDevicePropVariantCollectionValue(ref key, col);
         }
 
-        public void Add(PropertyKey key, string value)
+		public void Add(PropertyKey key, IEnumerable<uint> values)
+		{
+			IPortableDevicePropVariantCollection col = (IPortableDevicePropVariantCollection)new PortableDevicePropVariantCollection();
+			foreach (var value in values)
+			{
+				var var = PropVariantFacade.UIntToPropVariant(value);
+				col.Add(ref var.Value);
+			}
+			this.values.SetIPortableDevicePropVariantCollectionValue(ref key, col);
+		}
+
+		public void Add(PropertyKey key, string value)
         {
             this.values.SetStringValue(ref key, value);
         }
@@ -74,6 +85,13 @@ namespace MediaDevices.Internal
         {
             int value;
             this.result.GetSignedIntegerValue(ref key, out value);
+            return value;
+        }
+
+        public uint GetUInt(PropertyKey key)
+        {
+            uint value;
+            this.result.GetUnsignedIntegerValue(ref key, out value);
             return value;
         }
 
