@@ -366,13 +366,8 @@ namespace MediaDevices.Internal
 
         private static class NativeMethods
         {
-#if NET7_0_OR_GREATER
-            [LibraryImport("ole32.dll")]
-            static extern public int PropVariantClear(ref PropVariant val);
-#else
 			[DllImport("ole32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
 			static extern public int PropVariantClear(ref PropVariant val);
-#endif
 		}
 	}
 }

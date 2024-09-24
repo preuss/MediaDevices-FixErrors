@@ -12,16 +12,16 @@ using System.Windows;
 
 namespace ExplorerCtrl.Internal
 {
-    /// <summary>
-    /// Class implementing drag/drop and clipboard support for virtual files.
-    /// Also offers an alternate interface to the IDataObject interface.
-    /// </summary>
-    internal sealed class VirtualFileDataObject : System.Runtime.InteropServices.ComTypes.IDataObject, IAsyncOperation
-    {
-        /// <summary>
-        /// Gets or sets a value indicating whether the data object can be used asynchronously.
-        /// </summary>
-        public bool IsAsynchronous { get; set; }
+	/// <summary>
+	/// Class implementing drag/drop and clipboard support for virtual files.
+	/// Also offers an alternate interface to the IDataObject interface.
+	/// </summary>
+	internal sealed class VirtualFileDataObject : System.Runtime.InteropServices.ComTypes.IDataObject, IAsyncOperation
+	{
+		/// <summary>
+		/// Gets or sets a value indicating whether the data object can be used asynchronously.
+		/// </summary>
+		public bool IsAsynchronous { get; set; }
 
         /// <summary>
         /// Identifier for CFSTR_FILECONTENTS.
@@ -923,58 +923,26 @@ namespace ExplorerCtrl.Internal
                 int GiveFeedback(uint dwEffect);
             }
 
-#if NET7_0_OR_GREATER
-            [LibraryImport("shell32.dll")]
-            public static extern int SHCreateStdEnumFmtEtc(uint cfmt, FORMATETC[] afmt, out IEnumFORMATETC ppenumFormatEtc);
-#else
 			[SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "2#", Justification = "Win32 API.")]
 			[DllImport("shell32.dll")]
 			public static extern int SHCreateStdEnumFmtEtc(uint cfmt, FORMATETC[] afmt, out IEnumFORMATETC ppenumFormatEtc);
-#endif
 
-#if NET7_0_OR_GREATER
-			[return: MarshalAs(UnmanagedType.Interface)]
-			[LibraryImport("ole32.dll")]
-			public static extern IStream CreateStreamOnHGlobal(IntPtr hGlobal, [MarshalAs(UnmanagedType.Bool)] bool fDeleteOnRelease);
-#else
 			[return: MarshalAs(UnmanagedType.Interface)]
 			[DllImport("ole32.dll", PreserveSig = false)]
 			public static extern IStream CreateStreamOnHGlobal(IntPtr hGlobal, [MarshalAs(UnmanagedType.Bool)] bool fDeleteOnRelease);
-#endif
 
-#if NET7_0_OR_GREATER
-			[LibraryImport("ole32.dll")]
-            public static extern void DoDragDrop(System.Runtime.InteropServices.ComTypes.IDataObject dataObject, IDropSource dropSource, int allowedEffects, int[] finalEffect);
-#else
 			[DllImport("ole32.dll", CharSet = CharSet.Auto, ExactSpelling = true, PreserveSig = false)]
 			public static extern void DoDragDrop(System.Runtime.InteropServices.ComTypes.IDataObject dataObject, IDropSource dropSource, int allowedEffects, int[] finalEffect);
-#endif
 
-#if NET7_0_OR_GREATER
-			[LibraryImport("kernel32.dll")]
-			public static extern IntPtr GlobalLock(IntPtr hMem);
-#else
 			[DllImport("kernel32.dll")]
 			public static extern IntPtr GlobalLock(IntPtr hMem);
-#endif
 
-#if NET7_0_OR_GREATER
-			[return: MarshalAs(UnmanagedType.Bool)]
-            [LibraryImport("kernel32.dll")]
-            public static extern bool GlobalUnlock(IntPtr hMem);
-#else
 			[return: MarshalAs(UnmanagedType.Bool)]
 			[DllImport("kernel32.dll")]
 			public static extern bool GlobalUnlock(IntPtr hMem);
-#endif
 
-#if NET7_0_OR_GREATER
-			[LibraryImport("kernel32.dll")]
-            public static extern IntPtr GlobalSize(IntPtr handle);
-#else
 			[DllImport("kernel32.dll")]
 			public static extern IntPtr GlobalSize(IntPtr handle);
-#endif
 
 			/// <summary>
 			/// Returns true iff the HRESULT is a success code.
