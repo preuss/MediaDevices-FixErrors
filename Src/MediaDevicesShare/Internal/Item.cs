@@ -64,7 +64,7 @@ namespace MediaDevices.Internal
         public static Item FindFolder(MediaDevice device, string path)
         {
             var item = FindItem(device, path);
-            return item == null || item.Type == ItemType.File ? null : item; ;
+            return item == null || item.Type == ItemType.File ? null : item;
         }
 
         public static Item FindFile(MediaDevice device, string path)
@@ -194,7 +194,7 @@ namespace MediaDevices.Internal
         
         private void GetProperties()
         {
-            IPortableDeviceValues values = null;
+            IPortableDeviceValues values;
             try
             {
                 // get all predefined values
