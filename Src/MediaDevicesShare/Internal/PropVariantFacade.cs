@@ -289,6 +289,13 @@ namespace MediaDevices.Internal
             return pv;
         }
 
+        public static PropVariantFacade UIntToPropVariant(uint value)
+        {
+		PropVariantFacade pv = new PropVariantFacade();
+		pv.Value.vt = PropVariantType.VT_UI4;
+		pv.Value.uintVal = value;
+		return pv;
+	}
         public static PropVariantFacade IntToPropVariant(int value)
         {
             PropVariantFacade pv = new PropVariantFacade();
@@ -296,28 +303,19 @@ namespace MediaDevices.Internal
             pv.Value.intVal = value;
             return pv;
         }
-
-        public static PropVariantFacade UIntToPropVariant(uint value)
-        {
-			PropVariantFacade pv = new PropVariantFacade();
-			pv.Value.vt = PropVariantType.VT_UI4;
-			pv.Value.uintVal = value;
-			return pv;
-		}
-
-		public static PropVariantFacade DateTimeToPropVariant(DateTime value)
+	public static PropVariantFacade DateTimeToPropVariant(DateTime value)
         {
             PropVariantFacade pv = new PropVariantFacade();
             pv.Value.vt = PropVariantType.VT_DATE;
             pv.Value.dateVal = value.ToOADate();
             return pv;
         }
-		public static PropVariantFacade DateTimeToPropVariant(DateTime? value) {
-			PropVariantFacade pv = new PropVariantFacade();
-			pv.Value.vt = PropVariantType.VT_DATE;
-			pv.Value.dateVal = value?.ToOADate() ?? DateTime.MinValue.ToOADate();
-			return pv;
-		}
+	public static PropVariantFacade DateTimeToPropVariant(DateTime? value) {
+		PropVariantFacade pv = new PropVariantFacade();
+		pv.Value.vt = PropVariantType.VT_DATE;
+		pv.Value.dateVal = value?.ToOADate() ?? DateTime.MinValue.ToOADate();
+		return pv;
+	}
 
 		public static implicit operator string(PropVariantFacade val)
         {
@@ -334,12 +332,11 @@ namespace MediaDevices.Internal
             return val.ToDate();
         }
 
-		public static implicit operator DateTime?(PropVariantFacade val)
+	public static implicit operator DateTime?(PropVariantFacade val)
         {
-			return val.ToNullableDate();
-		}
-
-		public static implicit operator Guid(PropVariantFacade val)
+		return val.ToNullableDate();
+	}
+	public static implicit operator Guid(PropVariantFacade val)
         {
             return val.ToGuid();
         }
@@ -366,8 +363,8 @@ namespace MediaDevices.Internal
 
         private static class NativeMethods
         {
-			[DllImport("ole32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-			static extern public int PropVariantClear(ref PropVariant val);
-		}
+		[DllImport("ole32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+		static extern public int PropVariantClear(ref PropVariant val);
 	}
+    }
 }

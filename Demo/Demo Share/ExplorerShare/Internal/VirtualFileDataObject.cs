@@ -12,16 +12,16 @@ using System.Windows;
 
 namespace ExplorerCtrl.Internal
 {
-	/// <summary>
-	/// Class implementing drag/drop and clipboard support for virtual files.
-	/// Also offers an alternate interface to the IDataObject interface.
-	/// </summary>
-	internal sealed class VirtualFileDataObject : System.Runtime.InteropServices.ComTypes.IDataObject, IAsyncOperation
-	{
-		/// <summary>
-		/// Gets or sets a value indicating whether the data object can be used asynchronously.
-		/// </summary>
-		public bool IsAsynchronous { get; set; }
+    /// <summary>
+    /// Class implementing drag/drop and clipboard support for virtual files.
+    /// Also offers an alternate interface to the IDataObject interface.
+    /// </summary>
+    internal sealed class VirtualFileDataObject : System.Runtime.InteropServices.ComTypes.IDataObject, IAsyncOperation
+    {
+        /// <summary>
+        /// Gets or sets a value indicating whether the data object can be used asynchronously.
+        /// </summary>
+        public bool IsAsynchronous { get; set; }
 
         /// <summary>
         /// Identifier for CFSTR_FILECONTENTS.
@@ -923,33 +923,33 @@ namespace ExplorerCtrl.Internal
                 int GiveFeedback(uint dwEffect);
             }
 
-			[SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "2#", Justification = "Win32 API.")]
-			[DllImport("shell32.dll")]
-			public static extern int SHCreateStdEnumFmtEtc(uint cfmt, FORMATETC[] afmt, out IEnumFORMATETC ppenumFormatEtc);
+            [SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "2#", Justification = "Win32 API.")]
+            [DllImport("shell32.dll")]
+            public static extern int SHCreateStdEnumFmtEtc(uint cfmt, FORMATETC[] afmt, out IEnumFORMATETC ppenumFormatEtc);
 
-			[return: MarshalAs(UnmanagedType.Interface)]
-			[DllImport("ole32.dll", PreserveSig = false)]
-			public static extern IStream CreateStreamOnHGlobal(IntPtr hGlobal, [MarshalAs(UnmanagedType.Bool)] bool fDeleteOnRelease);
+            [return: MarshalAs(UnmanagedType.Interface)]
+            [DllImport("ole32.dll", PreserveSig = false)]
+            public static extern IStream CreateStreamOnHGlobal(IntPtr hGlobal, [MarshalAs(UnmanagedType.Bool)] bool fDeleteOnRelease);
 
-			[DllImport("ole32.dll", CharSet = CharSet.Auto, ExactSpelling = true, PreserveSig = false)]
-			public static extern void DoDragDrop(System.Runtime.InteropServices.ComTypes.IDataObject dataObject, IDropSource dropSource, int allowedEffects, int[] finalEffect);
+            [DllImport("ole32.dll", CharSet = CharSet.Auto, ExactSpelling = true, PreserveSig = false)]
+            public static extern void DoDragDrop(System.Runtime.InteropServices.ComTypes.IDataObject dataObject, IDropSource dropSource, int allowedEffects, int[] finalEffect);
 
-			[DllImport("kernel32.dll")]
-			public static extern IntPtr GlobalLock(IntPtr hMem);
+            [DllImport("kernel32.dll")]
+            public static extern IntPtr GlobalLock(IntPtr hMem);
 
-			[return: MarshalAs(UnmanagedType.Bool)]
-			[DllImport("kernel32.dll")]
-			public static extern bool GlobalUnlock(IntPtr hMem);
+            [return: MarshalAs(UnmanagedType.Bool)]
+            [DllImport("kernel32.dll")]
+            public static extern bool GlobalUnlock(IntPtr hMem);
 
-			[DllImport("kernel32.dll")]
-			public static extern IntPtr GlobalSize(IntPtr handle);
+            [DllImport("kernel32.dll")]
+            public static extern IntPtr GlobalSize(IntPtr handle);
 
-			/// <summary>
-			/// Returns true iff the HRESULT is a success code.
-			/// </summary>
-			/// <param name="hr">HRESULT to check.</param>
-			/// <returns>True iff a success code.</returns>
-			public static bool SUCCEEDED(int hr)
+            /// <summary>
+            /// Returns true iff the HRESULT is a success code.
+            /// </summary>
+            /// <param name="hr">HRESULT to check.</param>
+            /// <returns>True iff a success code.</returns>
+            public static bool SUCCEEDED(int hr)
             {
                 return (0 <= hr);
             }
