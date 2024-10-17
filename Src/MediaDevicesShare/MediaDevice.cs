@@ -691,11 +691,11 @@ namespace MediaDevices
         /// <param name="access">Specifies the desired access the client is requesting to this device.</param>
         /// <param name="share">Specifies the share mode the client is requesting to this device.</param>
         /// <param name="enableCache">Enable or disable file list cache. Disabled cache is used by Explorer for a better performance.</param>
-        public void Connect(MediaDeviceAccess access = MediaDeviceAccess.Default, MediaDeviceShare share = MediaDeviceShare.Default, bool enableCache = false)
+        public MediaDevice Connect(MediaDeviceAccess access = MediaDeviceAccess.Default, MediaDeviceShare share = MediaDeviceShare.Default, bool enableCache = false)
         {
             if (this.IsConnected)
             {
-                return;
+                return this;
             }
 
             // find the app name for client name
@@ -744,6 +744,8 @@ namespace MediaDevices
             this.device.Advise(0, this.eventCallback, null, out this.eventCookie);
 
             this.IsConnected = true;
+
+            return this;
         }
 
         /// <summary>
