@@ -32,6 +32,7 @@ namespace MediaDevices.Internal
                 Marshal.FreeHGlobal(this.pLength);
                 this.pLength = IntPtr.Zero;
             }
+            base.Dispose(disposing);
         }
 
         public StreamWrapper(IStream stream, ulong size = 0)
@@ -53,7 +54,8 @@ namespace MediaDevices.Internal
         {
             get
             {
-                return false;
+                //return false;
+                return true;
             }
         }
 
@@ -128,7 +130,30 @@ namespace MediaDevices.Internal
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            throw new NotImplementedException("Seek not implemented");
+            CheckDisposed();
+            int dwOrigin;
+            switch (origin)
+            {
+                case SeekOrigin.Begin:
+                    dwOrigin = 0;   // STREAM_SEEK_SET
+                    break;
+
+                case SeekOrigin.Current:
+                    dwOrigin = 1;   // STREAM_SEEK_CUR
+                    break;
+
+                case SeekOrigin.End:
+                    dwOrigin = 2;   // STREAM_SEEK_END
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(origin));
+            }
+
+            this.stream.Seek(offset, dwOrigin, this.pLength);
+            return Marshal.ReadInt64(this.pLength);
+
+            //throw new NotImplementedException("Seek not implemented");
         }
 
         public override void SetLength(long value)
@@ -151,7 +176,7 @@ namespace MediaDevices.Internal
 
             if (offset > 0)
             {
-                localBuffer = new byte[count];
+                localBuffer = new byte[count]; 
                 Array.Copy(buffer, offset, localBuffer, 0, count);
             }
 
