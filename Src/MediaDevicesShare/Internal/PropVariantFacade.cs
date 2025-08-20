@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -72,7 +73,7 @@ namespace MediaDevices.Internal
                     return ToGuid().ToString();
 
                 case PropVariantType.VT_DATE:
-                    return ToDate().ToString();
+                    return ToNullableDate()?.ToString(CultureInfo.InvariantCulture) ?? "null";
 
                 case PropVariantType.VT_BOOL:
                     return ToBool().ToString();
@@ -208,7 +209,15 @@ namespace MediaDevices.Internal
 				throw new InvalidOperationException($"ToDate does not work for value type {this.Value.vt}");
 			}
 
+            double rawDateTime = this.Value.dateVal;
+            // To catch typical "no date time" values from different devices
+            if (rawDateTime == 0.0 || rawDateTime == 1.0 || double.IsNaN(rawDateTime) || double.IsInfinity(rawDateTime)) {
+                return null;
+            }
+
+
             DateTime dateTime = DateTime.FromOADate(this.Value.dateVal);
+            // If the date time is the default value, return null for no value
 			return DateTime.MinValue.Equals(dateTime) ? null : (DateTime?)dateTime;
 		}
 
@@ -303,21 +312,21 @@ namespace MediaDevices.Internal
             pv.Value.intVal = value;
             return pv;
         }
-	public static PropVariantFacade DateTimeToPropVariant(DateTime value)
+	    public static PropVariantFacade DateTimeToPropVariant(DateTime value)
         {
             PropVariantFacade pv = new PropVariantFacade();
             pv.Value.vt = PropVariantType.VT_DATE;
             pv.Value.dateVal = value.ToOADate();
             return pv;
         }
-	public static PropVariantFacade DateTimeToPropVariant(DateTime? value) {
-		PropVariantFacade pv = new PropVariantFacade();
-		pv.Value.vt = PropVariantType.VT_DATE;
-		pv.Value.dateVal = value?.ToOADate() ?? DateTime.MinValue.ToOADate();
-		return pv;
-	}
+	    public static PropVariantFacade DateTimeToPropVariant(DateTime? value) {
+		    PropVariantFacade pv = new PropVariantFacade();
+		    pv.Value.vt = PropVariantType.VT_DATE;
+		    pv.Value.dateVal = value?.ToOADate() ?? DateTime.MinValue.ToOADate();
+		    return pv;
+	    }
 
-		public static implicit operator string(PropVariantFacade val)
+	    public static implicit operator string(PropVariantFacade val)
         {
             return val.ToString();
         }
@@ -332,11 +341,12 @@ namespace MediaDevices.Internal
             return val.ToDate();
         }
 
-	public static implicit operator DateTime?(PropVariantFacade val)
+    	public static implicit operator DateTime?(PropVariantFacade val)
         {
-		return val.ToNullableDate();
-	}
-	public static implicit operator Guid(PropVariantFacade val)
+		    return val.ToNullableDate();
+	    }
+	
+        public static implicit operator Guid(PropVariantFacade val)
         {
             return val.ToGuid();
         }
@@ -356,15 +366,15 @@ namespace MediaDevices.Internal
             return val.ToUlong();
         }
 
-        public static implicit operator Byte[] (PropVariantFacade val)
+        public static implicit operator byte[] (PropVariantFacade val)
         {
             return val.ToByteArray();
         }
 
         private static class NativeMethods
         {
-		[DllImport("ole32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-		static extern public int PropVariantClear(ref PropVariant val);
-	}
+		    [DllImport("ole32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+		    static extern public int PropVariantClear(ref PropVariant val);
+	    }
     }
 }

@@ -56,7 +56,7 @@ namespace MediaDevices.Internal
                 using (PropVariantFacade val = new PropVariantFacade())
                 {
                     values.GetValue(ref key, out val.Value);
-                    value = val.ToDate();
+                    value = val.ToNullableDate();
                 }
                 return true;
             }

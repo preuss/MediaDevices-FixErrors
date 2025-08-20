@@ -207,7 +207,7 @@ namespace MediaDevices.Internal
             }
 
             // read all properties
-            // use a loop to prevent exceptions during calling GetValue for non existing values 
+            // use a loop to prevent exceptions during calling GetValue for non-existing values 
             uint num = 0;
             values.GetCount(ref num);
             for (uint i = 0; i < num; i++)
