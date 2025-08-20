@@ -124,6 +124,7 @@ namespace MediaDevices.Internal
             catch (Exception ex)
             {
                 Trace.WriteLine(ex.ToString());
+                throw new IOException("Error reading from IStream.", ex);
             }
             return 0;
         }
