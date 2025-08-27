@@ -37,8 +37,8 @@ namespace MediaDevices
             eventParameters.TryGetStringValue(WPD.OBJECT_PARENT_ID, out string objectParentId);
             this.ObjectParentId = objectParentId;
 
-            eventParameters.TryGetStringValue(WPD.OBJECT_CONTAINER_FUNCTIONAL_OBJECT_ID, out string objectContainerFuntionalObjectId);
-            this.ObjectContainerFuntionalObjectId = objectContainerFuntionalObjectId;
+            eventParameters.TryGetStringValue(WPD.OBJECT_CONTAINER_FUNCTIONAL_OBJECT_ID, out string objectContainerFunctionalObjectId);
+            this.ObjectContainerFunctionalObjectId = objectContainerFunctionalObjectId;
         }
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace MediaDevices
         /// <summary>
         /// Container functional id of the added object. 
         /// </summary>
-        public string ObjectContainerFuntionalObjectId { get; private set; }
+        public string ObjectContainerFunctionalObjectId { get; private set; }
 
         /// <summary>
         /// Full file name of the added object
