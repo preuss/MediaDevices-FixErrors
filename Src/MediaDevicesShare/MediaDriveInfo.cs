@@ -8,9 +8,9 @@ namespace MediaDevices
     /// </summary>
     public sealed class MediaDriveInfo
     {
-        private MediaDevice device;
-        private string objectId;
-        private MediaStorageInfo info;
+        private readonly MediaDevice device;
+        private readonly string objectId;
+        private readonly MediaStorageInfo info;
 
         internal MediaDriveInfo(MediaDevice device, string objectId)
         {
@@ -89,7 +89,7 @@ namespace MediaDevices
         public long TotalSize { get; private set; }
 
         /// <summary>
-        /// Get the volume lable of the drive.
+        /// Get the volume label of the drive.
         /// </summary>
         public string VolumeLabel { get; private set; }
 
