@@ -2085,43 +2085,42 @@ namespace MediaDevices
 
 			try
 			{
-				MediaStorageInfo info = new MediaStorageInfo();
-
 				this.deviceProperties.GetSupportedProperties(storageObjectId, out IPortableDeviceKeyCollection ppKeys);
 				ComTrace.WriteObject(ppKeys);
 				this.deviceProperties.GetValues(storageObjectId, keys, out IPortableDeviceValues values);
 
 				values.TryGetUnsignedIntegerValue(WPD.STORAGE_TYPE, out uint type);
-				info.Type = (StorageType)type;
 
 				values.TryGetStringValue(WPD.STORAGE_FILE_SYSTEM_TYPE, out string fileSystemType);
-				info.FileSystemType = fileSystemType;
 
 				values.TryGetUnsignedLargeIntegerValue(WPD.STORAGE_CAPACITY, out ulong capacity);
-				info.Capacity = capacity;
 
 				values.TryGetUnsignedLargeIntegerValue(WPD.STORAGE_FREE_SPACE_IN_BYTES, out ulong freeBytes);
-				info.FreeSpaceInBytes = freeBytes;
 
 				values.TryGetUnsignedLargeIntegerValue(WPD.STORAGE_FREE_SPACE_IN_OBJECTS, out ulong freeObjects);
-				info.FreeSpaceInObjects = freeObjects;
 
 				values.TryGetStringValue(WPD.STORAGE_DESCRIPTION, out string description);
-				info.Description = description;
 
 				values.TryGetStringValue(WPD.STORAGE_SERIAL_NUMBER, out string serialNumber);
-				info.SerialNumber = serialNumber;
 
 				values.TryGetUnsignedLargeIntegerValue(WPD.STORAGE_MAX_OBJECT_SIZE, out ulong maxObjectSize);
-				info.MaxObjectSize = maxObjectSize;
 
 				values.TryGetUnsignedLargeIntegerValue(WPD.STORAGE_CAPACITY_IN_OBJECTS, out ulong capacityInObjects);
-				info.CapacityInObjects = capacityInObjects;
 
 				values.TryGetUnsignedIntegerValue(WPD.STORAGE_ACCESS_CAPABILITY, out uint accessCapability);
-				info.AccessCapability = (StorageAccessCapability)accessCapability;
 
-				return info;
+				return new MediaStorageInfo(
+					(StorageType)type,
+					fileSystemType,
+					capacity,
+					freeBytes,
+					freeObjects,
+					description,
+					serialNumber,
+					maxObjectSize,
+					capacityInObjects,
+					(StorageAccessCapability)accessCapability
+				);
 			} catch(FileNotFoundException ex)
 			{
 				Debug.WriteLine(ex.ToString());
