@@ -2155,7 +2155,7 @@ namespace MediaDevices
 		/// <param name="respCode">Response code</param>
 		/// <returns>Output parameters</returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<uint> VendorExcecute(uint opCode, IEnumerable<uint> inputParams, out uint respCode)
+		public IEnumerable<uint> VendorExecute(uint opCode, IEnumerable<uint> inputParams, out uint respCode)
 		{
 			CheckConnected();
 
