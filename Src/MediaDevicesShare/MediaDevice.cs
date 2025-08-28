@@ -247,7 +247,7 @@ namespace MediaDevices
 			} catch(COMException ex)
 			{
 				Trace.WriteLine(ex.ToString());
-				this.Description = string.Empty;
+				this.Manufacturer = string.Empty;
 			}
 
 			//this.device = new PortableDeviceApiLib.PortableDevice();
