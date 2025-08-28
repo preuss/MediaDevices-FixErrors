@@ -1,4 +1,5 @@
-﻿using MediaDevices.Internal;
+﻿using System;
+using MediaDevices.Internal;
 using System.IO;
 
 namespace MediaDevices
@@ -10,42 +11,28 @@ namespace MediaDevices
     {
         private readonly MediaDevice device;
         private readonly string objectId;
-        private readonly MediaStorageInfo info;
 
         internal MediaDriveInfo(MediaDevice device, string objectId)
         {
             this.device = device;
             this.objectId = objectId;
-            this.info = device.GetStorageInfo(objectId);
 
-            if (this.info != null)
-            {
-                this.TotalSize = (long)this.info.Capacity;
-                this.TotalFreeSpace = this.AvailableFreeSpace = (long)this.info.FreeSpaceInBytes;
+            Initialize();
+        }
+        private void Initialize()
+        {
+            MediaStorageInfo info = device.GetStorageInfo(objectId);
+            if (info == null) return;
 
-                this.DriveFormat = this.info.FileSystemType;
+            TotalSize = Convert.ToInt64(info.Capacity);
+            TotalFreeSpace = AvailableFreeSpace = Convert.ToInt64(info.FreeSpaceInBytes);
 
-                switch (this.info.Type)
-                {
-                case StorageType.FixedRam:
-                case StorageType.FixedRom:
-                    this.DriveType = DriveType.Fixed;
-                    break;
-                case StorageType.RemovableRam:
-                case StorageType.RemovableRom:
-                    this.DriveType = DriveType.Removable;
-                    break;
-                case StorageType.Undefined:
-                default:
-                    this.DriveType = DriveType.Unknown;
-                    break;
-                }
-
-
-                this.RootDirectory = new MediaDirectoryInfo(this.device, Item.Create(this.device, this.objectId));
-                this.Name = this.RootDirectory.FullName;
-                this.VolumeLabel = this.info.Description;
-            }
+            DriveFormat = info.FileSystemType;
+            DriveType = info.GetDriveType();
+            
+            RootDirectory = new MediaDirectoryInfo(device, Item.Create(device, objectId));
+            Name = RootDirectory.FullName;
+            VolumeLabel = info.Description;
         }
 
         /// <summary>
@@ -96,17 +83,11 @@ namespace MediaDevices
         /// <summary>
         /// Eject the drive.
         /// </summary>
-        public void Eject()
-        {
-            this.device.InternalEject(this.objectId);
-        }
+        public void Eject() => device.InternalEject(objectId);
 
         /// <summary>
         /// Format the drive.
         /// </summary>
-        public void Format()
-        {
-            this.device.Format(this.objectId);
-        }
+        public void Format() => device.Format(objectId);
     }
 }
