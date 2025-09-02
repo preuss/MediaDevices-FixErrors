@@ -18,10 +18,6 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Src\MediaDevices70\MediaDevices70.csproj" />
-  </ItemGroup>
-
   <Import Project="..\MediaDevicesUnitTestShare\MediaDevicesUnitTestShare.projitems" Label="Shared" />
 
 </Project>

@@ -120,12 +120,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Src\MediaDevicesFramework48\MediaDevicesFramework48.csproj">
-      <Project>{6004fb9f-b22e-423e-b3c7-cafd3bd5dabb}</Project>
-      <Name>MediaDevicesFramework48</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

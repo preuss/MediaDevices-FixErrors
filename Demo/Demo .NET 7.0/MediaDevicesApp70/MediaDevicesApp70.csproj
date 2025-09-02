@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Src\MediaDevices70\MediaDevices70.csproj" />
     <ProjectReference Include="..\Explorer70\Explorer70.csproj" />
   </ItemGroup>
 
