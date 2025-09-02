@@ -131,7 +131,7 @@ namespace MediaDevices.Internal
                 Refresh();
 
                 // find full name if no path
-                if (string.IsNullOrEmpty(this.path))
+                if (string.IsNullOrEmpty(path))
                 {
                     string p = GetPath();
                     this.path = Path.GetDirectoryName(p);
