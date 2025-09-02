@@ -2319,17 +2319,17 @@ namespace MediaDevices
 			}
 		}
 
-		internal static bool IsPath(string path)
+		internal static bool IsPath(string? path)
 		{
 			return !string.IsNullOrWhiteSpace(path) && path.IndexOfAny(Path.GetInvalidPathChars()) < 0;
 		}
 
-		internal bool EqualsName(string a, string b)
+		internal bool EqualsName(string? a, string? b)
 		{
 			return this.IsCaseSensitive ? a == b : string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 		}
 
-		internal static string FilterToRegex(string filter)
+		internal static string? FilterToRegex(string? filter)
 		{
 			if(filter == null || filter == "*" || filter == "*.*")
 			{

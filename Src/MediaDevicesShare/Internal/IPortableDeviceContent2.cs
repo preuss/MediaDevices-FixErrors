@@ -18,8 +18,8 @@ namespace MediaDevices.Internal
         new void EnumObjects(
             [In] uint dwFlags, 
             [In] [MarshalAs(UnmanagedType.LPWStr)] string pszParentObjectID, 
-            [In] [MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues pFilter,
-            [MarshalAs(UnmanagedType.Interface)] out IEnumPortableDeviceObjectIDs ppenum);
+            [In] [MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues? pFilter,
+            [MarshalAs(UnmanagedType.Interface)] out IEnumPortableDeviceObjectIDs ppEnum);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         new void Properties([MarshalAs(UnmanagedType.Interface)] out IPortableDeviceProperties ppProperties);
