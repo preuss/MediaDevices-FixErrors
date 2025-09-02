@@ -97,18 +97,17 @@ namespace MediaDevices
 		{
 			try
 			{
-				deviceManager = (IPortableDeviceManager)new PortableDeviceManager();
-				serviceManager = (IPortableDeviceServiceManager)deviceManager;
+				(deviceManager, serviceManager) = ComFactory.CreateDeviceManagers();
 
 				//var x = new MediaDevMgr();
 				//var f = new MediaDevMgrClassFactory();
 				//IWMDeviceManager3 devManager = (IWMDeviceManager3)f;
 
-
 				//devManager.GetRevision(out var revision);
 				//devManager.GetDeviceCount(out var count);
 				//devManager.EnumDevices2(out var e);
-			} catch(Exception ex)
+			}
+			catch (Exception ex)
 			{
 				Trace.TraceError(ex.ToString());
 			}
@@ -251,7 +250,7 @@ namespace MediaDevices
 			}
 
 			//this.device = new PortableDeviceApiLib.PortableDevice();
-			this.device = (IPortableDevice)new PortableDevice();
+			this.device = ComFactory.CreateDevice();
 		}
 
 		/// <summary>
@@ -316,7 +315,7 @@ namespace MediaDevices
 				CheckConnected();
 
 				// set new friendly name
-				IPortableDeviceValues devInValues = (IPortableDeviceValues)new PortableDeviceValues();
+				IPortableDeviceValues devInValues = ComFactory.CreateDeviceValues();
 				devInValues.SetStringValue(ref WPD.DEVICE_FRIENDLY_NAME, value);
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
 				this.deviceProperties.SetValues(Item.RootId, devInValues, out IPortableDeviceValues devValues);
@@ -652,7 +651,7 @@ namespace MediaDevices
 			var appName = Assembly.GetEntryAssembly()?.GetName()?.Name ?? "MediaDevices";
 
 			// set open device parameters
-			var clientInfo = (IPortableDeviceValues)new PortableDeviceValues();
+			var clientInfo = ComFactory.CreateDeviceValues();
 			clientInfo.SetStringValue(ref WPD.CLIENT_NAME, appName);
 
 			clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_MAJOR_VERSION, 1);
@@ -2071,7 +2070,7 @@ namespace MediaDevices
 				throw new ArgumentNullException(nameof(storageObjectId));
 			}
 
-			IPortableDeviceKeyCollection keys = (IPortableDeviceKeyCollection)new PortableDeviceKeyCollection();
+			IPortableDeviceKeyCollection keys = ComFactory.CreateDeviceKeyCollection();
 			keys.Add(ref WPD.STORAGE_TYPE);
 			keys.Add(ref WPD.STORAGE_FILE_SYSTEM_TYPE);
 			keys.Add(ref WPD.STORAGE_CAPACITY);

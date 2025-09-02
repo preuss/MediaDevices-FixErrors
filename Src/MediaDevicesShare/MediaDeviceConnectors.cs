@@ -16,8 +16,7 @@ namespace MediaDevices
 
         static MediaDeviceConnectors()
         {
-            IEnumPortableDeviceConnectors inst = (IEnumPortableDeviceConnectors)new EnumPortableDeviceConnectors();
-            connectors = inst;
+            connectors = ComFactory.CreateDeviceConnectors();
         }
 
         #endregion

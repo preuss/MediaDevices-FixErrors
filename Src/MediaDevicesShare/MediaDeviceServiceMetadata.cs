@@ -18,7 +18,7 @@ namespace MediaDevices
         /// </summary>
         protected override void Update()
         {
-            IPortableDeviceKeyCollection keyCol = (IPortableDeviceKeyCollection)new PortableDeviceKeyCollection();
+            IPortableDeviceKeyCollection keyCol = ComFactory.CreateDeviceKeyCollection();
             keyCol.Add(ref WPD.ParentId);
             keyCol.Add(ref WPD.Name);
             keyCol.Add(ref WPD.PUOID);

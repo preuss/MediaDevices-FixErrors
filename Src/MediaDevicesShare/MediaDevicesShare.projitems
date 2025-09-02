@@ -20,6 +20,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FunctionalCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ComEnumerable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\ComFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ComHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\Command.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\ComTrace.cs" />
@@ -108,5 +109,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)WMDM\IWMDMEnumDevice.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WMDM\MediaDevMgr.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WMDM\MediaDevMgrClassFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Extensions\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Internal\Interop\" />
   </ItemGroup>
 </Project>

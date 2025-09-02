@@ -17,7 +17,7 @@ namespace MediaDevices
     public class MediaDeviceService : IDisposable
     {
         internal MediaDevice device;
-        internal IPortableDeviceService service = (IPortableDeviceService)new PortableDeviceService();
+        internal IPortableDeviceService service = ComFactory.CreateDeviceService();
         //protected IPortableDeviceValues values;
         internal IPortableDeviceServiceCapabilities capabilities;
         internal IPortableDeviceContent2 content;
@@ -45,8 +45,8 @@ namespace MediaDevices
             //}
             //this.ServiceName = serviceId.Substring(serviceId.LastIndexOf(@"\") + 1);
 
-            IPortableDeviceValues values = (IPortableDeviceValues)new PortableDeviceValues();
-            this.service.Open(this.ServiceId, values);
+            IPortableDeviceValues values = ComFactory.CreateDeviceValues();
+			this.service.Open(this.ServiceId, values);
 
             this.service.GetServiceObjectID(out string serviceObjectID);
             this.ServiceObjectID = serviceObjectID;
@@ -287,15 +287,15 @@ namespace MediaDevices
         {
             this.service.Methods(out IPortableDeviceServiceMethods methods);
 
-            IPortableDeviceValues values = (IPortableDeviceValues)new PortableDeviceValues();
+            IPortableDeviceValues values = ComFactory.CreateDeviceValues();
             //values.SetStringValue();
-            IPortableDeviceValues results = (IPortableDeviceValues)new PortableDeviceValues();
+            IPortableDeviceValues results = ComFactory.CreateDeviceValues();
             methods.Invoke(ref method, ref values, ref results);
         }
 
         internal void SendCommand(PropertyKey commandKey)
         {
-            IPortableDeviceValues values = (IPortableDeviceValues)new PortableDeviceValues();
+            IPortableDeviceValues values = ComFactory.CreateDeviceValues();
             values.SetGuidValue(ref WPD.PROPERTY_COMMON_COMMAND_CATEGORY, ref commandKey.fmtid);
             values.SetUnsignedIntegerValue(ref WPD.PROPERTY_COMMON_COMMAND_ID, commandKey.pid);
 

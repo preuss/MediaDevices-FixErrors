@@ -22,7 +22,7 @@ namespace MediaDevices
         /// </summary>
         protected override void Update()
         {
-            IPortableDeviceKeyCollection keyCol = (IPortableDeviceKeyCollection)new PortableDeviceKeyCollection();
+            IPortableDeviceKeyCollection keyCol = ComFactory.CreateDeviceKeyCollection();
             keyCol.Add(ref WPD.SignalStrength);
             keyCol.Add(ref WPD.TextMessages);
             keyCol.Add(ref WPD.NewPictures);

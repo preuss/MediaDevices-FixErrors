@@ -18,7 +18,7 @@ namespace MediaDevices.Internal
         static Item()
         {
             // key collection with all used properties
-            keyCollection = (IPortableDeviceKeyCollection)new PortableDeviceKeyCollection();
+            keyCollection = ComFactory.CreateDeviceKeyCollection();
             keyCollection.Add(ref WPD.OBJECT_CONTENT_TYPE);
             keyCollection.Add(ref WPD.OBJECT_NAME);
             keyCollection.Add(ref WPD.OBJECT_ORIGINAL_FILE_NAME);
@@ -95,7 +95,7 @@ namespace MediaDevices.Internal
         public static Item GetFromPersistentUniqueId(MediaDevice device, string persistentUniqueId)
         {
             // fill collection with id to request
-            var collection = (IPortableDevicePropVariantCollection)new PortableDevicePropVariantCollection();
+            var collection = ComFactory.CreateDevicePropVariantCollection();
 
             using (var propVariantPUID = PropVariantFacade.StringToPropVariant(persistentUniqueId))
             {
@@ -426,7 +426,7 @@ namespace MediaDevices.Internal
                 if (child == null)
                 {
                     // create a new directory
-                    IPortableDeviceValues deviceValues = (IPortableDeviceValues)new PortableDeviceValues();
+                    IPortableDeviceValues deviceValues = ComFactory.CreateDeviceValues();
                     deviceValues.SetStringValue(ref WPD.OBJECT_PARENT_ID, parent.Id);
                     deviceValues.SetStringValue(ref WPD.OBJECT_NAME, folder);
                     deviceValues.SetStringValue(ref WPD.OBJECT_ORIGINAL_FILE_NAME, folder);
@@ -463,12 +463,12 @@ namespace MediaDevices.Internal
 
         public void Delete(bool recursive = false)
         {
-            var objectIdCollection = (IPortableDevicePropVariantCollection)new PortableDevicePropVariantCollection();
+            var objectIdCollection = ComFactory.CreateDevicePropVariantCollection();
 
             var propVariantValue = PropVariantFacade.StringToPropVariant(this.Id);
             objectIdCollection.Add(ref propVariantValue.Value);
 
-            IPortableDevicePropVariantCollection results = (IPortableDevicePropVariantCollection) new PortableDevicePropVariantCollection();
+            IPortableDevicePropVariantCollection results = ComFactory.CreateDevicePropVariantCollection();
             // TODO: get the results back and handle failures correctly
             
             this.device.deviceContent.Delete(recursive ? PORTABLE_DEVICE_DELETE_WITH_RECURSION : PORTABLE_DEVICE_DELETE_NO_RECURSION, objectIdCollection, ref results);
@@ -575,7 +575,7 @@ namespace MediaDevices.Internal
         internal void UploadFile(string fileName, Stream stream)
         {
 
-            IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+            IPortableDeviceValues portableDeviceValues = ComFactory.CreateDeviceValues();
 
             portableDeviceValues.SetStringValue(ref WPD.OBJECT_PARENT_ID, this.Id);
             portableDeviceValues.SetUnsignedLargeIntegerValue(ref WPD.OBJECT_SIZE, (ulong)stream.Length);
@@ -601,7 +601,7 @@ namespace MediaDevices.Internal
 
         internal bool Rename(string newName)
         {
-            IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+            IPortableDeviceValues portableDeviceValues = ComFactory.CreateDeviceValues();
             IPortableDeviceValues result;
 
             // with OBJECT_NAME does not work for Amazon Kindle Paperwhite
@@ -626,7 +626,7 @@ namespace MediaDevices.Internal
 
         internal void SetDateCreated(DateTime value)
         {
-            IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+            IPortableDeviceValues portableDeviceValues = ComFactory.CreateDeviceValues();
             IPortableDeviceValues result;
 
             using (PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value))
@@ -639,7 +639,7 @@ namespace MediaDevices.Internal
             Refresh();
         }
 		internal void SetDateCreated(DateTime? value) {
-			IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+			IPortableDeviceValues portableDeviceValues = ComFactory.CreateDeviceValues();
 			IPortableDeviceValues result;
 
 			using(PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value)) {
@@ -652,7 +652,7 @@ namespace MediaDevices.Internal
 		}
 		internal void SetDateModified(DateTime value)
         {
-            IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+            IPortableDeviceValues portableDeviceValues = ComFactory.CreateDeviceValues();
             IPortableDeviceValues result;
 
             using (PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value))
@@ -665,7 +665,7 @@ namespace MediaDevices.Internal
             Refresh();
         }
 		internal void SetDateModified(DateTime? value) {
-			IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+			IPortableDeviceValues portableDeviceValues = ComFactory.CreateDeviceValues();
 			IPortableDeviceValues result;
 
 			using(PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value)) {
@@ -678,7 +678,7 @@ namespace MediaDevices.Internal
 		}
 		internal void SetDateAuthored(DateTime value)
         {
-            IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+            IPortableDeviceValues portableDeviceValues = ComFactory.CreateDeviceValues();
             IPortableDeviceValues result;
 
             using (PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value))
@@ -691,7 +691,7 @@ namespace MediaDevices.Internal
             Refresh();
         }
 		internal void SetDateAuthored(DateTime? value) {
-			IPortableDeviceValues portableDeviceValues = new PortableDeviceValues() as IPortableDeviceValues;
+			IPortableDeviceValues portableDeviceValues = ComFactory.CreateDeviceValues();
 			IPortableDeviceValues result;
 
 			using(PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value)) {
