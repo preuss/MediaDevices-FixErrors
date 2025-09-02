@@ -185,10 +185,20 @@ namespace MediaDevices.Internal
                     this.Type = ItemType.File;
                 }
                 if (this.path != null) // TODO check if we can remove empty pathes
-                {
-                    // don't use Path.Combine
-                    this.FullName = this.path.TrimEnd(DirectorySeparatorChar) + DirectorySeparatorChar + this.Name;
-                }
+				{
+					// TODO: build full name, but should we use OriginalFileName as fallback?
+					string usingName = this.Name ?? this.OriginalFileName;
+                    if(string.IsNullOrWhiteSpace(usingName))
+                    {
+						// TODO: Should we throw exception here, or append something to show error?
+						this.FullName = this.path;
+					}
+					else
+					{
+						// don't use Path.Combine
+						this.FullName = this.path.TrimEnd(DirectorySeparatorChar) + DirectorySeparatorChar + usingName;
+					}
+				}
             }
         }
         
