@@ -112,6 +112,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Extensions\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Internal\Interop\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Internal\InterOp\" />
   </ItemGroup>
 </Project>
