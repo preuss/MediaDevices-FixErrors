@@ -485,8 +485,10 @@ namespace MediaDevices.Internal
         {
             var objectIdCollection = ComFactory.CreateDevicePropVariantCollection();
 
-            var propVariantValue = PropVariantFacade.StringToPropVariant(Id);
-            objectIdCollection.Add(ref propVariantValue.Value);
+            using(PropVariantFacade propVariantValue = PropVariantFacade.StringToPropVariant(Id)) 
+			{
+				objectIdCollection.Add(ref propVariantValue.Value);
+			}
 
             IPortableDevicePropVariantCollection results = ComFactory.CreateDevicePropVariantCollection();
             // TODO: get the results back and handle failures correctly
