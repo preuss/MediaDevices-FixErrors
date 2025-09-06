@@ -84,12 +84,12 @@ namespace MediaDevices.Internal
 
                 switch (val.VariantType)
                 {
-                case PropVariantType.VT_CLSID:
-                    Trace.WriteLine($"##### {fieldName} = {FindGuidField(val.ToGuid())?.Name ?? val.ToString()}");
-                    break;
-                default:
-                    Trace.WriteLine($"##### {fieldName} = {val.ToDebugString()}");
-                    break;
+	                case PropVariantType.VT_CLSID:
+		                Trace.WriteLine($"##### {fieldName} = {FindGuidField(val.ToGuid())?.Name ?? val.ToString()}");
+		                break;
+	                default:
+		                Trace.WriteLine($"##### {fieldName} = {val.ToDebugString()}");
+		                break;
                 }
             }
         }
