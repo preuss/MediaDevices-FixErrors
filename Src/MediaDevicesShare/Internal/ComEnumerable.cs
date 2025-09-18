@@ -11,7 +11,7 @@ namespace MediaDevices.Internal
         public static IEnumerable<KeyValuePair<string, string>> ToKeyValuePair(this IPortableDeviceValues values)
         {
             uint num = 0;
-            values?.GetCount(ref num);
+            values.GetCount(ref num);
             for (uint i = 0; i < num; i++)
             {
                 PropertyKey key = new PropertyKey();
@@ -21,14 +21,14 @@ namespace MediaDevices.Internal
 
 
                     string fieldName = string.Empty;
-                    FieldInfo propField = ComTrace.FindPropertyKeyField(key);
+                    FieldInfo? propField = ComTrace.FindPropertyKeyField(key);
                     if (propField != null)
                     {
                         fieldName = propField.Name;
                     }
                     else
                     {
-                        FieldInfo guidField = ComTrace.FindGuidField(key.fmtid);
+                        FieldInfo? guidField = ComTrace.FindGuidField(key.fmtid);
                         if (guidField != null)
                         {
                             fieldName = $"{guidField.Name}, {key.pid}";
@@ -57,13 +57,23 @@ namespace MediaDevices.Internal
 
         public static Guid Guid(this Enum e)
         {
-            FieldInfo fi = e.GetType().GetField(e.ToString());
+            FieldInfo? fi = e.GetType().GetField(e.ToString()!);
+			if (fi == null) throw new InvalidOperationException($"Field not found for enum value {e}");
 
-            // changed for .net framework 4.0
-            // EnumGuidAttribute attribute = fi.GetCustomAttribute<EnumGuidAttribute>();
-            EnumGuidAttribute attribute = Attribute.GetCustomAttribute(fi, typeof(EnumGuidAttribute)) as EnumGuidAttribute;
-            return attribute.Guid;
-        }
+			// changed for .net framework 4.0
+			// EnumGuidAttribute attribute = fi.GetCustomAttribute<EnumGuidAttribute>();
+
+			//EnumGuidAttribute attribute = Attribute.GetCustomAttribute(fi, typeof(EnumGuidAttribute)) as EnumGuidAttribute;
+			//return attribute.Guid;
+
+			EnumGuidAttribute? attribute = Attribute.GetCustomAttribute(fi, typeof(EnumGuidAttribute)) as EnumGuidAttribute;
+			if (attribute == null)
+			{
+				throw new InvalidOperationException($"EnumGuidAttribute not found for enum value {e}");
+			}
+
+			return attribute.Guid;
+		}
 
         public static IEnumerable<PropertyKey> ToEnum(this IPortableDeviceKeyCollection col) 
         {
@@ -107,11 +117,17 @@ namespace MediaDevices.Internal
         {
             T en = Enum.GetValues(typeof(T)).Cast<T>().Where(e =>
             {
-                // changed for .net framework 4.0
-                // EnumGuidAttribute ea = e.GetType().GetField(e.ToString()).GetCustomAttribute<EnumGuidAttribute>();
-                EnumGuidAttribute ea = Attribute.GetCustomAttribute(e.GetType().GetField(e.ToString()), typeof(EnumGuidAttribute)) as EnumGuidAttribute;
-                return ea.Guid == guid;
-            }).FirstOrDefault();
+				// changed for .net framework 4.0
+				// EnumGuidAttribute ea = e.GetType().GetField(e.ToString()).GetCustomAttribute<EnumGuidAttribute>();
+
+				//EnumGuidAttribute ea = Attribute.GetCustomAttribute(e.GetType().GetField(e.ToString()), typeof(EnumGuidAttribute)) as EnumGuidAttribute;
+				//return ea.Guid == guid;
+
+				FieldInfo? fieldInfo = e.GetType().GetField(e.ToString()!);
+				if (fieldInfo == null) return false;
+				EnumGuidAttribute? ea = Attribute.GetCustomAttribute(fieldInfo, typeof(EnumGuidAttribute)) as EnumGuidAttribute;
+				return ea != null && ea.Guid == guid;
+			}).FirstOrDefault();
             return en;
         }
 
@@ -120,10 +136,16 @@ namespace MediaDevices.Internal
         {
             T en = Enum.GetValues(typeof(T)).Cast<T>().Where(e =>
             {
-                // changed for .net framework 4.0
-                // KeyAttribute attr = e.GetType().GetField(e.ToString()).GetCustomAttribute<KeyAttribute>();
-                KeyAttribute attr = Attribute.GetCustomAttribute(e.GetType().GetField(e.ToString()), typeof(KeyAttribute)) as KeyAttribute;
-                return attr.PropertyKey == key;
+				// changed for .net framework 4.0
+				// KeyAttribute attr = e.GetType().GetField(e.ToString()).GetCustomAttribute<KeyAttribute>();
+				
+				//KeyAttribute attr = Attribute.GetCustomAttribute(e.GetType().GetField(e.ToString()), typeof(KeyAttribute)) as KeyAttribute;
+
+				FieldInfo? fieldInfo = e.GetType().GetField(e.ToString()!);
+				if (fieldInfo == null) return false;
+				KeyAttribute? attr = Attribute.GetCustomAttribute(fieldInfo, typeof(KeyAttribute)) as KeyAttribute;
+
+				return attr != null && attr.PropertyKey == key;
             }).FirstOrDefault();
             if (en.Equals(default(T)))
             {
@@ -139,8 +161,14 @@ namespace MediaDevices.Internal
             {
                 // changed for .net framework 4.0
                 // return e.GetType().GetField(e.ToString()).GetCustomAttribute<EnumGuidAttribute>().Guid == guid;
-                return (Attribute.GetCustomAttribute(e.GetType().GetField(e.ToString()), typeof(EnumGuidAttribute)) as EnumGuidAttribute).Guid == guid;
-            }).FirstOrDefault();
+                
+				//return (Attribute.GetCustomAttribute(e.GetType().GetField(e.ToString()), typeof(EnumGuidAttribute)) as EnumGuidAttribute).Guid == guid;
+
+                FieldInfo? fieldInfo = e.GetType().GetField(e.ToString()!);
+                if (fieldInfo == null) return false;
+                EnumGuidAttribute? attr = Attribute.GetCustomAttribute(fieldInfo, typeof(EnumGuidAttribute)) as EnumGuidAttribute;
+                return attr != null && attr.Guid == guid;
+			}).FirstOrDefault();
             if (en.Equals(default(T)))
             {
                 Trace.TraceWarning($"Unknown {typeof(T).Name} Guid {guid}");

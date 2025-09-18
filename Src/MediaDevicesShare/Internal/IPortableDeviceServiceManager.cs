@@ -11,7 +11,7 @@ namespace MediaDevices.Internal
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszPnPDeviceID,
             [In] ref Guid guidServiceCategory,
             //[Out, In, MarshalAs(UnmanagedType.LPWStr)] ref string[] pServices,
-            [Out, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr)]string[] pServices,
+            [Out, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr)]string[]? pServices,
             [Out, In] ref uint pcServices);
         
         void GetDeviceForService(

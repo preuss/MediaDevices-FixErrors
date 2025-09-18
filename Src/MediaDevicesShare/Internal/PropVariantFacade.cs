@@ -257,7 +257,7 @@ namespace MediaDevices.Internal
         [HandleProcessCorruptedStateExceptions]
 #endif
         [SecurityCritical]
-        public byte[] ToByteArray()
+        public byte[]? ToByteArray()
         {
             if (this.Value.vt == PropVariantType.VT_ERROR)
             {

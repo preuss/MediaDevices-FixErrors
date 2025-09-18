@@ -36,7 +36,7 @@ namespace MediaDevices
         /// }
         /// </code>
         /// </example>
-        public static IEnumerable<T> CatchExceptions<T>(this IEnumerable<T> src, Action<Exception> action = null)
+        public static IEnumerable<T> CatchExceptions<T>(this IEnumerable<T> src, Action<Exception>? action = null)
         {
             using (var enumerator = src.GetEnumerator())
             {

@@ -6,14 +6,23 @@ namespace MediaDevices.Internal
 {
     internal class Command
     {
-        private IPortableDeviceValues values;
-        private IPortableDeviceValues result;
+        private readonly IPortableDeviceValues _values;
+        private IPortableDeviceValues? _result;
+		private IPortableDeviceValues Result
+		{
+			get
+			{
+				if (_result == null) throw new InvalidOperationException($"Result not initialized of {nameof(_result)}");
+				return _result;
+			}
+		}
 
-        private Command(PropertyKey commandKey)
+
+		private Command(PropertyKey commandKey)
         {
-            this.values = ComFactory.CreateDeviceValues();
-            this.values.SetGuidValue(ref WPD.PROPERTY_COMMON_COMMAND_CATEGORY, ref commandKey.fmtid);
-            this.values.SetUnsignedIntegerValue(ref WPD.PROPERTY_COMMON_COMMAND_ID, commandKey.pid);
+            _values = ComFactory.CreateDeviceValues();
+            _values.SetGuidValue(ref WPD.PROPERTY_COMMON_COMMAND_CATEGORY, ref commandKey.fmtid);
+            _values.SetUnsignedIntegerValue(ref WPD.PROPERTY_COMMON_COMMAND_ID, commandKey.pid);
         }
 
         public static Command Create(PropertyKey commandKey)
@@ -23,22 +32,22 @@ namespace MediaDevices.Internal
 
         public void Add(PropertyKey key, Guid value)
         {
-            this.values.SetGuidValue(ref key, ref value);
+            _values.SetGuidValue(ref key, ref value);
         }
 
         public void Add(PropertyKey key, int value)
         {
-            this.values.SetSignedIntegerValue(ref key, value);
+            _values.SetSignedIntegerValue(ref key, value);
         }
 
         public void Add(PropertyKey key, uint value)
         {
-            this.values.SetUnsignedIntegerValue(ref key, value);
+            _values.SetUnsignedIntegerValue(ref key, value);
         }
 
         public void Add(PropertyKey key, IPortableDevicePropVariantCollection value)
         {
-            this.values.SetIPortableDevicePropVariantCollectionValue(ref key, value);
+            _values.SetIPortableDevicePropVariantCollectionValue(ref key, value);
         }
         
         public void Add(PropertyKey key, IEnumerable<int> values)
@@ -49,7 +58,7 @@ namespace MediaDevices.Internal
                 var var = PropVariantFacade.IntToPropVariant(value);
                 col.Add(ref var.Value);
             }
-            this.values.SetIPortableDevicePropVariantCollectionValue(ref key, col);
+            _values.SetIPortableDevicePropVariantCollectionValue(ref key, col);
         }
 
 		public void Add(PropertyKey key, IEnumerable<uint> values)
@@ -60,12 +69,12 @@ namespace MediaDevices.Internal
 				var var = PropVariantFacade.UIntToPropVariant(value);
 				col.Add(ref var.Value);
 			}
-			this.values.SetIPortableDevicePropVariantCollectionValue(ref key, col);
+			_values.SetIPortableDevicePropVariantCollectionValue(ref key, col);
 		}
 
 		public void Add(PropertyKey key, string value)
         {
-            this.values.SetStringValue(ref key, value);
+            _values.SetStringValue(ref key, value);
         }
 
         //public void Add(PropertyKey key, byte[] buffer, int size)
@@ -77,38 +86,43 @@ namespace MediaDevices.Internal
         public Guid GetGuid(PropertyKey key)
         {
             Guid value;
-            this.result.GetGuidValue(ref key, out value);
+            Result.GetGuidValue(ref key, out value);
             return value;
         }
 
         public int GetInt(PropertyKey key)
         {
             int value;
-            this.result.GetSignedIntegerValue(ref key, out value);
+            Result.GetSignedIntegerValue(ref key, out value);
             return value;
         }
 
         public uint GetUInt(PropertyKey key)
         {
             uint value;
-            this.result.GetUnsignedIntegerValue(ref key, out value);
+            Result.GetUnsignedIntegerValue(ref key, out value);
             return value;
         }
 
         public string GetString(PropertyKey key)
         {
             string value;
-            this.result.GetStringValue(ref key, out value);
+            Result.GetStringValue(ref key, out value);
             return value;
         }
         
-        public IEnumerable<PropVariantFacade> GetPropVariants(PropertyKey key) 
-        {
-            object obj = null;
-            this.result.GetIUnknownValue(ref key, out obj);
+        public IEnumerable<PropVariantFacade> GetPropVariants(PropertyKey key)
+		{
+			object? obj = null;
+            Result.GetIUnknownValue(ref key, out obj);
             var col = obj as IPortableDevicePropVariantCollection;
-        
-            uint count = 0;
+
+			if (col == null)
+			{
+				yield break;
+			}
+
+			uint count = 0;
             col.GetCount(ref count);
             for (uint i = 0; i < count; i++)
             {
@@ -120,13 +134,13 @@ namespace MediaDevices.Internal
 
         public bool Has(PropertyKey key)
         {
-            uint count = 0;
-            this.result.GetCount(ref count);
+			uint count = 0;
+            Result.GetCount(ref count);
             for (uint i = 0; i < count; i++)
             {
                 PropertyKey k = new PropertyKey();
                 PropVariant v = new PropVariant();
-                this.result.GetAt(i, ref k, ref v);
+                Result.GetAt(i, ref k, ref v);
                 if (key == k)
                 {
                     return true;
@@ -137,10 +151,10 @@ namespace MediaDevices.Internal
 
         public bool Send(IPortableDevice device)
         {
-            device.SendCommand(0, this.values, out this.result);
+            device.SendCommand(0, _values, out _result);
 
-            int error = 0;
-            result.GetErrorValue(ref WPD.PROPERTY_COMMON_HRESULT, out error);
+			int error = 0;
+            Result.GetErrorValue(ref WPD.PROPERTY_COMMON_HRESULT, out error);
             switch ((HResult)error)
             {
             case HResult.S_OK:
@@ -156,7 +170,8 @@ namespace MediaDevices.Internal
         [Conditional("COMTRACE")]
         public void WriteResults()
         {
-            ComTrace.WriteObject(this.result);
+			if (Result == null) throw new InvalidOperationException("Result not initialized");
+			ComTrace.WriteObject(Result);
         }
     }
 }

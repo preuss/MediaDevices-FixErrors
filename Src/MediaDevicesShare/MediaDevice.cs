@@ -738,7 +738,7 @@ namespace MediaDevices
 			}
 			CheckConnected();
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
 				throw new DirectoryNotFoundException($"Director {path} not found.");
@@ -893,7 +893,7 @@ namespace MediaDevices
 			return item.GetChildren(pattern, searchOption).Where(i => i.Type == ItemType.File).Select(i => i.FullName);
 		}
 
-		public IEnumerable<MediaFileInfo> EnumerateFileSystemEntriesAsFileInfo(string path)
+		public IEnumerable<MediaFileInfo>? EnumerateFileSystemEntriesAsFileInfo(string path)
 		{
 			if(path == null)
 			{
@@ -967,7 +967,7 @@ namespace MediaDevices
 			}
 			CheckConnected();
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
 				throw new DirectoryNotFoundException($"Director {path} not found.");
@@ -1712,7 +1712,7 @@ namespace MediaDevices
 		/// </summary>
 		/// <returns>List with supported commands</returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<Commands> SupportedCommands()
+		public IEnumerable<Commands>? SupportedCommands()
 		{
 			CheckConnected();
 
@@ -1732,7 +1732,7 @@ namespace MediaDevices
 		/// </summary>
 		/// <returns>List with functional categories</returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<FunctionalCategory> FunctionalCategories()
+		public IEnumerable<FunctionalCategory>? FunctionalCategories()
 		{
 			CheckConnected();
 
@@ -1753,7 +1753,7 @@ namespace MediaDevices
 		/// <param name="functionalCategory">Select functional category</param>
 		/// <returns>List with functional objects</returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<string> FunctionalObjects(FunctionalCategory functionalCategory)
+		public IEnumerable<string>? FunctionalObjects(FunctionalCategory functionalCategory)
 		{
 			CheckConnected();
 
@@ -1778,7 +1778,7 @@ namespace MediaDevices
 		/// <param name="functionalCategory">Select functional category</param>
 		/// <returns>List with supported content types </returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<ContentType> SupportedContentTypes(FunctionalCategory functionalCategory)
+		public IEnumerable<ContentType>? SupportedContentTypes(FunctionalCategory functionalCategory)
 		{
 			CheckConnected();
 
@@ -1800,7 +1800,7 @@ namespace MediaDevices
 		/// </summary>
 		/// <returns>List with supported events</returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<Events> SupportedEvents()
+		public IEnumerable<Events>? SupportedEvents()
 		{
 			CheckConnected();
 
@@ -1836,7 +1836,7 @@ namespace MediaDevices
 		/// <param name="contentType">Content type to find the locations for.</param>
 		/// <returns>List with the location paths.</returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<string> GetContentLocations(ContentType contentType)
+		public IEnumerable<string>? GetContentLocations(ContentType contentType)
 		{
 			CheckConnected();
 
@@ -2062,7 +2062,7 @@ namespace MediaDevices
 		/// }
 		/// </code>
 		/// </example>
-		public MediaStorageInfo GetStorageInfo(string storageObjectId)
+		public MediaStorageInfo? GetStorageInfo(string storageObjectId)
 		{
 			CheckConnected();
 			if(string.IsNullOrEmpty(storageObjectId))
@@ -2267,7 +2267,7 @@ namespace MediaDevices
 		/// </summary>
 		/// <param name="service">Service type</param>
 		/// <returns>List of services</returns>
-		public IEnumerable<MediaDeviceService> GetServices(MediaDeviceServices service)
+		public IEnumerable<MediaDeviceService>? GetServices(MediaDeviceServices service)
 		{
 			Guid serviceGuid = service.Guid();
 			uint num = 0;

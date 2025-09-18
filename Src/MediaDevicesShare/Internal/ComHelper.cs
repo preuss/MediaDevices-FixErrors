@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 
 
 namespace MediaDevices.Internal
@@ -9,7 +11,7 @@ namespace MediaDevices.Internal
         public static bool HasKeyValue(this IPortableDeviceValues values, PropertyKey findKey)
         {
             uint num = 0;
-            values?.GetCount(ref num);
+            values.GetCount(ref num);
             for (uint i = 0; i < num; i++)
             {
                 PropertyKey key = new PropertyKey();
@@ -45,12 +47,14 @@ namespace MediaDevices.Internal
                 value = val;
                 return true;
             }
-            value = null;
-            return false;
+#pragma warning disable CS8625 // Api value is only null if return value is false
+			value = null;
+#pragma warning restore CS8625 // Api value is only null if return value is false
+			return false;
         }
 
         public static bool TryGetDateTimeValue(this IPortableDeviceValues values, PropertyKey key, out DateTime? value)
-        {
+		{
             if (values.HasKeyValue(key))
             {
                 using (PropVariantFacade val = new PropVariantFacade())
@@ -132,7 +136,7 @@ namespace MediaDevices.Internal
             return false;
         }
 
-        public static bool TryGetIUnknownValue(this IPortableDeviceValues values, PropertyKey key, out object value)
+        public static bool TryGetIUnknownValue(this IPortableDeviceValues values, PropertyKey key, out object? value)
         {
             if (values.HasKeyValue(key))
             {
@@ -143,7 +147,7 @@ namespace MediaDevices.Internal
             return false;
         }
 
-        public static bool TryByteArrayValue(this IPortableDeviceValues values, PropertyKey key, out byte[] value)
+        public static bool TryByteArrayValue(this IPortableDeviceValues values, PropertyKey key, out byte[]? value)
         {
             if (values.HasKeyValue(key))
             {
@@ -163,7 +167,7 @@ namespace MediaDevices.Internal
 			// http://www.pinvoke.net/default.aspx/iprop/PropVariantClear.html
 			// https://social.msdn.microsoft.com/Forums/windowsserver/en-US/ec242718-8738-4468-ae9d-9734113d2dea/quotipropdllquot-seems-to-be-missing-in-windows-server-2008-and-x64-systems?forum=winserver2008appcompatabilityandcertification
 			[DllImport("ole32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-			static extern public int PropVariantClear(ref PropVariant val);
+			public static extern int PropVariantClear(ref PropVariant val);
 		}
 	}
 }

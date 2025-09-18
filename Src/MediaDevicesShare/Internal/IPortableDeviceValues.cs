@@ -8,7 +8,7 @@ namespace MediaDevices.Internal
     internal interface IPortableDeviceValues
     {
         void GetCount(
-             [In] ref uint pcelt);
+             [In] ref uint pcElems);
 
         void GetAt(
             [In] uint index,
@@ -25,7 +25,7 @@ namespace MediaDevices.Internal
 
         void SetStringValue(
             [In] ref PropertyKey key,
-            [In, MarshalAs(UnmanagedType.LPWStr)] string Value);
+            [In, MarshalAs(UnmanagedType.LPWStr)] string value);
 
         void GetStringValue(
             [In] ref PropertyKey key, 
@@ -33,7 +33,7 @@ namespace MediaDevices.Internal
 
         void SetUnsignedIntegerValue(
             [In] ref PropertyKey key,
-            [In] uint Value);
+            [In] uint value);
 
         void GetUnsignedIntegerValue(
             [In] ref PropertyKey key, 
@@ -41,7 +41,7 @@ namespace MediaDevices.Internal
 
         void SetSignedIntegerValue(
             [In] ref PropertyKey key,
-            [In] int Value);
+            [In] int value);
 
         void GetSignedIntegerValue(
             [In] ref PropertyKey key, 
@@ -49,7 +49,7 @@ namespace MediaDevices.Internal
 
         void SetUnsignedLargeIntegerValue(
             [In] ref PropertyKey key,
-            [In] ulong Value);
+            [In] ulong value);
 
         void GetUnsignedLargeIntegerValue(
             [In] ref PropertyKey key, 
@@ -57,7 +57,7 @@ namespace MediaDevices.Internal
 
         void SetSignedLargeIntegerValue(
             [In] ref PropertyKey key,
-            [In] long Value);
+            [In] long value);
 
         void GetSignedLargeIntegerValue(
             [In] ref PropertyKey key, 
@@ -65,7 +65,7 @@ namespace MediaDevices.Internal
 
         void SetFloatValue(
             [In] ref PropertyKey key,
-            [In] float Value);
+            [In] float value);
 
         void GetFloatValue(
             [In] ref PropertyKey key, 
@@ -73,7 +73,7 @@ namespace MediaDevices.Internal
 
         void SetErrorValue(
             [In] ref PropertyKey key,
-            [In] int Value);
+            [In] int value);
 
         void GetErrorValue(
             [In] ref PropertyKey key, 
@@ -89,7 +89,7 @@ namespace MediaDevices.Internal
 
         void SetBoolValue(
             [In] ref PropertyKey key,
-            [In] int Value);
+            [In] int value);
 
         void GetBoolValue(
             [In] ref PropertyKey key, 
@@ -105,7 +105,7 @@ namespace MediaDevices.Internal
 
         void SetGuidValue(
             [In] ref PropertyKey key,
-            [In] ref Guid Value);
+            [In] ref Guid value);
 
         void GetGuidValue(
             [In] ref PropertyKey key, 
