@@ -18,7 +18,7 @@ namespace MediaDevices.Internal
         void Reset();
 
         void Clone(
-            [Out, MarshalAs(UnmanagedType.Interface)] out IEnumPortableDeviceObjectIDs ppenum);
+            [Out, MarshalAs(UnmanagedType.Interface)] out IEnumPortableDeviceObjectIDs ppEnum);
 
         void Cancel();
     }
