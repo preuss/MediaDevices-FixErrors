@@ -5,376 +5,336 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace MediaDevices.Internal
-{
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <remarks>
-    /// The Facade is necessary because structs used in using are readonly and can not be filled with ref or out.
-    /// </remarks>
-    internal sealed class PropVariantFacade : IDisposable
-    {
-        // cannot be a property because it will be filled by reference
-        public PropVariant Value;
+namespace MediaDevices.Internal {
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <remarks>
+	/// The Facade is necessary because structs used in using are readonly and can not be filled with ref or out.
+	/// </remarks>
+	internal sealed class PropVariantFacade : IDisposable {
+		// cannot be a property because it will be filled by reference
+		public PropVariant Value = new();
 
-        public PropVariantFacade()
-        {
-            this.Value = new PropVariant();
-        }
+		public void Dispose() {
+			// clear only if filled
+			if(Value.vt != 0) {
+				try {
+					// clear propVariant clears also included objects like strings
+					NativeMethods.PropVariantClear(ref Value);
+				} catch(Exception ex) {
+					Trace.TraceError(ex.ToString());
+				}
+			}
+		}
 
-        public void Dispose()
-        {
-            // clear only if filled
-            if (this.Value.vt != 0)
-            {
-                try
-                {
-                    // clear propvariant clears also included objects like strings
-                    NativeMethods.PropVariantClear(ref this.Value);
-                }
-                catch (Exception ex)
-                {
-                    Trace.TraceError(ex.ToString());
-                }
-            }
-        }
+		public PropVariantType VariantType {
+			get { return Value.vt; }
+		}
 
-        public PropVariantType VariantType
-        {
-            get { return this.Value.vt; }
-        }
+		public string ToDebugString() {
+			if(Value.vt == PropVariantType.VT_ERROR) {
+				int error = ToError();
+				string name = Enum.GetName(typeof(HResult), error) ?? error.ToString("X");
+				return $"Error: {name}";
+			}
+			return ToString();
+		}
 
-        public string ToDebugString()
-        {
-            if (this.Value.vt == PropVariantType.VT_ERROR)
-            {
-                int error = ToError();
-                string name = Enum.GetName(typeof(HResult), error) ?? error.ToString("X");
-                return $"Error: {name}";
-            }
-            return ToString();
-        }
+		public override string ToString() {
+			switch(Value.vt) {
+				case PropVariantType.VT_LPSTR:
+					return Marshal.PtrToStringAnsi(Value.ptrVal) ?? "null";
 
-        public override string ToString()
-        {
-            switch (this.Value.vt)
-            {
-                case PropVariantType.VT_LPSTR:
-                    return Marshal.PtrToStringAnsi(this.Value.ptrVal);
+				case PropVariantType.VT_LPWSTR:
+					return Marshal.PtrToStringUni(Value.ptrVal) ?? "null";
 
-                case PropVariantType.VT_LPWSTR:
-                    return Marshal.PtrToStringUni(this.Value.ptrVal);
+				case PropVariantType.VT_BSTR:
+					return Marshal.PtrToStringBSTR(Value.ptrVal);
 
-                case PropVariantType.VT_BSTR:
-                    return Marshal.PtrToStringBSTR(this.Value.ptrVal);
+				case PropVariantType.VT_CLSID:
+					return ToGuid().ToString();
 
-                case PropVariantType.VT_CLSID:
-                    return ToGuid().ToString();
+				case PropVariantType.VT_DATE:
+					return ToNullableDate()?.ToString(CultureInfo.InvariantCulture) ?? "null";
 
-                case PropVariantType.VT_DATE:
-                    return ToNullableDate()?.ToString(CultureInfo.InvariantCulture) ?? "null";
+				case PropVariantType.VT_BOOL:
+					return ToBool().ToString();
 
-                case PropVariantType.VT_BOOL:
-                    return ToBool().ToString();
+				case PropVariantType.VT_INT:
+				case PropVariantType.VT_I1:
+				case PropVariantType.VT_I2:
+				case PropVariantType.VT_I4:
+					return ToInt().ToString();
 
-                case PropVariantType.VT_INT:
-                case PropVariantType.VT_I1:
-                case PropVariantType.VT_I2:
-                case PropVariantType.VT_I4:
-                    return ToInt().ToString();
+				case PropVariantType.VT_UINT:
+				case PropVariantType.VT_UI1:
+				case PropVariantType.VT_UI2:
+				case PropVariantType.VT_UI4:
+					return ToUInt().ToString();
 
-                case PropVariantType.VT_UINT:
-                case PropVariantType.VT_UI1:
-                case PropVariantType.VT_UI2:
-                case PropVariantType.VT_UI4:
-                    return ToUInt().ToString();
+				case PropVariantType.VT_I8:
+					return ToLong().ToString();
 
-                case PropVariantType.VT_I8:
-                    return ToLong().ToString();
+				case PropVariantType.VT_UI8:
+					return ToUlong().ToString();
 
-                case PropVariantType.VT_UI8:
-                    return ToUlong().ToString();
+				case PropVariantType.VT_ERROR:
+					Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+					return "";
 
-                case PropVariantType.VT_ERROR:
-                    Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
-                    return "";
+				default:
+					return "";
+			}
+		}
 
-                default:
-                    return "";
-            }
-        }
+		public int ToInt() {
+			if(Value.vt == PropVariantType.VT_ERROR) {
+				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				return 0;
+			}
 
-        public int ToInt()
-        {
-            if (this.Value.vt == PropVariantType.VT_ERROR)
-            {
-                Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
-                return 0;
-            }
+			if(Value.vt != PropVariantType.VT_INT
+			 && Value.vt != PropVariantType.VT_I1
+			 && Value.vt != PropVariantType.VT_I2
+			 && Value.vt != PropVariantType.VT_I4) {
+				throw new InvalidOperationException($"ToInt does not work for value type {Value.vt}");
+			}
 
-            if (this.Value.vt != PropVariantType.VT_INT
-             && this.Value.vt != PropVariantType.VT_I1
-             && this.Value.vt != PropVariantType.VT_I2
-             && this.Value.vt != PropVariantType.VT_I4)
-            {
-                throw new InvalidOperationException($"ToInt does not work for value type {this.Value.vt}");
-            }
+			return Value.intVal;
+		}
 
-            return this.Value.intVal;
-        }
+		public uint ToUInt() {
+			if(Value.vt == PropVariantType.VT_ERROR) {
+				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				return 0;
+			}
 
-        public uint ToUInt()
-        {
-            if (this.Value.vt == PropVariantType.VT_ERROR)
-            {
-                Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
-                return 0;
-            }
+			if(Value.vt != PropVariantType.VT_UINT
+			 && Value.vt != PropVariantType.VT_UI1
+			 && Value.vt != PropVariantType.VT_UI2
+			 && Value.vt != PropVariantType.VT_UI4) {
+				throw new InvalidOperationException($"ToUInt does not work for value type {Value.vt}");
+			}
 
-            if (this.Value.vt != PropVariantType.VT_UINT
-             && this.Value.vt != PropVariantType.VT_UI1
-             && this.Value.vt != PropVariantType.VT_UI2
-             && this.Value.vt != PropVariantType.VT_UI4)
-            {
-                throw new InvalidOperationException($"ToUInt does not work for value type {this.Value.vt}");
-            }
+			return Value.uintVal;
+		}
 
-            return this.Value.uintVal;
-        }
+		public long ToLong() {
+			if(Value.vt == PropVariantType.VT_ERROR) {
+				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				return 0;
+			}
 
-        public long ToLong()
-        {
-            if (this.Value.vt == PropVariantType.VT_ERROR)
-            {
-                Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
-                return 0;
-            }
+			if(Value.vt != PropVariantType.VT_INT
+			 && Value.vt != PropVariantType.VT_I1
+			 && Value.vt != PropVariantType.VT_I2
+			 && Value.vt != PropVariantType.VT_I4
+			 && Value.vt != PropVariantType.VT_I8) {
+				throw new InvalidOperationException($"ToLong does not work for value type {Value.vt}");
+			}
 
-            if (this.Value.vt != PropVariantType.VT_INT
-             && this.Value.vt != PropVariantType.VT_I1
-             && this.Value.vt != PropVariantType.VT_I2
-             && this.Value.vt != PropVariantType.VT_I4
-             && this.Value.vt != PropVariantType.VT_I8)
-            {
-                throw new InvalidOperationException($"ToLong does not work for value type {this.Value.vt}");
-            }
+			return Value.longVal;
+		}
 
-            return this.Value.longVal;
-        }
+		public ulong ToUlong() {
+			if(Value.vt == PropVariantType.VT_ERROR) {
+				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				return 0;
+			}
 
-        public ulong ToUlong()
-        {
-            if (this.Value.vt == PropVariantType.VT_ERROR)
-            {
-                Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
-                return 0;
-            }
+			if(Value.vt != PropVariantType.VT_UINT
+			 && Value.vt != PropVariantType.VT_UI1
+			 && Value.vt != PropVariantType.VT_UI2
+			 && Value.vt != PropVariantType.VT_UI4
+			 && Value.vt != PropVariantType.VT_UI8) {
+				throw new InvalidOperationException($"ToUlong does not work for value type {Value.vt}");
+			}
 
-            if (this.Value.vt != PropVariantType.VT_UINT
-             && this.Value.vt != PropVariantType.VT_UI1
-             && this.Value.vt != PropVariantType.VT_UI2
-             && this.Value.vt != PropVariantType.VT_UI4
-             && this.Value.vt != PropVariantType.VT_UI8)
-            {
-                throw new InvalidOperationException($"ToUlong does not work for value type {this.Value.vt}");
-            }
-            
-            return this.Value.ulongVal;
-        }
+			return Value.ulongVal;
+		}
 
-        public DateTime ToDate()
-        {
-            if (this.Value.vt == PropVariantType.VT_ERROR)
-            {
-                Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
-                return new DateTime();
-            }
+		public DateTime ToDate() {
+			if(Value.vt == PropVariantType.VT_ERROR) {
+				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				return new DateTime();
+			}
 
-            if (this.Value.vt != PropVariantType.VT_DATE)
-            {
-                throw new InvalidOperationException($"ToDate does not work for value type {this.Value.vt}");
-            }
-            
-            return DateTime.FromOADate(this.Value.dateVal);
-        }
+			if(Value.vt != PropVariantType.VT_DATE) {
+				throw new InvalidOperationException($"ToDate does not work for value type {Value.vt}");
+			}
 
-        public DateTime? ToNullableDate() {
-			if(this.Value.vt == PropVariantType.VT_ERROR) {
-				Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
+			return DateTime.FromOADate(Value.dateVal);
+		}
+
+		public DateTime? ToNullableDate() {
+			if(Value.vt == PropVariantType.VT_ERROR) {
+				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
 				return null;
 			}
 
-			if(this.Value.vt != PropVariantType.VT_DATE) {
-				throw new InvalidOperationException($"ToDate does not work for value type {this.Value.vt}");
+			if(Value.vt != PropVariantType.VT_DATE) {
+				throw new InvalidOperationException($"ToDate does not work for value type {Value.vt}");
 			}
 
-            double rawDateTime = this.Value.dateVal;
-            // To catch typical "no date time" values from different devices
-            if (rawDateTime == 0.0 || rawDateTime == 1.0 || double.IsNaN(rawDateTime) || double.IsInfinity(rawDateTime)) {
-                return null;
-            }
+			double rawDateTime = Value.dateVal;
+			// To catch typical "no date time" values from different devices
+			if(rawDateTime == 0.0
+			   // ReSharper disable once CompareOfFloatsByEqualityOperator
+			   || rawDateTime == 1.0
+				|| double.IsNaN(rawDateTime)
+				|| double.IsInfinity(rawDateTime)
+			) {
+				return null;
+			}
 
-
-            DateTime dateTime = DateTime.FromOADate(this.Value.dateVal);
-            // If the date time is the default value, return null for no value
+			DateTime dateTime = DateTime.FromOADate(Value.dateVal);
+			// If the date time is the default value, return null for no value
 			return DateTime.MinValue.Equals(dateTime) ? null : (DateTime?)dateTime;
 		}
 
-        public bool ToBool()
-        {
-            if (this.Value.vt == PropVariantType.VT_ERROR)
-            {
-                Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
-                return false;
-            }
+		public bool ToBool() {
+			if(Value.vt == PropVariantType.VT_ERROR) {
+				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				return false;
+			}
 
-            if (this.Value.vt != PropVariantType.VT_BOOL)
-            {
-                throw new InvalidOperationException($"ToBool does not work for value type {this.Value.vt}");
-            }
+			if(Value.vt != PropVariantType.VT_BOOL) {
+				throw new InvalidOperationException($"ToBool does not work for value type {Value.vt}");
+			}
 
-            return this.Value.boolVal != 0;
-        }
+			return Value.boolVal != 0;
+		}
 
-        public Guid ToGuid()
-        {
-            if (this.Value.vt == PropVariantType.VT_ERROR)
-            {
-                Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
-                return new Guid();
-            }
+		public Guid ToGuid() {
+			if(Value.vt == PropVariantType.VT_ERROR) {
+				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				return Guid.Empty;
+			}
 
-            if (this.Value.vt != PropVariantType.VT_CLSID)
-            {
-                throw new InvalidOperationException($"ToGuid does not work for value type {this.Value.vt}");
-            }
+			if(Value.vt != PropVariantType.VT_CLSID) {
+				throw new InvalidOperationException($"ToGuid does not work for value type {Value.vt}");
+			}
 
-            return (Guid)Marshal.PtrToStructure(this.Value.ptrVal, typeof(Guid));
-        }
+			if(Value.ptrVal == IntPtr.Zero) {
+				Debug.WriteLine("ToGuid: ptrVal is IntPtr.Zero");
+				return Guid.Empty;
+			}
+
+			object? guidObj = Marshal.PtrToStructure(Value.ptrVal, typeof(Guid));
+			if(guidObj is not Guid guid) {
+				Debug.WriteLine("ToGuid: Marshal.PtrToStructure returned null or wrong type");
+				return Guid.Empty;
+			}
+
+			return guid;
+		}
 
 #if !NETCOREAPP
         [HandleProcessCorruptedStateExceptions]
 #endif
-        [SecurityCritical]
-        public byte[]? ToByteArray()
-        {
-            if (this.Value.vt == PropVariantType.VT_ERROR)
-            {
-                Debug.WriteLine($"VT_ERROR: 0x{this.Value.errorCode:X}");
-                return null;
-            }
+		[SecurityCritical]
+		public byte[]? ToByteArray() {
+			if(Value.vt == PropVariantType.VT_ERROR) {
+				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				return null;
+			}
 
-            if (this.Value.vt != (PropVariantType.VT_VECTOR | PropVariantType.VT_UI1))
-            {
-                throw new InvalidOperationException($"ToByteArray does not work for value type {this.Value.vt}");
-            }
+			if(Value.vt != (PropVariantType.VT_VECTOR | PropVariantType.VT_UI1)) {
+				throw new InvalidOperationException($"ToByteArray does not work for value type {Value.vt}");
+			}
 
-            int size = (int)this.Value.dataVal.cData;
-            byte[] managedArray = new byte[size];
-            
-            // bug fixed with manual COM wrapper classes
-            Marshal.Copy(this.Value.dataVal.pData, managedArray, 0, size);
-            return managedArray;
-        }
+			int size = (int)Value.dataVal.cData;
+			byte[] managedArray = new byte[size];
 
-        public int ToError()
-        {
-            if (this.Value.vt != PropVariantType.VT_ERROR)
-            {
-                return 0;
-            }
+			// bug fixed with manual COM wrapper classes
+			Marshal.Copy(Value.dataVal.pData, managedArray, 0, size);
+			return managedArray;
+		}
 
-            return this.Value.errorCode;
-        }
-            
+		public int ToError() {
+			if(Value.vt != PropVariantType.VT_ERROR) {
+				return 0;
+			}
 
-        public static PropVariantFacade StringToPropVariant(string value)
-        {
-            PropVariantFacade pv = new PropVariantFacade();
-            pv.Value.vt = PropVariantType.VT_LPWSTR;
-            // Hack, see GetString
-            pv.Value.ptrVal = Marshal.StringToCoTaskMemUni(value);
-            return pv;
-        }
+			return Value.errorCode;
+		}
 
-        public static PropVariantFacade UIntToPropVariant(uint value)
-        {
-		PropVariantFacade pv = new PropVariantFacade();
-		pv.Value.vt = PropVariantType.VT_UI4;
-		pv.Value.uintVal = value;
-		return pv;
+		public static PropVariantFacade StringToPropVariant(string value) {
+			PropVariantFacade pv = new PropVariantFacade();
+			pv.Value.vt = PropVariantType.VT_LPWSTR;
+			// Hack, see GetString
+			pv.Value.ptrVal = Marshal.StringToCoTaskMemUni(value);
+			return pv;
+		}
+
+		public static PropVariantFacade UIntToPropVariant(uint value) {
+			PropVariantFacade pv = new PropVariantFacade();
+			pv.Value.vt = PropVariantType.VT_UI4;
+			pv.Value.uintVal = value;
+			return pv;
+		}
+
+		public static PropVariantFacade IntToPropVariant(int value) {
+			PropVariantFacade pv = new PropVariantFacade();
+			pv.Value.vt = PropVariantType.VT_INT;
+			pv.Value.intVal = value;
+			return pv;
+		}
+
+		public static PropVariantFacade DateTimeToPropVariant(DateTime value) {
+			PropVariantFacade pv = new PropVariantFacade();
+			pv.Value.vt = PropVariantType.VT_DATE;
+			pv.Value.dateVal = value.ToOADate();
+			return pv;
+		}
+
+		public static PropVariantFacade DateTimeToPropVariant(DateTime? value) {
+			PropVariantFacade pv = new PropVariantFacade();
+			pv.Value.vt = PropVariantType.VT_DATE;
+			pv.Value.dateVal = value?.ToOADate() ?? DateTime.MinValue.ToOADate();
+			return pv;
+		}
+
+		public static implicit operator string(PropVariantFacade val) {
+			return val.ToString();
+		}
+
+		public static implicit operator bool(PropVariantFacade val) {
+			return val.ToBool();
+		}
+
+		public static implicit operator DateTime(PropVariantFacade val) {
+			return val.ToDate();
+		}
+
+		public static implicit operator DateTime?(PropVariantFacade val) {
+			return val.ToNullableDate();
+		}
+
+		public static implicit operator Guid(PropVariantFacade val) {
+			return val.ToGuid();
+		}
+
+		public static implicit operator int(PropVariantFacade val) {
+			return val.ToInt();
+		}
+
+		public static implicit operator byte(PropVariantFacade val) {
+			return (byte)val.ToUInt();
+		}
+
+		public static implicit operator ulong(PropVariantFacade val) {
+			return val.ToUlong();
+		}
+
+		public static implicit operator byte[](PropVariantFacade val) {
+			return val.ToByteArray() ?? Array.Empty<byte>();
+		}
+
+		private static class NativeMethods {
+			[DllImport("ole32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+			public static extern int PropVariantClear(ref PropVariant val);
+		}
 	}
-        public static PropVariantFacade IntToPropVariant(int value)
-        {
-            PropVariantFacade pv = new PropVariantFacade();
-            pv.Value.vt = PropVariantType.VT_INT;
-            pv.Value.intVal = value;
-            return pv;
-        }
-	    public static PropVariantFacade DateTimeToPropVariant(DateTime value)
-        {
-            PropVariantFacade pv = new PropVariantFacade();
-            pv.Value.vt = PropVariantType.VT_DATE;
-            pv.Value.dateVal = value.ToOADate();
-            return pv;
-        }
-	    public static PropVariantFacade DateTimeToPropVariant(DateTime? value) {
-		    PropVariantFacade pv = new PropVariantFacade();
-		    pv.Value.vt = PropVariantType.VT_DATE;
-		    pv.Value.dateVal = value?.ToOADate() ?? DateTime.MinValue.ToOADate();
-		    return pv;
-	    }
-
-	    public static implicit operator string(PropVariantFacade val)
-        {
-            return val.ToString();
-        }
-
-        public static implicit operator bool(PropVariantFacade val)
-        {
-            return val.ToBool();
-        }
-
-        public static implicit operator DateTime(PropVariantFacade val)
-        {
-            return val.ToDate();
-        }
-
-    	public static implicit operator DateTime?(PropVariantFacade val)
-        {
-		    return val.ToNullableDate();
-	    }
-	
-        public static implicit operator Guid(PropVariantFacade val)
-        {
-            return val.ToGuid();
-        }
-
-        public static implicit operator int(PropVariantFacade val)
-        {
-            return val.ToInt();
-        }
-
-        public static implicit operator byte(PropVariantFacade val)
-        {
-            return (byte)val.ToUInt();
-        }
-        
-        public static implicit operator ulong(PropVariantFacade val)
-        {
-            return val.ToUlong();
-        }
-
-        public static implicit operator byte[] (PropVariantFacade val)
-        {
-            return val.ToByteArray();
-        }
-
-        private static class NativeMethods
-        {
-		    [DllImport("ole32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-		    static extern public int PropVariantClear(ref PropVariant val);
-	    }
-    }
 }
