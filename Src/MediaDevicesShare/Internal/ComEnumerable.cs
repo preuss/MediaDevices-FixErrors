@@ -14,8 +14,8 @@ namespace MediaDevices.Internal
             values.GetCount(ref num);
             for (uint i = 0; i < num; i++)
             {
-                PropertyKey key = new PropertyKey();
-                using (PropVariantFacade val = new PropVariantFacade())
+                PropertyKey key = new();
+                using (PropVariantFacade val = new())
                 {
                     values.GetAt(i, ref key, ref val.Value);
 
@@ -131,7 +131,6 @@ namespace MediaDevices.Internal
             return en;
         }
 
-
         public static T GetEnumFromAttrKey<T>(this PropertyKey key) where T : struct // enum
         {
             T en = Enum.GetValues(typeof(T)).Cast<T>().Where(e =>
@@ -153,7 +152,6 @@ namespace MediaDevices.Internal
             }
             return en;
         }
-
 
         public static T GetEnumFromAttrGuid<T>(this Guid guid) where T : struct // enum
         {
@@ -182,7 +180,7 @@ namespace MediaDevices.Internal
             col.GetCount(ref count);
             for (uint i = 0; i < count; i++)
             {
-                using (PropVariantFacade val = new PropVariantFacade())
+                using (PropVariantFacade val = new())
                 {
                     col.GetAt(i, ref val.Value);
                     yield return val.ToGuid();
@@ -196,7 +194,7 @@ namespace MediaDevices.Internal
             col.GetCount(ref count);
             for (uint i = 0; i < count; i++)
             {
-                using (PropVariantFacade val = new PropVariantFacade())
+                using (PropVariantFacade val = new())
                 {
                     col.GetAt(i, ref val.Value);
                     yield return val.ToString();
