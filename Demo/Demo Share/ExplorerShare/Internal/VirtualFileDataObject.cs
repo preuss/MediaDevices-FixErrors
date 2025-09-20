@@ -666,16 +666,21 @@ namespace ExplorerCtrl.Internal
         /// </summary>
         private class IStreamWrapper : Stream
         {
-            /// <summary>
-            /// IStream instance being wrapped.
-            /// </summary>
-            private IStream _iStream;
+	        private const int STATFLAG_NONAME = 1;        // Avoid name allocation in Stat
+	        private const int STREAM_SEEK_SET = 0;
+	        private const int STREAM_SEEK_CUR = 1;
+	        private const int STREAM_SEEK_END = 2;
 
-            /// <summary>
-            /// Initializes a new instance of the IStreamWrapper class.
-            /// </summary>
-            /// <param name="iStream">IStream instance to wrap.</param>
-            public IStreamWrapper(IStream iStream)
+			/// <summary>
+			/// IStream instance being wrapped.
+			/// </summary>
+			private IStream _iStream;
+
+			/// <summary>
+			/// Initializes a new instance of the IStreamWrapper class.
+			/// </summary>
+			/// <param name="iStream">IStream instance to wrap.</param>
+			public IStreamWrapper(IStream iStream)
             {
                 _iStream = iStream;
             }
@@ -683,91 +688,168 @@ namespace ExplorerCtrl.Internal
             /// <summary>
             /// Gets a value indicating whether the current stream supports reading.
             /// </summary>
-            public override bool CanRead
-            {
-                get { return false; }
-            }
+            public override bool CanRead => true;
 
             /// <summary>
             /// Gets a value indicating whether the current stream supports seeking.
             /// </summary>
-            public override bool CanSeek
-            {
-                get { return false; }
-            }
+            public override bool CanSeek => true;
 
             /// <summary>
             /// Gets a value indicating whether the current stream supports writing.
             /// </summary>
-            public override bool CanWrite
-            {
-                get { return true; }
-            }
+            public override bool CanWrite => true;
 
             /// <summary>
             /// Clears all buffers for this stream and causes any buffered data to be written to the underlying device.
             /// </summary>
             public override void Flush()
             {
-                throw new NotImplementedException();
+	            // STGC_DEFAULT (0) = standard commit behavior
+	            const int STGC_DEFAULT = 0x0000;
+	            try {
+		            _iStream.Commit(STGC_DEFAULT);
+	            } catch(COMException ex) {
+		            // Some streams (e.g., non-transacted) may not implement Commit.
+		            const int STG_E_INVALIDFUNCTION = unchecked((int)0x80030001);
+		            if (ex.HResult != STG_E_INVALIDFUNCTION)
+		            {
+			            throw;
+		            }
+	            }
+			}
+            protected override void Dispose(bool disposing) {
+	            if(disposing) {
+		            try { Flush(); } catch { /* swallow on dispose to avoid breaking D&D */ }
+	            }
+	            base.Dispose(disposing);
             }
 
-            /// <summary>
-            /// Gets the length in bytes of the stream.
-            /// </summary>
-            public override long Length
-            {
-                get { throw new NotImplementedException(); }
-            }
+			/// <summary>
+			/// Gets the length in bytes of the stream.
+			/// </summary>
+			public override long Length {
+				get {
+					try {
+						_iStream.Stat(out System.Runtime.InteropServices.ComTypes.STATSTG stat, STATFLAG_NONAME);
+						return stat.cbSize;
+					} catch(COMException ex) {
+						throw new NotSupportedException("Length is not available for the underlying IStream.", ex);
+					}
+				}
+			}
 
-            /// <summary>
-            /// Gets or sets the position within the current stream.
-            /// </summary>
-            public override long Position
-            {
-                get { throw new NotImplementedException(); }
-                set { throw new NotImplementedException(); }
-            }
+			/// <summary>
+			/// Gets or sets the position within the current stream.
+			/// </summary>
+			public override long Position {
+				get {
+					// Query current position by a zero-offset seek from current
+					return Seek(0, SeekOrigin.Current);
+				}
+				set {
+					if(value < 0) throw new ArgumentOutOfRangeException(nameof(value));
+					Seek(value, SeekOrigin.Begin);
+				}
+			}
 
-            /// <summary>
-            /// Reads a sequence of bytes from the current stream and advances the position within the stream by the number of bytes read.
-            /// </summary>
-            /// <param name="buffer">An array of bytes. When this method returns, the buffer contains the specified byte array with the values between offset and (offset + count - 1) replaced by the bytes read from the current source.</param>
-            /// <param name="offset">The zero-based byte offset in buffer at which to begin storing the data read from the current stream.</param>
-            /// <param name="count">The maximum number of bytes to be read from the current stream.</param>
-            /// <returns>The total number of bytes read into the buffer. This can be less than the number of bytes requested if that many bytes are not currently available, or zero (0) if the end of the stream has been reached.</returns>
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                throw new NotImplementedException();
-            }
+			/// <summary>
+			/// Reads a sequence of bytes from the current stream and advances the position within the stream by the number of bytes read.
+			/// </summary>
+			/// <param name="buffer">An array of bytes. When this method returns, the buffer contains the specified byte array with the values between offset and (offset + count - 1) replaced by the bytes read from the current source.</param>
+			/// <param name="offset">The zero-based byte offset in buffer at which to begin storing the data read from the current stream.</param>
+			/// <param name="count">The maximum number of bytes to be read from the current stream.</param>
+			/// <returns>The total number of bytes read into the buffer. This can be less than the number of bytes requested if that many bytes are not currently available, or zero (0) if the end of the stream has been reached.</returns>
+			public override int Read(byte[] buffer, int offset, int count) {
+				if(buffer == null) throw new ArgumentNullException(nameof(buffer));
+				if(offset < 0 || count < 0) throw new ArgumentOutOfRangeException((offset < 0) ? nameof(offset) : nameof(count));
+				if(buffer.Length - offset < count) throw new ArgumentException("Offset and count exceed buffer length.");
+				if(count == 0) return 0;
 
-            /// <summary>
-            /// Sets the position within the current stream.
-            /// </summary>
-            /// <param name="offset">A byte offset relative to the origin parameter.</param>
-            /// <param name="origin">A value of type SeekOrigin indicating the reference point used to obtain the new position.</param>
-            /// <returns>The new position within the current stream.</returns>
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                throw new NotImplementedException();
-            }
+				IntPtr pBytesRead = Marshal.AllocHGlobal(sizeof(int));
+				try {
+					if(offset == 0) {
+						// Read directly into the buffer to avoid extra allocation
+						_iStream.Read(buffer, count, pBytesRead);
+					} else {
+						// Read into a temp buffer and copy to the destination with an offset
+						byte[] tmp = new byte[count];
+						_iStream.Read(tmp, count, pBytesRead);
+						int read = Marshal.ReadInt32(pBytesRead);
+						if(read > 0) {
+							Buffer.BlockCopy(tmp, 0, buffer, offset, read);
+						}
+						// Write the read value back into pBytesRead so the return value is correct
+						Marshal.WriteInt32(pBytesRead, read);
+					}
 
-            /// <summary>
-            /// Sets the length of the current stream.
-            /// </summary>
-            /// <param name="value">The desired length of the current stream in bytes.</param>
-            public override void SetLength(long value)
-            {
-                throw new NotImplementedException();
-            }
+					return Marshal.ReadInt32(pBytesRead);
+				} catch(COMException ex) {
+					throw new IOException("Read failed from the underlying IStream.", ex);
+				} finally {
+					Marshal.FreeHGlobal(pBytesRead);
+				}
+			}
 
-            /// <summary>
-            /// Writes a sequence of bytes to the current stream and advances the current position within this stream by the number of bytes written.
-            /// </summary>
-            /// <param name="buffer">An array of bytes. This method copies count bytes from buffer to the current stream.</param>
-            /// <param name="offset">The zero-based byte offset in buffer at which to begin copying bytes to the current stream.</param>
-            /// <param name="count">The number of bytes to be written to the current stream.</param>
-            public override void Write(byte[] buffer, int offset, int count)
+			/// <summary>
+			/// Sets the position within the current stream.
+			/// </summary>
+			/// <param name="offset">A byte offset relative to the origin parameter.</param>
+			/// <param name="origin">A value of type SeekOrigin indicating the reference point used to obtain the new position.</param>
+			/// <returns>The new position within the current stream.</returns>
+			public override long Seek(long offset, SeekOrigin origin) {
+				int dwOrigin = origin == SeekOrigin.Begin ? STREAM_SEEK_SET
+					: origin == SeekOrigin.Current ? STREAM_SEEK_CUR
+					: STREAM_SEEK_END;
+
+				IntPtr pNewPos = Marshal.AllocHGlobal(sizeof(long));
+				try {
+					_iStream.Seek(offset, dwOrigin, pNewPos);
+					long pos = Marshal.ReadInt64(pNewPos);
+					return pos;
+				} catch(COMException ex) {
+					throw new NotSupportedException("Seek is not supported by the underlying IStream.", ex);
+				} finally {
+					Marshal.FreeHGlobal(pNewPos);
+				}
+			}
+
+			/// <summary>
+			/// Sets the length of the current stream.
+			/// </summary>
+			/// <param name="value">The desired length of the current stream in bytes.</param>
+			public override void SetLength(long value) {
+				if(value < 0) throw new ArgumentOutOfRangeException(nameof(value));
+
+				try {
+					// Resize the underlying COM stream
+					_iStream.SetSize(value);
+
+					// If the current position is beyond the new length, move back to the end
+					long pos = Seek(0, SeekOrigin.Current);
+					if(pos > value) {
+						Seek(value, SeekOrigin.Begin);
+					}
+				} catch(COMException ex) {
+					// Not supported by all IStream implementations
+					const int STG_E_INVALIDFUNCTION = unchecked((int)0x80030001);
+					const int E_NOTIMPL = unchecked((int)0x80004001);
+					if (ex.HResult == STG_E_INVALIDFUNCTION || ex.HResult == E_NOTIMPL)
+					{
+						throw new NotSupportedException("SetLength is not supported by the underlying IStream.", ex);
+					}
+
+					throw;
+				}
+			}
+
+			/// <summary>
+			/// Writes a sequence of bytes to the current stream and advances the current position within this stream by the number of bytes written.
+			/// </summary>
+			/// <param name="buffer">An array of bytes. This method copies count bytes from buffer to the current stream.</param>
+			/// <param name="offset">The zero-based byte offset in buffer at which to begin copying bytes to the current stream.</param>
+			/// <param name="count">The number of bytes to be written to the current stream.</param>
+			public override void Write(byte[] buffer, int offset, int count)
             {
                 if (offset == 0)
                 {
