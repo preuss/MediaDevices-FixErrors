@@ -47,7 +47,7 @@ namespace MediaDevices
         {
             if (path == null)
             {
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             }
             if (!MediaDevice.IsPath(path))
             {
@@ -57,8 +57,12 @@ namespace MediaDevices
             {
                 throw new NotConnectedException("Not connected");
             }
-            Item item = this.item.CreateSubdirectory(path);
-            return new MediaDirectoryInfo(this.device, item);
+            Item? createdSubdirectoryItem = this.item.CreateSubdirectory(path);
+            if (createdSubdirectoryItem == null)
+            {
+                throw new DirectoryNotFoundException($"Failed to create subdirectory. The specified path '{path}' could not be resolved or created.");
+            }
+            return new MediaDirectoryInfo(this.device, createdSubdirectoryItem);
         }
 
         /// <summary>

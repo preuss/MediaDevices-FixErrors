@@ -551,8 +551,8 @@ namespace MediaDevices.Internal
 			// we need to fetch an object functional container ID. Which is storage for top most
 			// directory.
 			var drives = _device.GetDrives();
-			var storageRoot = drives.FirstOrDefault(s => s.RootDirectory.Id == ParentContainerId);
-			return storageRoot?.RootDirectory.item;
+			var storageRoot = drives.FirstOrDefault(s => s.RootDirectory != null && s.RootDirectory.Id == ParentContainerId);
+			return storageRoot?.RootDirectory?.item;
 		}
 
 		internal Stream OpenRead()

@@ -17,7 +17,7 @@ namespace MediaDevices
 
         internal Item item;
 
-        private MediaDirectoryInfo parent;
+        private MediaDirectoryInfo _parent;
 
         internal MediaFileSystemInfo(MediaDevice device, Item item)
         {
@@ -41,11 +41,11 @@ namespace MediaDevices
         {
             get
             { 
-                if (this.parent == null && this.item.Parent != null)
+                if (this._parent == null && this.item.Parent != null)
                 {
-                    this.parent = new MediaDirectoryInfo(this.device, this.item.Parent);
+                    this._parent = new MediaDirectoryInfo(this.device, this.item.Parent);
                 }
-                return this.parent;
+                return this._parent;
             }
         }
 

@@ -9,20 +9,22 @@ namespace MediaDevices
     /// </summary>
     public sealed class MediaDriveInfo
     {
-        private readonly MediaDevice device;
-        private readonly string objectId;
+        private readonly MediaDevice _device;
+        private readonly string _objectId;
 
         internal MediaDriveInfo(MediaDevice device, string objectId)
         {
-            this.device = device;
-            this.objectId = objectId;
+            this._device = device;
+            this._objectId = objectId;
 
             Initialize();
         }
         private void Initialize()
         {
-            MediaStorageInfo info = device.GetStorageInfo(objectId);
+            MediaStorageInfo? info = _device.GetStorageInfo(_objectId);
             if (info == null) return;
+
+            IsReady = true;
 
             TotalSize = Convert.ToInt64(info.Capacity);
             TotalFreeSpace = AvailableFreeSpace = Convert.ToInt64(info.FreeSpaceInBytes);
@@ -30,7 +32,7 @@ namespace MediaDevices
             DriveFormat = info.FileSystemType;
             DriveType = info.GetDriveType();
             
-            RootDirectory = new MediaDirectoryInfo(device, Item.Create(device, objectId));
+            RootDirectory = new MediaDirectoryInfo(_device, Item.Create(_device, _objectId));
             Name = RootDirectory.FullName;
             VolumeLabel = info.Description;
         }
@@ -43,7 +45,7 @@ namespace MediaDevices
         /// <summary>
         /// Format of the drive.
         /// </summary>
-        public string DriveFormat { get; private set; }
+        public string DriveFormat { get; private set; } = string.Empty;
 
         /// <summary>
         /// Type of the drive
@@ -53,17 +55,17 @@ namespace MediaDevices
         /// <summary>
         /// True is the drive is ready; false if not.
         /// </summary>
-        public bool IsReady { get { return true; } }
+        public bool IsReady { get; private set; }
 
         /// <summary>
         /// Name of the drive
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; private set; } = string.Empty;
 
         /// <summary>
         /// Get the root directory of the drive.
         /// </summary>
-        public MediaDirectoryInfo RootDirectory { get; private set; }
+        public MediaDirectoryInfo? RootDirectory { get; private set; }
 
         /// <summary>
         /// Gets the total free space of the device in bytes.
@@ -78,16 +80,16 @@ namespace MediaDevices
         /// <summary>
         /// Get the volume label of the drive.
         /// </summary>
-        public string VolumeLabel { get; private set; }
+        public string VolumeLabel { get; private set; } = string.Empty;
 
         /// <summary>
         /// Eject the drive.
         /// </summary>
-        public void Eject() => device.InternalEject(objectId);
+        public void Eject() => _device.InternalEject(_objectId);
 
         /// <summary>
         /// Format the drive.
         /// </summary>
-        public void Format() => device.Format(objectId);
+        public void Format() => _device.Format(_objectId);
     }
 }
