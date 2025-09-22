@@ -19,7 +19,7 @@ namespace MediaDevices.Internal
 
         void GetValues(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszObjectID,
-            [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceKeyCollection pKeys,
+            [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceKeyCollection? pKeys,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppValues);
 
         void SetValues(

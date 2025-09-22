@@ -30,7 +30,7 @@ namespace MediaDevices
 		private IPortableDeviceCapabilities deviceCapabilities;
 		private IPortableDeviceValues deviceValues;
 		private string friendlyName = string.Empty;
-		private string eventCookie;
+		private string? eventCookie;
 		private EventCallback eventCallback;
 
 		#endregion Fields
@@ -734,6 +734,16 @@ namespace MediaDevices
 			this.device.Cancel();
 		}
 
+		/// <summary>
+		/// Returns an enumerable collection of <see cref="MediaDirectoryInfo"/> objects for directories in the specified path.
+		/// </summary>
+		/// <param name="path">The directory to search.</param>
+		/// <returns>An enumerable collection of <see cref="MediaDirectoryInfo"/> objects for directories in the directory specified by path.</returns>
+		/// <exception cref="System.IO.IOException">path is a file name.</exception>
+		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+		/// <exception cref="System.ArgumentNullException">path is null.</exception>
+		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public IEnumerable<MediaDirectoryInfo> EnumerateDirectoriesAsDirectoryInfo(string path)
 		{
 			if(path == null)
@@ -911,6 +921,16 @@ namespace MediaDevices
 			return item.GetChildren(pattern, searchOption).Where(i => i.Type == ItemType.File).Select(i => i.FullName);
 		}
 
+		/// <summary>
+		/// Returns an enumerable collection of <see cref="MediaFileInfo"/> objects for files and directories in the specified path.
+		/// </summary>
+		/// <param name="path">The directory to search.</param>
+		/// <returns>An enumerable collection of <see cref="MediaFileInfo"/> objects for files and directories in the directory specified by path.</returns>
+		/// <exception cref="System.IO.IOException">path is a file name.</exception>
+		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+		/// <exception cref="System.ArgumentNullException">path is null.</exception>
+		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public IEnumerable<MediaFileInfo>? EnumerateFileSystemEntriesAsFileInfo(string path)
 		{
 			if(path == null)
