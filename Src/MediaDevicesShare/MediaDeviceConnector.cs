@@ -14,16 +14,13 @@ namespace MediaDevices
     public class MediaDeviceConnector : IConnectionRequestCallback
     {
         private IPortableDeviceConnector connector;
-		private TaskCompletionSource<int> tcs;
+		private TaskCompletionSource<int>? tcs;
 
 		/// <summary>
 		/// Event signals if complete
 		/// </summary>
 		[Obsolete("Use ConnectAsync instead", false)]
-		public event EventHandler<CompleteEventArgs> Complete;
-
-        private MediaDeviceConnector()
-        { }
+		public event EventHandler<CompleteEventArgs>? Complete;
 
         internal MediaDeviceConnector(IPortableDeviceConnector connector)
         {
