@@ -147,19 +147,19 @@ namespace MediaDevices
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source");
+                throw new ArgumentNullException(nameof(source));
             }
             if (!MediaDevice.IsPath(source))
             {
-                throw new ArgumentException("source");
+                throw new ArgumentException("Invalid source", nameof(source));
             }
             if (destination == null)
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
             if (!MediaDevice.IsPath(destination))
             {
-                throw new ArgumentException("destination");
+                throw new ArgumentException("Invalid destination", nameof(destination));
             }
             if (!device.IsConnected)
             {
@@ -188,19 +188,19 @@ namespace MediaDevices
         {
             if (source == null)
             {
-                throw new ArgumentNullException("source", nameof(source));
+                throw new ArgumentNullException(nameof(source));
             }
             if (!MediaDevice.IsPath(source))
             {
-                throw new ArgumentException("source", nameof(source));
+                throw new ArgumentException("Invalid source", nameof(source));
             }
             if (destination == null)
             {
-                throw new ArgumentNullException("destination", nameof(destination));
+                throw new ArgumentNullException(nameof(destination));
             }
             if (!MediaDevice.IsPath(destination))
             {
-                throw new ArgumentException("destination", nameof(destination));
+                throw new ArgumentException("Invalid destination", nameof(destination));
             }
             if (!device.IsConnected)
             {
@@ -263,7 +263,7 @@ namespace MediaDevices
             }
             if (!MediaDevice.IsPath(source))
             {
-                throw new ArgumentException("source", nameof(source));
+                throw new ArgumentException("Invalid source", nameof(source));
             }
             if (destination == null)
             {
@@ -271,7 +271,7 @@ namespace MediaDevices
             }
             if (!MediaDevice.IsPath(destination))
             {
-                throw new ArgumentException("destination", nameof(destination));
+                throw new ArgumentException("Invalid destination", nameof(destination));
             }
             if (!device.IsConnected)
             {
@@ -329,15 +329,15 @@ namespace MediaDevices
         {
             if (string.IsNullOrEmpty(persistentUniqueId))
             {
-                throw new ArgumentNullException("persistentUniqueId");
+                throw new ArgumentNullException(nameof(persistentUniqueId));
             }
             if (string.IsNullOrEmpty(destination))
             {
-                throw new ArgumentNullException("destination");
+                throw new ArgumentNullException(nameof(destination));
             }
             if (!MediaDevice.IsPath(destination))
             {
-                throw new ArgumentException("destination");
+                throw new ArgumentException("Invalid destination", nameof(destination));
             }
             if (!device.IsConnected)
             {

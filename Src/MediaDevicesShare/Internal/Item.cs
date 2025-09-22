@@ -382,7 +382,7 @@ namespace MediaDevices.Internal
 			}
 		}
 
-		public IEnumerable<Item> GetChildren(string pattern, SearchOption searchOption = SearchOption.TopDirectoryOnly)
+		public IEnumerable<Item> GetChildren(string? pattern, SearchOption searchOption = SearchOption.TopDirectoryOnly)
 		{
 			IEnumPortableDeviceObjectIDs enumerator;
 			try

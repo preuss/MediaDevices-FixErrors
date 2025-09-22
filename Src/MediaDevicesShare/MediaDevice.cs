@@ -742,14 +742,14 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
 			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
-				throw new DirectoryNotFoundException($"Director {path} not found.");
+				throw new DirectoryNotFoundException($"Directory {path} not found.");
 			}
 			return item.GetChildren().Where(i => i.Type != ItemType.File).Select(i => new MediaDirectoryInfo(this, i));
 		}
@@ -772,14 +772,14 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
-				throw new DirectoryNotFoundException($"Director {path} not found.");
+				throw new DirectoryNotFoundException($"Directory {path} not found.");
 			}
 			return item.GetChildren().Where(i => i.Type != ItemType.File).Select(i => i.FullName);
 		}
@@ -805,19 +805,29 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
-				throw new DirectoryNotFoundException($"Director {path} not found.");
+				throw new DirectoryNotFoundException($"Directory {path} not found.");
 			}
-			return item.GetChildren(FilterToRegex(searchPattern), searchOption).Where(i => i.Type != ItemType.File).Select(i => i.FullName);
+			string? pattern = MediaDevice.FilterToRegex(searchPattern);
+			return item.GetChildren(pattern, searchOption).Where(i => i.Type != ItemType.File).Select(i => i.FullName);
 		}
 
-
+		/// <summary>
+		/// Returns an enumerable collection of <see cref="MediaFileInfo"/> objects for files in the specified path.
+		/// </summary>
+		/// <param name="path">The directory to search.</param>
+		/// <returns>An enumerable collection of <see cref="MediaFileInfo"/> objects for files in the directory specified by path.</returns>
+		/// <exception cref="System.IO.IOException">path is a file name.</exception>
+		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+		/// <exception cref="System.ArgumentNullException">path is null.</exception>
+		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public IEnumerable<MediaFileInfo> EnumerateFilesAsFileInfo(string path)
 		{
 			if(path == null)
@@ -826,14 +836,14 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
-				throw new DirectoryNotFoundException($"Director {path} not found.");
+				throw new DirectoryNotFoundException($"Directory {path} not found.");
 			}
 			return item.GetChildren().Where(i => i.Type == ItemType.File).Select(i => new MediaFileInfo(this, i));
 		}
@@ -856,14 +866,14 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
-				throw new DirectoryNotFoundException($"Director {path} not found.");
+				throw new DirectoryNotFoundException($"Directory {path} not found.");
 			}
 			return item.GetChildren().Where(i => i.Type == ItemType.File).Select(i => i.FullName);
 		}
@@ -888,16 +898,16 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
-				throw new DirectoryNotFoundException($"Director {path} not found.");
+				throw new DirectoryNotFoundException($"Directory {path} not found.");
 			}
-			string pattern = MediaDevice.FilterToRegex(searchPattern);
+			string? pattern = MediaDevice.FilterToRegex(searchPattern);
 			return item.GetChildren(pattern, searchOption).Where(i => i.Type == ItemType.File).Select(i => i.FullName);
 		}
 
@@ -909,14 +919,14 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
-				throw new DirectoryNotFoundException($"Director {path} not found.");
+				throw new DirectoryNotFoundException($"Directory {path} not found.");
 			}
 			return item.GetChildren().Select(i => new MediaFileInfo(this, i));
 		}
@@ -939,14 +949,14 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
-				throw new DirectoryNotFoundException($"Director {path} not found.");
+				throw new DirectoryNotFoundException($"Directory {path} not found.");
 			}
 			return item.GetChildren().Select(i => i.FullName);
 		}
@@ -971,19 +981,29 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
 			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
-				throw new DirectoryNotFoundException($"Director {path} not found.");
+				throw new DirectoryNotFoundException($"Directory {path} not found.");
 			}
-
-			return item.GetChildren(FilterToRegex(searchPattern), searchOption).Select(i => i.FullName);
+			string? pattern = MediaDevice.FilterToRegex(searchPattern);
+			return item.GetChildren(pattern, searchOption).Select(i => i.FullName);
 		}
 
+		/// <summary>
+		/// Returns an array of <see cref="MediaDirectoryInfo"/> objects for directories in the specified path.
+		/// </summary>
+		/// <param name="path">The directory to search.</param>
+		/// <returns>An array of <see cref="MediaDirectoryInfo"/> objects for directories in the directory specified by path.</returns>
+		/// <exception cref="System.IO.IOException">path is a file name.</exception>
+		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
+		/// <exception cref="System.ArgumentNullException">path is null.</exception>
+		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public MediaDirectoryInfo[] GetDirectoriesAsDirectoryInfo(string path)
 		{
 			return EnumerateDirectoriesAsDirectoryInfo(path).ToArray();
@@ -1108,7 +1128,7 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
@@ -1133,14 +1153,14 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
-				throw new DirectoryNotFoundException($"Director {path} not found.");
+				throw new DirectoryNotFoundException($"Directory {path} not found.");
 			}
 
 			item.Delete(recursive);
@@ -1192,7 +1212,7 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			if(stream == null)
 			{
@@ -1200,7 +1220,7 @@ namespace MediaDevices
 			}
 			CheckConnected();
 
-			Item item = Item.FindFile(this, path);
+			Item? item = Item.FindFile(this, path);
 			if(item == null)
 			{
 				throw new FileNotFoundException($"File {path} not found.");
@@ -1208,7 +1228,7 @@ namespace MediaDevices
 
 			using(Stream sourceStream = item.OpenRead())
 			{
-				await sourceStream.CopyToAsync(stream);
+				await sourceStream.CopyToAsync(stream).ConfigureAwait(false);
 			}
 		}
 
@@ -1232,7 +1252,7 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			if(stream == null)
 			{
@@ -1240,7 +1260,7 @@ namespace MediaDevices
 			}
 			CheckConnected();
 
-			Item item = Item.FindFile(this, path);
+			Item? item = Item.FindFile(this, path);
 			if(item == null)
 			{
 				throw new FileNotFoundException($"File {path} not found.");
@@ -1285,7 +1305,7 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			if(stream == null)
 			{
@@ -1293,7 +1313,7 @@ namespace MediaDevices
 			}
 			CheckConnected();
 
-			Item item = Item.FindFile(this, path);
+			Item? item = Item.FindFile(this, path);
 			if(item == null)
 			{
 				throw new FileNotFoundException($"File {path} not found.");
@@ -1323,7 +1343,7 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			if(stream == null)
 			{
@@ -1331,7 +1351,7 @@ namespace MediaDevices
 			}
 			CheckConnected();
 
-			Item item = Item.FindFile(this, path);
+			Item? item = Item.FindFile(this, path);
 			if(item == null)
 			{
 				throw new FileNotFoundException($"File {path} not found.");
@@ -1370,7 +1390,7 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			if(stream == null)
 			{
@@ -1378,9 +1398,9 @@ namespace MediaDevices
 			}
 			CheckConnected();
 
-			string folder = Path.GetDirectoryName(path);
+			string? folder = Path.GetDirectoryName(path);
 			string fileName = Path.GetFileName(path);
-			Item item = Item.FindFolder(this, folder);
+			Item? item = Item.FindFolder(this, folder);
 			if(item == null)
 			{
 				throw new DirectoryNotFoundException($"Directory {folder} not found.");
@@ -1410,7 +1430,7 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 			var objectId = Item.FindFile(this, path);
@@ -1434,11 +1454,11 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			Item item = Item.FindFile(this, path);
+			Item? item = Item.FindFile(this, path);
 			if(item == null)
 			{
 				throw new FileNotFoundException($"File {path} not found.");
@@ -1460,7 +1480,7 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 			if(string.IsNullOrEmpty(newName))
@@ -1468,7 +1488,7 @@ namespace MediaDevices
 				throw new ArgumentNullException(nameof(newName));
 			}
 
-			Item item = Item.FindItem(this, path);
+			Item? item = Item.FindItem(this, path);
 			if(item == null)
 			{
 				throw new FileNotFoundException($"Path {path} not found.", path);
@@ -1495,11 +1515,11 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			Item item = Item.FindItem(this, path);
+			Item? item = Item.FindItem(this, path);
 			if(item == null)
 			{
 				throw new FileNotFoundException($"{path} not found.", path);
@@ -1526,11 +1546,11 @@ namespace MediaDevices
 			}
 			if(!IsPath(path))
 			{
-				throw new ArgumentException("Invalide path", nameof(path));
+				throw new ArgumentException("Invalid path", nameof(path));
 			}
 			CheckConnected();
 
-			var item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
 			if(item == null)
 			{
 				throw new DirectoryNotFoundException($"{path} not found.");
@@ -1648,7 +1668,7 @@ namespace MediaDevices
 			}
 			CheckConnected();
 
-			Item item = Item.GetFromPersistentUniqueId(this, persistentUniqueId);
+			Item? item = Item.GetFromPersistentUniqueId(this, persistentUniqueId);
 			if(item == null || !item.IsFile)
 			{
 				throw new FileNotFoundException($"{persistentUniqueId} not found.");
@@ -1672,12 +1692,12 @@ namespace MediaDevices
 			}
 			CheckConnected();
 
-			Item item = Item.GetFromPersistentUniqueId(this, persistentUniqueId);
+			Item? item = Item.GetFromPersistentUniqueId(this, persistentUniqueId);
 			if(item == null || !item.IsFile)
 			{
 				throw new FileNotFoundException($"{persistentUniqueId} not found.");
 			}
-			return item == null ? null : new StreamReader(item.OpenRead());
+			return new StreamReader(item.OpenRead());
 		}
 
 		/// <summary>
@@ -1696,7 +1716,7 @@ namespace MediaDevices
 			}
 			CheckConnected();
 
-			Item item = Item.GetFromPersistentUniqueId(this, persistentUniqueId);
+			Item? item = Item.GetFromPersistentUniqueId(this, persistentUniqueId);
 			if(item == null)
 			{
 				throw new FileNotFoundException($"{persistentUniqueId} not found.");
@@ -1894,7 +1914,12 @@ namespace MediaDevices
 				throw new ArgumentNullException(nameof(path));
 			}
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
+			if(item == null)
+			{
+				throw new DirectoryNotFoundException($"Directory '{path}' not found.");
+			}
+
 			return InternalEject(item.Id);
 		}
 
@@ -1917,7 +1942,11 @@ namespace MediaDevices
 				throw new ArgumentNullException(nameof(path));
 			}
 
-			Item item = Item.FindFolder(this, path);
+			Item? item = Item.FindFolder(this, path);
+			if(item == null)
+			{
+				throw new DirectoryNotFoundException($"Directory '{path}' not found.");
+			}
 			Format(item.Id);
 			//Command cmd = Command.Create(WPD.COMMAND_STORAGE_FORMAT);
 			//cmd.Add(WPD.PROPERTY_STORAGE_OBJECT_ID, item.Id);
