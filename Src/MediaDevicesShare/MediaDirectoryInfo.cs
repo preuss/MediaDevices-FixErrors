@@ -51,7 +51,7 @@ namespace MediaDevices
             }
             if (!MediaDevice.IsPath(path))
             {
-                throw new ArgumentException("path");
+                throw new ArgumentException("Invalid path", nameof(path));
             }
             if (!this.device.IsConnected)
             {
