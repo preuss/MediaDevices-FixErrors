@@ -84,7 +84,8 @@ namespace MediaDevices.Internal {
 					return "";
 
 				default:
-					return "";
+					//return "";
+					return $"Unknown PropVariantType: {Value.vt} (raw: {Value.vt})";
 			}
 		}
 
