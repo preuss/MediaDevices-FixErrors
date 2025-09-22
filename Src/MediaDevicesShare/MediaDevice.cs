@@ -33,9 +33,9 @@ namespace MediaDevices
 		private string eventCookie;
 		private EventCallback eventCallback;
 
-		#endregion
+		#endregion Fields
 
-		#region events
+		#region Events
 
 		/// <summary>
 		/// This event is sent after a new object is available on the device.
@@ -83,9 +83,9 @@ namespace MediaDevices
 		/// </summary>
 		public event EventHandler<MediaDeviceEventArgs> ServiceMethodComplete;
 
-		#endregion
+		#endregion Events
 
-		#region static
+		#region Static Fields
 
 		private static readonly IPortableDeviceManager deviceManager;
 		private static readonly IPortableDeviceServiceManager serviceManager;
@@ -93,6 +93,9 @@ namespace MediaDevices
 		private static List<MediaDevice> devices;
 		private static List<MediaDevice> privateDevices;
 
+		#endregion Static Fields
+
+		#region Static Methods
 		static MediaDevice()
 		{
 			try
@@ -204,9 +207,9 @@ namespace MediaDevices
 			return privateDevices;
 		}
 
-		#endregion
+		#endregion Static Methods
 
-		#region constructor
+		#region Constructor
 
 		private MediaDevice(string deviceId)
 		{
@@ -253,15 +256,7 @@ namespace MediaDevices
 			this.device = ComFactory.CreateDevice();
 		}
 
-		/// <summary>
-		/// Releases the resources used by the PortableDevices.PortableDevice.
-		/// </summary>
-		public void Dispose()
-		{
-			Disconnect();
-		}
-
-		#endregion
+		#endregion Constructor
 
 		#region Properties
 
@@ -613,13 +608,24 @@ namespace MediaDevices
 			}
 		}
 
-		#endregion
+		#endregion Properties
 
 		#region Public Methods
 
-		public void ConnectAsReadonly()
+		/// <summary>
+		/// Releases the resources used by the PortableDevices.PortableDevice.
+		/// </summary>
+		public void Dispose()
 		{
-			Connect(MediaDeviceAccess.GenericRead, MediaDeviceShare.Read, false);
+			Disconnect();
+		}
+
+		/// <summary>
+		/// Connects to the portable device in read-only mode.
+		/// </summary>
+		public MediaDevice ConnectAsReadonly()
+		{
+			return Connect(MediaDeviceAccess.GenericRead, MediaDeviceShare.Read, false);
 		}
 
 		/// <summary>
@@ -630,8 +636,8 @@ namespace MediaDevices
 		/// <param name="enableCache">Enable or disable file list cache. Disabled cache is used by Explorer for a better performance.</param>
 		public MediaDevice Connect(MediaDeviceAccess access = MediaDeviceAccess.Default, MediaDeviceShare share = MediaDeviceShare.Default, bool enableCache = false)
 		{
-			ConnectAsync(access, share, enableCache).GetAwaiter().GetResult();
-			return this;
+			MediaDevice mediaDevice = ConnectAsync(access, share, enableCache).GetAwaiter().GetResult();
+			return mediaDevice;
 		}
 
 		/// <summary>
@@ -1703,7 +1709,7 @@ namespace MediaDevices
 			}
 		}
 
-		#endregion
+		#endregion 
 
 		#region Device Capabilities
 
