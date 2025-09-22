@@ -148,7 +148,7 @@ namespace MediaDevices
 			{
 				UpdateDeviceList(devices, deviceIds);
 			}
-			return devices;
+			return devices.ToList();
 		}
 
 		private static void UpdateDeviceList(List<MediaDevice> deviceList, string[] deviceIdList)
@@ -206,7 +206,7 @@ namespace MediaDevices
 			{
 				UpdateDeviceList(privateDevices, deviceIds);
 			}
-			return privateDevices;
+			return privateDevices.ToList();
 		}
 
 		#endregion Static Methods
@@ -1431,7 +1431,7 @@ namespace MediaDevices
 				throw new IOException($"File {path} already exists");
 			}
 
-			await Task.Run(() => item.UploadFile(fileName, stream));
+			await Task.Run(() => item.UploadFile(fileName, stream)).ConfigureAwait(false);
 		}
 
 		/// <summary>
