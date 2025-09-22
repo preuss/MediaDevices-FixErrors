@@ -1419,6 +1419,11 @@ namespace MediaDevices
 			CheckConnected();
 
 			string? folder = Path.GetDirectoryName(path);
+			if(folder == null)
+			{
+				throw new DirectoryNotFoundException($"The specified directory in path '{path}' does not exist.");
+			}
+
 			string fileName = Path.GetFileName(path);
 			Item? item = Item.FindFolder(this, folder);
 			if(item == null)

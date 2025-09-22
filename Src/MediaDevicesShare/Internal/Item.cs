@@ -76,6 +76,8 @@ namespace MediaDevices.Internal
 
 		public static Item? FindItem(MediaDevice device, string path)
 		{
+			ArgumentNullException.ThrowIfNull(path);
+
 			var item = Item.GetRoot(device);
 			if (path == @"\")
 			{
