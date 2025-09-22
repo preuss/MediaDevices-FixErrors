@@ -10,6 +10,15 @@ namespace MediaDevices.Internal
 	/// </summary>
 	internal static class ComFactory
 	{
+		// Singleton for all manager types
+		private static readonly Lazy<IPortableDeviceManager> _portableDeviceManager = new(() => (IPortableDeviceManager)new PortableDeviceManager());
+		private static readonly Lazy<MediaDevices.WMDM.IWMDeviceManager> _wmDeviceManager = new(() => (MediaDevices.WMDM.IWMDeviceManager)new MediaDevices.WMDM.MediaDevMgr());
+
+		// Singleton instances
+		private static IPortableDeviceManager PortableDeviceManager => _portableDeviceManager.Value;
+		private static IPortableDeviceServiceManager PortableDeviceServiceManager => (IPortableDeviceServiceManager)PortableDeviceManager;
+		private  static MediaDevices.WMDM.IWMDeviceManager WMDeviceManager => _wmDeviceManager.Value;
+
 		/// <summary>
 		/// Creates a new IPortableDevice instance.
 		/// </summary>
@@ -23,24 +32,32 @@ namespace MediaDevices.Internal
 		/// Creates a new IPortableDeviceManager instance.
 		/// Note: The same COM object also implements IPortableDeviceServiceManager.
 		/// </summary>
-		public static IPortableDeviceManager CreateDeviceManager()
+		public static IPortableDeviceManager GetDeviceManagerInstance()
 		{
 			// ReSharper disable once SuspiciousTypeConversion.Global
-			return (IPortableDeviceManager)new PortableDeviceManager();
+			return PortableDeviceManager;
+		}
+
+		/// <summary>
+		/// Gets the singleton instance of IPortableDeviceServiceManager.
+		/// </summary>
+		public static IPortableDeviceServiceManager GetDeviceServiceManagerInstance()
+		{
+			return PortableDeviceServiceManager;
 		}
 
 		/// <summary>
 		/// Creates both IPortableDeviceManager and IPortableDeviceServiceManager from the same COM object.
 		/// This ensures they share the same underlying COM instance.
 		/// </summary>
-		public static (IPortableDeviceManager deviceManager, IPortableDeviceServiceManager serviceManager) CreateDeviceManagers()
+		public static (IPortableDeviceManager deviceManager, IPortableDeviceServiceManager serviceManager) GetDeviceManagersInstance()
 		{
 			var manager = new PortableDeviceManager();
 			return (
 				// ReSharper disable once SuspiciousTypeConversion.Global
-				(IPortableDeviceManager)manager,
+				PortableDeviceManager,
 				// ReSharper disable once SuspiciousTypeConversion.Global
-				(IPortableDeviceServiceManager)manager
+				PortableDeviceServiceManager
 			);
 		}
 
@@ -94,10 +111,10 @@ namespace MediaDevices.Internal
 		/// Creates a new IWMDeviceManager instance (WMDM).
 		/// </summary>
 		// ReSharper disable once InconsistentNaming
-		public static MediaDevices.WMDM.IWMDeviceManager CreateWMDeviceManager()
+		public static MediaDevices.WMDM.IWMDeviceManager GetWMDeviceManagerInstance()
 		{
 			// ReSharper disable once SuspiciousTypeConversion.Global
-			return (MediaDevices.WMDM.IWMDeviceManager)new MediaDevices.WMDM.MediaDevMgr();
+			return WMDeviceManager;
 		}
 
 		// ReSharper disable once CommentTypo

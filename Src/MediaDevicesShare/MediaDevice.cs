@@ -100,7 +100,9 @@ namespace MediaDevices
 		{
 			try
 			{
-				(deviceManager, serviceManager) = ComFactory.CreateDeviceManagers();
+				//(deviceManager, serviceManager) = ComFactory.GetDeviceManagersInstance();
+				deviceManager = ComFactory.GetDeviceManagerInstance();
+				serviceManager = ComFactory.GetDeviceServiceManagerInstance();
 
 				//var x = new MediaDevMgr();
 				//var f = new MediaDevMgrClassFactory();
