@@ -37,7 +37,7 @@ namespace MediaDevices.Internal
                             fieldName = $"{key.fmtid}, {key.pid}";
                         }
                     }
-                    string fieldValue = string.Empty;
+                    string fieldValue;
                     switch (val.VariantType)
                     {
                         case PropVariantType.VT_CLSID:

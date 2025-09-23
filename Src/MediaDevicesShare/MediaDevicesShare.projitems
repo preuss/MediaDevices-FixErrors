@@ -112,8 +112,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Extensions\" />
-    <Folder Include="$(MSBuildThisFileDirectory)Internal\InterOp\" />
     <Folder Include="$(MSBuildThisFileDirectory)Enums\" />
     <Folder Include="$(MSBuildThisFileDirectory)Internal\InterOp\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Internal\Wrappers\" />
   </ItemGroup>
 </Project>

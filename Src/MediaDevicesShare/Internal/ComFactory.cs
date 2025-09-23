@@ -52,7 +52,7 @@ namespace MediaDevices.Internal
 		/// </summary>
 		public static (IPortableDeviceManager deviceManager, IPortableDeviceServiceManager serviceManager) GetDeviceManagersInstance()
 		{
-			var manager = new PortableDeviceManager();
+			//var manager = new PortableDeviceManager();
 			return (
 				// ReSharper disable once SuspiciousTypeConversion.Global
 				PortableDeviceManager,
