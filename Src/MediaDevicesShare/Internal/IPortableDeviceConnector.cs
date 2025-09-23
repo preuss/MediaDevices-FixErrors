@@ -6,7 +6,7 @@ namespace MediaDevices.Internal
 {
 
     [Guid("625E2DF8-6392-4CF0-9AD1-3CFA5F17775C")]
-    [InterfaceType(1)]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [ComConversionLoss]
     internal interface IPortableDeviceConnector
     {

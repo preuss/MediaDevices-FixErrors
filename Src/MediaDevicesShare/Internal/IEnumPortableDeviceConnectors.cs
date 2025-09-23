@@ -6,7 +6,7 @@ namespace MediaDevices.Internal
 {
     [ComImport]
     [Guid("BFDEF549-9247-454F-BD82-06FE80853FAA")]
-    [InterfaceType(1)]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IEnumPortableDeviceConnectors
     {
         [MethodImpl(MethodImplOptions.InternalCall)]

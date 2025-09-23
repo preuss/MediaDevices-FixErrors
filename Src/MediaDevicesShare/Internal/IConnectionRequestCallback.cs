@@ -7,7 +7,7 @@ namespace MediaDevices.Internal
 
 
     [Guid("272C9AE0-7161-4AE0-91BD-9F448EE9C427")]
-    [InterfaceType(1)]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IConnectionRequestCallback
     {
         [MethodImpl(MethodImplOptions.InternalCall)]
