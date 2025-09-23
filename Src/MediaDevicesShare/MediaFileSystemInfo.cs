@@ -137,15 +137,15 @@ namespace MediaDevices
                 MediaFileAttributes attributes = MediaFileAttributes.Normal;
                 switch (this.item.Type)
                 {
-                case ItemType.File:
-                    attributes = MediaFileAttributes.Normal;
-                    break;
-                case ItemType.Folder:
-                    attributes = MediaFileAttributes.Directory;
-                    break;
-                case ItemType.Object:
-                    attributes = MediaFileAttributes.Object;
-                    break;
+	                case ItemType.File:
+	                    attributes = MediaFileAttributes.Normal;
+	                    break;
+	                case ItemType.Folder:
+	                    attributes = MediaFileAttributes.Directory;
+	                    break;
+	                case ItemType.Object:
+	                    attributes = MediaFileAttributes.Object;
+	                    break;
                 }
                 attributes |= this.item.CanDelete ? MediaFileAttributes.CanDelete : 0;
                 attributes |= this.item.IsSystem ? MediaFileAttributes.System : 0;
@@ -203,7 +203,7 @@ namespace MediaDevices
         /// </summary>
         /// <param name="obj">The object to compare with the current object.</param>
         /// <returns>true if the specified object is equal to the current object; otherwise, false.</returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return (obj as MediaFileSystemInfo)?.Id == this.Id;
         }
