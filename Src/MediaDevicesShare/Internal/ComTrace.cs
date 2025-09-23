@@ -68,45 +68,12 @@ namespace MediaDevices.Internal
 		[Conditional("COMTRACE")]
 		private static void InternalWriteObject(IPortableDeviceValues values)
 		{
-			string? func = new StackTrace().GetFrame(2)?.GetMethod()?.Name ?? "Unknown";
-			Trace.WriteLine($"############################### {func}");
-			uint num = 0;
+			string? funcName = new StackTrace().GetFrame(2)?.GetMethod()?.Name ?? "Unknown";
+			Trace.WriteLine($"############################### {funcName}");
 
-			values.GetCount(ref num);
-			for (uint i = 0; i < num; i++)
+			foreach(var kvp in values.ToKeyValuePair())
 			{
-				PropertyKey key = new PropertyKey();
-				PropVariantFacade val = new PropVariantFacade();
-				values.GetAt(i, ref key, ref val.Value);
-
-				string fieldName = string.Empty;
-				FieldInfo? propField = FindPropertyKeyField(key);
-				if (propField != null)
-				{
-					fieldName = propField.Name;
-				}
-				else
-				{
-					FieldInfo? guidField = FindGuidField(key.fmtid);
-					if (guidField != null)
-					{
-						fieldName = $"{guidField.Name}, {key.pid}";
-					}
-					else
-					{
-						fieldName = $"{key.fmtid}, {key.pid}";
-					}
-				}
-
-				switch (val.VariantType)
-				{
-					case PropVariantType.VT_CLSID:
-						Trace.WriteLine($"##### {fieldName} = {FindGuidField(val.ToGuid())?.Name ?? val.ToString()}");
-						break;
-					default:
-						Trace.WriteLine($"##### {fieldName} = {val.ToDebugString()}");
-						break;
-				}
+				Trace.WriteLine($"##### {kvp.Key} = {kvp.Value}");
 			}
 		}
 

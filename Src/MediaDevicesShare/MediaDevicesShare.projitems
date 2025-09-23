@@ -114,5 +114,6 @@
     <Folder Include="$(MSBuildThisFileDirectory)Extensions\" />
     <Folder Include="$(MSBuildThisFileDirectory)Internal\InterOp\" />
     <Folder Include="$(MSBuildThisFileDirectory)Enums\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Internal\InterOp\" />
   </ItemGroup>
 </Project>

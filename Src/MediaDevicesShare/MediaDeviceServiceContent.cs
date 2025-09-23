@@ -12,39 +12,36 @@ namespace MediaDevices
     /// </summary>
     public class MediaDeviceServiceContent
     {
-        private MediaDeviceService service;
-
-        private MediaDeviceServiceContent()
-        { }
+		private MediaDeviceService _service;
 
         internal MediaDeviceServiceContent(MediaDeviceService service, string objectId)
         {
-            this.service = service;
-            this.ObjectId = objectId;
+            _service = service;
+            ObjectId = objectId;
 
             UpdateProperties();
         }
 
         internal virtual void UpdateProperties()
         {
-            this.service.content.Properties(out IPortableDeviceProperties properties);
+            _service.content.Properties(out IPortableDeviceProperties properties);
 
             //IPortableDeviceKeyCollection keyCol = (IPortableDeviceKeyCollection)new PortableDeviceKeyCollection();
 
-            properties.GetSupportedProperties(this.ObjectId, out IPortableDeviceKeyCollection keyCol);
+            properties.GetSupportedProperties(ObjectId, out IPortableDeviceKeyCollection keyCol);
 
-            properties.GetValues(this.ObjectId, keyCol, out IPortableDeviceValues deviceValues);
+            properties.GetValues(ObjectId, keyCol, out IPortableDeviceValues deviceValues);
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 deviceValues.GetValue(ref WPD.ParentId, out value.Value);
-                this.ParentId = value;
+                ParentId = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 deviceValues.GetValue(ref WPD.Name, out value.Value);
-                this.Name = value;
+                Name = value;
             }
 
             ComTrace.WriteObject(deviceValues);
@@ -72,7 +69,7 @@ namespace MediaDevices
         /// <returns>Content list</returns>
         public IEnumerable<MediaDeviceServiceContent> GetContent()
         {
-            return this.service.GetContent(this.ObjectId);
+            return _service.GetContent(ObjectId);
         }
 
         /// <summary>
@@ -81,7 +78,7 @@ namespace MediaDevices
         /// <returns>List of properties</returns>
         public IEnumerable<KeyValuePair<string, string>> GetAllProperties()
         {
-            return this.service.GetAllProperties(this.ObjectId);
+            return _service.GetAllProperties(ObjectId).ToKeyValuePair();
         }
         
     }

@@ -207,7 +207,7 @@ namespace MediaDevices
             return objectIdArray.Take((int)num).Select(o => new MediaDeviceServiceContent(this, o));
         }
 
-        internal IEnumerable<KeyValuePair<string, string>> GetAllProperties(string objectID)
+        internal IPortableDeviceValues GetAllProperties(string objectID)
         {
             content.Properties(out IPortableDeviceProperties properties);
 
@@ -215,7 +215,7 @@ namespace MediaDevices
 
             properties.GetValues(objectID, keyCol, out IPortableDeviceValues deviceValues);
 
-            return deviceValues.ToKeyValuePair();
+            return deviceValues;
         }
                
         internal IPortableDeviceValues GetProperties(IPortableDeviceKeyCollection keyCol)
@@ -226,28 +226,33 @@ namespace MediaDevices
 
             return deviceValues;
         }
-        
-        /// <summary>
-        /// Update service
-        /// </summary>
-        protected virtual void Update()
+
+		/// <summary>
+		/// Updates the service state. 
+		/// 
+		/// <para>
+		/// <b>Note:</b> This base implementation is intended for debugging only and writes all properties to the trace output.
+		/// It should <b>not</b> be called directly in production code. 
+		/// Always override this method in derived classes to provide service-specific update logic.
+		/// </para>
+		/// </summary>
+		/// <remarks>
+		/// The base implementation is only for diagnostic purposes and should not be relied upon for actual service updates.
+		/// </remarks>
+		protected virtual void Update()
+		{
+			// Debug: Write all properties to trace output for inspection.
+			IPortableDeviceValues deviceValues = GetAllProperties(ServiceObjectID);
+			ComTrace.WriteObject(deviceValues);
+		}
+
+		/// <summary>
+		/// Get all properties
+		/// </summary>
+		/// <returns>List of properties</returns>
+		public IEnumerable<KeyValuePair<string,string>> GetAllProperties()
         {
-            content.Properties(out IPortableDeviceProperties properties);
-
-            properties.GetSupportedProperties(ServiceObjectID, out IPortableDeviceKeyCollection keyCol);
-
-            properties.GetValues(ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
-
-            ComTrace.WriteObject(deviceValues);
-        }
-
-        /// <summary>
-        /// Get all properties
-        /// </summary>
-        /// <returns>List of properties</returns>
-        public IEnumerable<KeyValuePair<string,string>> GetAllProperties()
-        {
-            return GetAllProperties(ServiceObjectID);
+            return GetAllProperties(ServiceObjectID).ToKeyValuePair();
         }
 
         /// <summary>

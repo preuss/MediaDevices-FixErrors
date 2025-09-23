@@ -41,80 +41,80 @@ namespace MediaDevices
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.SignalStrength, out value.Value);
-                this.SignalStrength = value;
+				SignalStrength = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.TextMessages, out value.Value);
-                this.TextMessages = value;
+                TextMessages = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.NewPictures, out value.Value);
-                this.NewPictures = value;
+                NewPictures = value;
             }
 
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.MissedCalls, out value.Value);
-                this.MissedCalls = value;
+                MissedCalls = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.VoiceMail, out value.Value);
-                this.VoiceMail = value;
+                VoiceMail = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.NetworkName, out value.Value);
-                this.NetworkName = value;
+                NetworkName = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.NetworkType, out value.Value);
-                this.NetworkType = value;
+                NetworkType = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.Roaming, out value.Value);
-                this.Roaming = (Roaming)(byte)value;
+                Roaming = (Roaming)(byte)value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.BatteryLife, out value.Value);
-                this.BatteryLife = value;
+                BatteryLife = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.ChargingState, out value.Value);
-                this.ChargingState = (ChargingState)(byte)value;
+                ChargingState = (ChargingState)(byte)value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.StorageCapacity, out value.Value);
-                this.StorageCapacity = value;
+                StorageCapacity = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.StorageFreeSpace, out value.Value);
-                this.StorageFreeSpace = value;
+                StorageFreeSpace = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
                 values.GetValue(ref WPD.InternetConnected, out value.Value);
-                this.InternetConnected = value;
+                InternetConnected = value;
             }
         }
 
@@ -147,12 +147,12 @@ namespace MediaDevices
         /// <summary>
         /// Human-readable name of the current mobile network (for example, “Microsoft Cellular”).
         /// </summary>
-        public string NetworkName { get; private set; }
+        public string NetworkName { get; private set; } = string.Empty;
 
         /// <summary>
         /// Type of mobile network that the device is currently using (for example, “E” for EDGE, “U” for UMTS, or “1x” for 1xRTT).
         /// </summary>
-        public string NetworkType { get; private set; }
+        public string NetworkType { get; private set; } = string.Empty;
 
         /// <summary>
         /// Roaming type.

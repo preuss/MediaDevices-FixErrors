@@ -4,16 +4,16 @@ namespace MediaDevices.Internal
 {
     internal class EventCallback : IPortableDeviceEventCallback
     {
-        private MediaDevice device;
+        private MediaDevice _device;
 
         public EventCallback(MediaDevice device)
         {
-            this.device = device;
+            _device = device;
         }
 
         public void OnEvent(IPortableDeviceValues pEventParameters)
         {
-            this.device.CallEvent(pEventParameters);
+            _device.CallEvent(pEventParameters);
         }
     }
 }

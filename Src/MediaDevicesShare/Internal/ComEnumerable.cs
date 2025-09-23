@@ -19,7 +19,6 @@ namespace MediaDevices.Internal
                 {
                     values.GetAt(i, ref key, ref val.Value);
 
-
                     string fieldName = string.Empty;
                     FieldInfo? propField = ComTrace.FindPropertyKeyField(key);
                     if (propField != null)

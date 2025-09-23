@@ -15,9 +15,9 @@ namespace MediaDevices.Internal
         private void CheckDisposed()
         {
             if (this.stream == null)
-            {
-                throw new ObjectDisposedException("StreamWrapper");
-            }
+			{
+				throw new ObjectDisposedException("StreamWrapper");
+			}
         }
 
         protected override void Dispose(bool disposing)
