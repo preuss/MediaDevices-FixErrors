@@ -141,7 +141,7 @@ namespace MediaDevices
         public string Name { get; private set; }
 
         /// <summary>
-        /// Servicename
+        /// ServiceName
         /// </summary>
         public string ServiceName { get; private set; }
 
@@ -151,7 +151,7 @@ namespace MediaDevices
         public string ServiceVersion { get; private set; }
 
         /// <summary>
-        /// OhjectID of the service
+        /// ObjectID of the service
         /// </summary>
         public string ServiceObjectID { get; private set; }
 
