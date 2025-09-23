@@ -227,7 +227,8 @@ namespace MediaDevices
                     }
                     else
                     {
-                        MediaFileInfo mfi = fsi as MediaFileInfo;
+						// Is MediaFileAttributes.Normal and that is a File.
+                        MediaFileInfo mfi = (MediaFileInfo)fsi;
                         mfi.CopyTo(path);
                     }
                 }
