@@ -162,8 +162,8 @@ namespace MediaDevices.Internal
             return false;
         }
 
-        private static class NativeMethods
-        {
+		private static class NativeMethods
+		{
 			// http://www.pinvoke.net/default.aspx/iprop/PropVariantClear.html
 			// https://social.msdn.microsoft.com/Forums/windowsserver/en-US/ec242718-8738-4468-ae9d-9734113d2dea/quotipropdllquot-seems-to-be-missing-in-windows-server-2008-and-x64-systems?forum=winserver2008appcompatabilityandcertification
 			[DllImport("ole32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
