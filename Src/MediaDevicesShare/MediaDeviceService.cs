@@ -17,18 +17,17 @@ namespace MediaDevices
     public class MediaDeviceService : IDisposable
     {
         internal MediaDevice device;
-        internal IPortableDeviceService service = ComFactory.CreateDeviceService();
+        private IPortableDeviceService? _deviceService;
         //protected IPortableDeviceValues values;
         internal IPortableDeviceServiceCapabilities capabilities;
         internal IPortableDeviceContent2 content;
 
-        private MediaDeviceService()
-        { }
-
         internal MediaDeviceService(MediaDevice device, string serviceId)
         {
-            this.device = device;
-            this.ServiceId = serviceId;
+	        _deviceService = ComFactory.CreateDeviceService();
+
+			this.device = device;
+            ServiceId = serviceId;
 
             //Match match = Regex.Match(serviceId, @".*#(?<service>\{.*\})\\(?<name>\{.*\})");
             //if (match.Success)
@@ -46,23 +45,23 @@ namespace MediaDevices
             //this.ServiceName = serviceId.Substring(serviceId.LastIndexOf(@"\") + 1);
 
             IPortableDeviceValues values = ComFactory.CreateDeviceValues();
-			this.service.Open(this.ServiceId, values);
+			DeviceService.Open(ServiceId, values);
 
-            this.service.GetServiceObjectID(out string serviceObjectID);
-            this.ServiceObjectID = serviceObjectID;
+            DeviceService.GetServiceObjectID(out string serviceObjectID);
+            ServiceObjectID = serviceObjectID;
 
-            this.service.GetPnPServiceID(out string pnPServiceID);
-            this.PnPServiceID = pnPServiceID;
+            DeviceService.GetPnPServiceID(out string pnPServiceID);
+            PnPServiceID = pnPServiceID;
 
-            this.service.Capabilities(out capabilities);
+            DeviceService.Capabilities(out capabilities);
 
-            this.service.Content(out content);
+            DeviceService.Content(out content);
 
             content.Properties(out IPortableDeviceProperties properties);
 
-            properties.GetSupportedProperties(this.ServiceObjectID, out IPortableDeviceKeyCollection keyCol);
+            properties.GetSupportedProperties(ServiceObjectID, out IPortableDeviceKeyCollection keyCol);
 
-            properties.GetValues(this.ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
+            properties.GetValues(ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
 
             ComTrace.WriteObject(deviceValues);
 
@@ -71,39 +70,58 @@ namespace MediaDevices
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                deviceValues.GetValue(ref WPD.OBJECT_NAME, out value.Value);
-                this.Name = value;
+	            var key = WPD.OBJECT_NAME;
+				deviceValues.GetValue(ref key, out value.Value);
+                Name = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                deviceValues.GetValue(ref WPD.FUNCTIONAL_OBJECT_CATEGORY, out value.Value);
+	            var key = WPD.FUNCTIONAL_OBJECT_CATEGORY;
+				deviceValues.GetValue(ref key, out value.Value);
                 
                 Guid serviceGuid = new Guid((string)value);
-                this.Service = serviceGuid.GetEnum<MediaDeviceServices>();
-                this.ServiceName = this.Service != MediaDeviceServices.Unknown ? this.Service.ToString() : serviceGuid.ToString();
+                Service = serviceGuid.GetEnum<MediaDeviceServices>();
+                ServiceName = Service != MediaDeviceServices.Unknown ? Service.ToString() : serviceGuid.ToString();
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                deviceValues.GetValue(ref WPD.SERVICE_VERSION, out value.Value);
-                this.ServiceVersion = value;
+	            var key = WPD.SERVICE_VERSION;
+                deviceValues.GetValue(ref key, out value.Value);
+                ServiceVersion = value;
             }
 
 #pragma warning restore IDE0090 // Use 'new(...)'
 #pragma warning restore IDE0079 // Remove unnecessary suppression
 
-            Update();
+	        // ReSharper disable once VirtualMemberCallInConstructor
+	        Update();
 
             //var x = GetContent().ToArray();
 
             
         }
 
-        /// <summary>
-        /// Dispose service
-        /// </summary>
-        public void Dispose()
+        private IPortableDeviceService DeviceService
+        {
+	        get
+	        {
+				if(_deviceService == null) {
+					throw new ObjectDisposedException(
+						nameof(MediaDeviceService),
+						"Service has already been disposed, and is not available."
+					);
+				}
+
+				return _deviceService;
+	        }
+        }
+
+		/// <summary>
+		/// Dispose service
+		/// </summary>
+		public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -117,10 +135,10 @@ namespace MediaDevices
         {
             if (disposing)
             {
-                if (this.service != null)
+                if (_deviceService != null)
                 {
-                    this.service.Close();
-                    this.service = null;
+                    _deviceService.Close();
+                    _deviceService = null;
                 }
             }
         }
@@ -166,7 +184,7 @@ namespace MediaDevices
         /// <returns>String with the info</returns>
         public override string ToString()
         {
-            return $"{this.Name} : {this.ServiceName} : {this.ServiceVersion}";
+            return $"{Name} : {ServiceName} : {ServiceVersion}";
         }
 
         /// <summary>
@@ -180,7 +198,7 @@ namespace MediaDevices
 
         internal IEnumerable<MediaDeviceServiceContent> GetContent(string objectID)
         {
-            this.content.EnumObjects(0, objectID, null, out IEnumPortableDeviceObjectIDs enumerator);
+            content.EnumObjects(0, objectID, null, out IEnumPortableDeviceObjectIDs enumerator);
 
             uint num = 0;
             string[] objectIdArray = new string[20];
@@ -191,7 +209,7 @@ namespace MediaDevices
 
         internal IEnumerable<KeyValuePair<string, string>> GetAllProperties(string objectID)
         {
-            this.content.Properties(out IPortableDeviceProperties properties);
+            content.Properties(out IPortableDeviceProperties properties);
 
             properties.GetSupportedProperties(objectID, out IPortableDeviceKeyCollection keyCol);
 
@@ -202,9 +220,9 @@ namespace MediaDevices
                
         internal IPortableDeviceValues GetProperties(IPortableDeviceKeyCollection keyCol)
         {
-            this.content.Properties(out IPortableDeviceProperties properties);
+            content.Properties(out IPortableDeviceProperties properties);
 
-            properties.GetValues(this.ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
+            properties.GetValues(ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
 
             return deviceValues;
         }
@@ -214,11 +232,11 @@ namespace MediaDevices
         /// </summary>
         protected virtual void Update()
         {
-            this.content.Properties(out IPortableDeviceProperties properties);
+            content.Properties(out IPortableDeviceProperties properties);
 
-            properties.GetSupportedProperties(this.ServiceObjectID, out IPortableDeviceKeyCollection keyCol);
+            properties.GetSupportedProperties(ServiceObjectID, out IPortableDeviceKeyCollection keyCol);
 
-            properties.GetValues(this.ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
+            properties.GetValues(ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
 
             ComTrace.WriteObject(deviceValues);
         }
@@ -229,7 +247,7 @@ namespace MediaDevices
         /// <returns>List of properties</returns>
         public IEnumerable<KeyValuePair<string,string>> GetAllProperties()
         {
-            return GetAllProperties(this.ServiceObjectID);
+            return GetAllProperties(ServiceObjectID);
         }
 
         /// <summary>
@@ -285,7 +303,7 @@ namespace MediaDevices
         public void CallMethod(Guid method, object[] parameters)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            this.service.Methods(out IPortableDeviceServiceMethods methods);
+            DeviceService.Methods(out IPortableDeviceServiceMethods methods);
 
             IPortableDeviceValues values = ComFactory.CreateDeviceValues();
             //values.SetStringValue();
@@ -296,11 +314,13 @@ namespace MediaDevices
         internal void SendCommand(PropertyKey commandKey)
         {
             IPortableDeviceValues values = ComFactory.CreateDeviceValues();
-            values.SetGuidValue(ref WPD.PROPERTY_COMMON_COMMAND_CATEGORY, ref commandKey.fmtid);
-            values.SetUnsignedIntegerValue(ref WPD.PROPERTY_COMMON_COMMAND_ID, commandKey.pid);
+            var key = WPD.PROPERTY_COMMON_COMMAND_CATEGORY;
+			values.SetGuidValue(ref key, ref commandKey.fmtid);
+			key = WPD.PROPERTY_COMMON_COMMAND_ID;
+			values.SetUnsignedIntegerValue(ref key, commandKey.pid);
 
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
-            this.service.SendCommand(0, ref values, out IPortableDeviceValues results);
+            DeviceService.SendCommand(0, ref values, out IPortableDeviceValues results);
 #pragma warning restore IDE0059 // Unnecessary assignment of a value
         }
 
