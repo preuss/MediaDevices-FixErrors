@@ -19,7 +19,7 @@ namespace MediaDevices
         Directory = 0x02,
 
         /// <summary>
-        /// The file is a object.
+        /// The file is an object.
         /// </summary>
         Object = 0x04,
 
