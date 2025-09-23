@@ -70,15 +70,13 @@ namespace MediaDevices
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-	            var key = WPD.OBJECT_NAME;
-				deviceValues.GetValue(ref key, out value.Value);
+				deviceValues.GetValue(ref WPD.OBJECT_NAME, out value.Value);
                 Name = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-	            var key = WPD.FUNCTIONAL_OBJECT_CATEGORY;
-				deviceValues.GetValue(ref key, out value.Value);
+				deviceValues.GetValue(ref WPD.FUNCTIONAL_OBJECT_CATEGORY, out value.Value);
                 
                 Guid serviceGuid = new Guid((string)value);
                 Service = serviceGuid.GetEnum<MediaDeviceServices>();
@@ -87,8 +85,7 @@ namespace MediaDevices
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-	            var key = WPD.SERVICE_VERSION;
-                deviceValues.GetValue(ref key, out value.Value);
+                deviceValues.GetValue(ref WPD.SERVICE_VERSION, out value.Value);
                 ServiceVersion = value;
             }
 
@@ -319,10 +316,8 @@ namespace MediaDevices
         internal void SendCommand(PropertyKey commandKey)
         {
             IPortableDeviceValues values = ComFactory.CreateDeviceValues();
-            var key = WPD.PROPERTY_COMMON_COMMAND_CATEGORY;
-			values.SetGuidValue(ref key, ref commandKey.fmtid);
-			key = WPD.PROPERTY_COMMON_COMMAND_ID;
-			values.SetUnsignedIntegerValue(ref key, commandKey.pid);
+			values.SetGuidValue(ref WPD.PROPERTY_COMMON_COMMAND_CATEGORY, ref commandKey.fmtid);
+			values.SetUnsignedIntegerValue(ref WPD.PROPERTY_COMMON_COMMAND_ID, commandKey.pid);
 
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
             DeviceService.SendCommand(0, ref values, out IPortableDeviceValues results);
