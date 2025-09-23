@@ -11,10 +11,10 @@ namespace MediaDevices
     /// <summary>
     /// MediaDive connector
     /// </summary>
-    public class MediaDeviceConnector : IConnectionRequestCallback
+    public class MediaDeviceConnector : IConnectionRequestCallback, IDisposable
     {
-        private IPortableDeviceConnector connector;
-		private TaskCompletionSource<int>? tcs;
+        private IPortableDeviceConnector? _connector;
+		private TaskCompletionSource<int>? _tcs;
 
 		/// <summary>
 		/// Event signals if complete
@@ -24,7 +24,7 @@ namespace MediaDevices
 
         internal MediaDeviceConnector(IPortableDeviceConnector connector)
         {
-            this.connector = connector;
+            _connector = connector;
         }
 
 		/// <summary>
@@ -33,16 +33,16 @@ namespace MediaDevices
 		[Obsolete("Use ConnectAsync instead", false)]
 		public void Connect()
         {
-            this.connector.Connect(this);
+            _connector?.Connect(this);
 		}
 		/// <summary>
 		/// Connect to service
 		/// </summary>
 		public Task<int> ConnectAsync()
 		{
-			this.tcs = new TaskCompletionSource<int>();
-			this.connector.Connect(this);
-			return this.tcs.Task;
+			_tcs = new TaskCompletionSource<int>();
+			_connector?.Connect(this);
+			return _tcs.Task;
 		}
 
 		/// <summary>
@@ -50,17 +50,30 @@ namespace MediaDevices
 		/// </summary>
 		public void Disconnect()
         {
-            this.connector.Disconnect(this);
+            _connector?.Disconnect(this);
         }
 
-        /// <summary>
-        /// On completed
-        /// </summary>
-        /// <param name="hrStatus">Status</param>
-        public void OnComplete([In, MarshalAs(UnmanagedType.Error)] int hrStatus)
+        /// <inheritdoc/>
+        public void Dispose() {
+	        if(_connector != null) {
+		        Marshal.ReleaseComObject(_connector);
+		        _connector = null;
+	        }
+	        GC.SuppressFinalize(this);
+        }
+
+        ~MediaDeviceConnector() {
+	        Dispose();
+        }
+
+		/// <summary>
+		/// On completed
+		/// </summary>
+		/// <param name="hrStatus">Status</param>
+		public void OnComplete([In, MarshalAs(UnmanagedType.Error)] int hrStatus)
         {
             this.Complete?.Invoke(this, new CompleteEventArgs(hrStatus));
-			this.tcs?.SetResult(hrStatus);
+			this._tcs?.SetResult(hrStatus);
 		}
     }
 }
