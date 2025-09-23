@@ -90,8 +90,8 @@ namespace MediaDevices
 		private static readonly IPortableDeviceManager deviceManager;
 		private static readonly IPortableDeviceServiceManager serviceManager;
 
-		private static List<MediaDevice> devices;
-		private static List<MediaDevice> privateDevices;
+		private static List<MediaDevice>? devices;
+		private static List<MediaDevice>? privateDevices;
 
 		#endregion Static Fields
 
