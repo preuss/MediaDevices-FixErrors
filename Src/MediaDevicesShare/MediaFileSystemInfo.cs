@@ -17,7 +17,7 @@ namespace MediaDevices
 
         internal Item item;
 
-        private MediaDirectoryInfo _parent;
+        private MediaDirectoryInfo? _parent;
 
         internal MediaFileSystemInfo(MediaDevice device, Item item)
         {
