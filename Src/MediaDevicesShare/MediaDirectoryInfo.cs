@@ -161,7 +161,8 @@ namespace MediaDevices
                 throw new NotConnectedException("Not connected");
             }
 
-            return this.item.GetChildren(MediaDevice.FilterToRegex(searchPattern), searchOption).Select(i => i.Type == ItemType.File ?
+            return this.item.GetChildren(MediaDevice.FilterToRegex(searchPattern), searchOption)
+	            .Select(i => i.Type == ItemType.File ?
                         (MediaFileSystemInfo)new MediaFileInfo(this.device, i) :
                         (MediaFileSystemInfo)new MediaDirectoryInfo(this.device, i));
         }
