@@ -25,11 +25,11 @@ namespace MediaDevices
         /// <summary>
         /// Gets the parent directory of a specified subdirectory.
         /// </summary>
-        public MediaDirectoryInfo Parent
+        public MediaDirectoryInfo? Parent
         {
             get
             {
-                return this.ParentDirectoryInfo;
+                return ParentDirectoryInfo;
             }
         }
 

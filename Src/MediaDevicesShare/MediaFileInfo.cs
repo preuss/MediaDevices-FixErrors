@@ -25,11 +25,11 @@ namespace MediaDevices
 		/// <summary>
 		/// Gets an instance of the parent directory.
 		/// </summary>
-		public MediaDirectoryInfo Directory
+		public MediaDirectoryInfo? Directory
 		{
 			get
 			{
-				return this.ParentDirectoryInfo;
+				return ParentDirectoryInfo;
 			}
 		}
 

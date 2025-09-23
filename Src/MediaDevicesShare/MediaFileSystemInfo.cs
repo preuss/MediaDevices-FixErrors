@@ -31,21 +31,22 @@ namespace MediaDevices
         /// </summary>
         public virtual void Refresh()
         {
-            this.item.Refresh();
+			item.Refresh();
         }
 
         /// <summary>
         /// Gets the parent directory of a specified subdirectory.
         /// </summary>
-        protected MediaDirectoryInfo ParentDirectoryInfo
+        protected MediaDirectoryInfo? ParentDirectoryInfo
         {
             get
-            { 
-                if (this._parent == null && this.item.Parent != null)
+            {
+				if(_parent == null && item.Parent != null)
                 {
-                    this._parent = new MediaDirectoryInfo(this.device, this.item.Parent);
+					_parent = new MediaDirectoryInfo(device, item.Parent);
                 }
-                return this._parent;
+				// TODO: Should this return null if _parent is null?
+				return _parent;
             }
         }
 
@@ -56,7 +57,7 @@ namespace MediaDevices
         {
             get
             {
-                return this.item.FullName;
+                return item.FullName;
             }
         }
 
@@ -67,7 +68,11 @@ namespace MediaDevices
         {
             get
             {
-                return this.item.Name;
+				// TODO: Should this return null if item.Name is null?
+				if(item.Name == null) {
+					return string.Empty;
+				}
+                return item.Name;
             }
         }
 
@@ -78,7 +83,7 @@ namespace MediaDevices
         {
             get
             {
-                return this.item.Size;
+                return item.Size;
             }
         }
 
@@ -89,11 +94,11 @@ namespace MediaDevices
         {
             get
             {
-                return this.item.DateCreated;
+                return item.DateCreated;
             }
             set
             {
-                this.item.SetDateCreated(value);
+                item.SetDateCreated(value);
             }
         }
 
@@ -104,11 +109,11 @@ namespace MediaDevices
         {
             get
             {
-                return this.item.DateModified;
+                return item.DateModified;
             }
             set
             {
-                this.item.SetDateModified(value);
+                item.SetDateModified(value);
             }
         }
 
@@ -119,11 +124,11 @@ namespace MediaDevices
         {
             get
             {
-                return this.item.DateAuthored;
+                return item.DateAuthored;
             }
             set
             {
-                this.item.SetDateAuthored(value);
+                item.SetDateAuthored(value);
             }
         }
 
@@ -135,7 +140,7 @@ namespace MediaDevices
             get
             {
                 MediaFileAttributes attributes = MediaFileAttributes.Normal;
-                switch (this.item.Type)
+                switch (item.Type)
                 {
 	                case ItemType.File:
 	                    attributes = MediaFileAttributes.Normal;
@@ -147,10 +152,10 @@ namespace MediaDevices
 	                    attributes = MediaFileAttributes.Object;
 	                    break;
                 }
-                attributes |= this.item.CanDelete ? MediaFileAttributes.CanDelete : 0;
-                attributes |= this.item.IsSystem ? MediaFileAttributes.System : 0;
-                attributes |= this.item.IsHidden ? MediaFileAttributes.Hidden : 0;
-                attributes |= this.item.IsDRMProtected ? MediaFileAttributes.DRMProtected : 0;
+                attributes |= item.CanDelete ? MediaFileAttributes.CanDelete : 0;
+                attributes |= item.IsSystem ? MediaFileAttributes.System : 0;
+                attributes |= item.IsHidden ? MediaFileAttributes.Hidden : 0;
+                attributes |= item.IsDRMProtected ? MediaFileAttributes.DRMProtected : 0;
                 return attributes; 
             }
         }
@@ -162,7 +167,7 @@ namespace MediaDevices
         {
             get
             {
-                return this.item.Id;
+                return item.Id;
             }
         }
 
@@ -176,7 +181,7 @@ namespace MediaDevices
         {
             get
             {
-                return this.item.PersistentUniqueId;
+                return item.PersistentUniqueId;
             }
         }
 
@@ -186,7 +191,7 @@ namespace MediaDevices
         /// <param name="newName">New name of the file or folder.</param>
         public void Rename(string newName)
         {
-            this.item.Rename(newName);
+            item.Rename(newName);
         }
 
         /// <summary>
@@ -195,7 +200,7 @@ namespace MediaDevices
         /// <returns>A hash code for the current object.</returns>
         public override int GetHashCode()
         {
-            return this.Id.GetHashCode();
+            return Id.GetHashCode();
         }
 
         /// <summary>
@@ -205,7 +210,7 @@ namespace MediaDevices
         /// <returns>true if the specified object is equal to the current object; otherwise, false.</returns>
         public override bool Equals(object? obj)
         {
-            return (obj as MediaFileSystemInfo)?.Id == this.Id;
+            return (obj as MediaFileSystemInfo)?.Id == Id;
         }
     }
 }
