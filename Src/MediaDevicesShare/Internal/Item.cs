@@ -554,7 +554,7 @@ namespace MediaDevices.Internal
 			// directory.
 			var drives = _device.GetDrives();
 			var storageRoot = drives.FirstOrDefault(s => s.RootDirectory != null && s.RootDirectory.Id == ParentContainerId);
-			return storageRoot?.RootDirectory?.item;
+			return storageRoot?.RootDirectory?.Item;
 		}
 
 		internal Stream OpenRead()

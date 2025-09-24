@@ -13,16 +13,16 @@ namespace MediaDevices
         /// <summary>
         ///corresponding MediaDevice instance
         /// </summary>
-        protected MediaDevice device;
+        protected readonly MediaDevice _device;
 
-        internal Item item;
+        internal readonly Item Item;
 
         private MediaDirectoryInfo? _parent;
 
         internal MediaFileSystemInfo(MediaDevice device, Item item)
         {
-            this.device = device;
-            this.item = item;
+            this._device = device;
+            this.Item = item;
             Refresh();
         }
 
@@ -31,7 +31,7 @@ namespace MediaDevices
         /// </summary>
         public virtual void Refresh()
         {
-			item.Refresh();
+			Item.Refresh();
         }
 
         /// <summary>
@@ -41,9 +41,9 @@ namespace MediaDevices
         {
             get
             {
-				if(_parent == null && item.Parent != null)
+				if(_parent == null && Item.Parent != null)
                 {
-					_parent = new MediaDirectoryInfo(device, item.Parent);
+					_parent = new MediaDirectoryInfo(_device, Item.Parent);
                 }
 				// TODO: Should this return null if _parent is null?
 				return _parent;
@@ -57,7 +57,7 @@ namespace MediaDevices
         {
             get
             {
-                return item.FullName;
+                return Item.FullName;
             }
         }
 
@@ -69,10 +69,10 @@ namespace MediaDevices
             get
             {
 				// TODO: Should this return null if item.Name is null?
-				if(item.Name == null) {
+				if(Item.Name == null) {
 					return string.Empty;
 				}
-                return item.Name;
+                return Item.Name;
             }
         }
 
@@ -83,7 +83,7 @@ namespace MediaDevices
         {
             get
             {
-                return item.Size;
+                return Item.Size;
             }
         }
 
@@ -94,11 +94,11 @@ namespace MediaDevices
         {
             get
             {
-                return item.DateCreated;
+                return Item.DateCreated;
             }
             set
             {
-                item.SetDateCreated(value);
+                Item.SetDateCreated(value);
             }
         }
 
@@ -109,11 +109,11 @@ namespace MediaDevices
         {
             get
             {
-                return item.DateModified;
+                return Item.DateModified;
             }
             set
             {
-                item.SetDateModified(value);
+                Item.SetDateModified(value);
             }
         }
 
@@ -124,11 +124,11 @@ namespace MediaDevices
         {
             get
             {
-                return item.DateAuthored;
+                return Item.DateAuthored;
             }
             set
             {
-                item.SetDateAuthored(value);
+                Item.SetDateAuthored(value);
             }
         }
 
@@ -140,7 +140,7 @@ namespace MediaDevices
             get
             {
                 MediaFileAttributes attributes = MediaFileAttributes.Normal;
-                switch (item.Type)
+                switch (Item.Type)
                 {
 	                case ItemType.File:
 	                    attributes = MediaFileAttributes.Normal;
@@ -152,10 +152,10 @@ namespace MediaDevices
 	                    attributes = MediaFileAttributes.Object;
 	                    break;
                 }
-                attributes |= item.CanDelete ? MediaFileAttributes.CanDelete : 0;
-                attributes |= item.IsSystem ? MediaFileAttributes.System : 0;
-                attributes |= item.IsHidden ? MediaFileAttributes.Hidden : 0;
-                attributes |= item.IsDRMProtected ? MediaFileAttributes.DRMProtected : 0;
+                attributes |= Item.CanDelete ? MediaFileAttributes.CanDelete : 0;
+                attributes |= Item.IsSystem ? MediaFileAttributes.System : 0;
+                attributes |= Item.IsHidden ? MediaFileAttributes.Hidden : 0;
+                attributes |= Item.IsDRMProtected ? MediaFileAttributes.DRMProtected : 0;
                 return attributes; 
             }
         }
@@ -167,7 +167,7 @@ namespace MediaDevices
         {
             get
             {
-                return item.Id;
+                return Item.Id;
             }
         }
 
@@ -181,7 +181,7 @@ namespace MediaDevices
         {
             get
             {
-                return item.PersistentUniqueId;
+                return Item.PersistentUniqueId;
             }
         }
 
@@ -191,7 +191,7 @@ namespace MediaDevices
         /// <param name="newName">New name of the file or folder.</param>
         public void Rename(string newName)
         {
-            item.Rename(newName);
+            Item.Rename(newName);
         }
 
         /// <summary>

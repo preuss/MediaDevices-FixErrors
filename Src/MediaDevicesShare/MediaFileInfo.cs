@@ -53,13 +53,13 @@ namespace MediaDevices
 		/// <param name="overwrite">true to allow an existing file to be overwritten; otherwise, false. </param>
 		public async Task CopyToAsync(string destFileName, bool overwrite = true)
 		{
-			if(!this.device.IsConnected)
+			if(!this._device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
 			using(FileStream fileStream = File.Open(destFileName, overwrite ? FileMode.Create : FileMode.CreateNew))
 			{
-				using(Stream sourceStream = item.OpenRead())
+				using(Stream sourceStream = Item.OpenRead())
 				{
 					await sourceStream.CopyToAsync(fileStream);
 				}
@@ -90,13 +90,13 @@ namespace MediaDevices
 		/// <param name="readBufferSize">The buffer size, default is 8192 bytes.</param>
 		public async Task CopyToAsync(string destFileName, IProgress<FileProgressReport> progress, bool overwrite = true, int readBufferSize = 8192)
 		{
-			if(!this.device.IsConnected)
+			if(!this._device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
 			using(FileStream fileStream = File.Open(destFileName, overwrite ? FileMode.Create : FileMode.CreateNew))
 			{
-				using(Stream sourceStream = item.OpenRead())
+				using(Stream sourceStream = Item.OpenRead())
 				{
 					DateTime startDateTime = System.DateTime.Now;
 
@@ -112,7 +112,7 @@ namespace MediaDevices
 						totalBytesRead += (ulong)bytesRead;
 
 						// Report progress
-						progress.Report(new FileProgressReport(totalBytesRead, item.Size, startDateTime, reportDateTime, reportDateTime.Subtract(startDateTime)));
+						progress.Report(new FileProgressReport(totalBytesRead, Item.Size, startDateTime, reportDateTime, reportDateTime.Subtract(startDateTime)));
 					}
 				}
 			}
@@ -128,13 +128,13 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public void CopyIconTo(string destFileName, bool overwrite = true)
 		{
-			if(!this.device.IsConnected)
+			if(!this._device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
 			using(FileStream file = File.Open(destFileName, overwrite ? FileMode.Create : FileMode.CreateNew))
 			{
-				using(Stream sourceStream = item.OpenReadIcon())
+				using(Stream sourceStream = Item.OpenReadIcon())
 				{
 					sourceStream.CopyTo(file);
 				}
@@ -151,13 +151,13 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public void CopyThumbnail(string destFileName, bool overwrite = true)
 		{
-			if(!this.device.IsConnected)
+			if(!this._device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
 			using(FileStream file = File.Open(destFileName, overwrite ? FileMode.Create : FileMode.CreateNew))
 			{
-				using(Stream sourceStream = item.OpenReadThumbnail())
+				using(Stream sourceStream = Item.OpenReadThumbnail())
 				{
 					sourceStream.CopyTo(file);
 				}
@@ -172,11 +172,11 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public Stream OpenRead()
 		{
-			if(!this.device.IsConnected)
+			if(!this._device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
-			return this.item.OpenRead();
+			return this.Item.OpenRead();
 		}
 
 		/// <summary>
@@ -187,11 +187,11 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public Stream OpenIcon()
 		{
-			if(!this.device.IsConnected)
+			if(!this._device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
-			return this.item.OpenReadIcon();
+			return this.Item.OpenReadIcon();
 		}
 
 		/// <summary>
@@ -202,11 +202,11 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public Stream OpenThumbnail()
 		{
-			if(!this.device.IsConnected)
+			if(!this._device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
-			return this.item.OpenReadThumbnail();
+			return this.Item.OpenReadThumbnail();
 		}
 		/// <summary>
 		/// Creates a StreamReader with UTF8 encoding that reads from an existing text file.
@@ -216,11 +216,11 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public StreamReader OpenText()
 		{
-			if(!this.device.IsConnected)
+			if(!this._device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
-			return new StreamReader(this.item.OpenRead());
+			return new StreamReader(this.Item.OpenRead());
 		}
 	}
 }
