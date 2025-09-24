@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace MediaDevices.Internal
 {
@@ -48,13 +49,13 @@ namespace MediaDevices.Internal
 		}
 
 		[Conditional("COMTRACE")]
-		public static void WriteObject(IPortableDeviceValues values)
+		public static void WriteObject(IPortableDeviceValues values, [CallerMemberName] string caller = "")
 		{
-			InternalWriteObject(values);
+			InternalWriteObject(values, caller);
 		}
 
 		[Conditional("COMTRACE")]
-		public static void WriteObject(IPortableDeviceProperties deviceProperties, string objectId)
+		public static void WriteObject(IPortableDeviceProperties deviceProperties, string objectId, [CallerMemberName] string caller = "")
 		{
 			IPortableDeviceKeyCollection keys;
 			deviceProperties.GetSupportedProperties(objectId, out keys);
@@ -62,13 +63,18 @@ namespace MediaDevices.Internal
 			IPortableDeviceValues values;
 			deviceProperties.GetValues(objectId, keys, out values);
 
-			InternalWriteObject(values);
+			InternalWriteObject(values, caller);
 		}
 
 		[Conditional("COMTRACE")]
-		private static void InternalWriteObject(IPortableDeviceValues values)
+		private static void InternalWriteObject(IPortableDeviceValues values, string caller)
 		{
-			string? funcName = new StackTrace().GetFrame(2)?.GetMethod()?.Name ?? "Unknown";
+			string? funcName = caller;
+			if (string.IsNullOrWhiteSpace(caller))
+			{
+				funcName = new StackTrace().GetFrame(2)?.GetMethod()?.Name ?? "Unknown";
+			}
+			
 			Trace.WriteLine($"############################### {funcName}");
 
 			foreach(var kvp in values.ToKeyValuePair())
