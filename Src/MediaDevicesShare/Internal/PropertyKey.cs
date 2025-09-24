@@ -17,12 +17,14 @@ namespace MediaDevices.Internal
             return obj1.fmtid != obj2.fmtid || obj1.pid != obj2.pid;
         }
 
-        public override bool Equals(object obj)
-        {
-            PropertyKey pk = (PropertyKey)obj;
-            return this.fmtid == pk.fmtid && this.pid == pk.pid;
+        public override bool Equals(object? obj) {
+	        if(obj is PropertyKey pk) {
+		        return this.fmtid == pk.fmtid && this.pid == pk.pid;
+	        }
+
+	        return false;
         }
-        public override int GetHashCode()
+		public override int GetHashCode()
         {
             return this.fmtid.GetHashCode() ^ this.pid.GetHashCode();
         }
