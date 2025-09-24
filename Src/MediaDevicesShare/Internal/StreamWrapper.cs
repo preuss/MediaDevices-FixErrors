@@ -3,43 +3,52 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Xml;
 
 namespace MediaDevices.Internal
 {
     internal class StreamWrapper : Stream
     {
-        private IStream stream;
-        private IntPtr pLength;
-        private readonly ulong size;
+        private IStream? _stream;
+        private IntPtr _pLength;
+        private readonly ulong _size;
+
+        public StreamWrapper(IStream stream, ulong size = 0) {
+	        _stream = stream ?? throw new ArgumentNullException(nameof(stream));
+	        _pLength = Marshal.AllocHGlobal(16);
+	        _size = size;
+        }
 
         private void CheckDisposed()
         {
-            if (this.stream == null)
+            if (_stream == null)
 			{
 				throw new ObjectDisposedException("StreamWrapper");
 			}
         }
 
-        protected override void Dispose(bool disposing)
+        private IStream Stream
         {
-            if (this.stream != null)
-            {
-                Marshal.ReleaseComObject(this.stream);
-                this.stream = null;
-            }
-            if (this.pLength != IntPtr.Zero)
-            {
-                Marshal.FreeHGlobal(this.pLength);
-                this.pLength = IntPtr.Zero;
-            }
-            base.Dispose(disposing);
+	        get
+	        {
+				CheckDisposed();
+				return _stream!;
+	        }
         }
 
-        public StreamWrapper(IStream stream, ulong size = 0)
+        protected override void Dispose(bool disposing)
         {
-            this.stream = stream ?? throw new ArgumentNullException(nameof(stream));
-            this.pLength = Marshal.AllocHGlobal(16);
-            this.size = size;
+            if (_stream != null)
+            {
+                Marshal.ReleaseComObject(_stream);
+                _stream = null;
+            }
+            if (_pLength != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(_pLength);
+                _pLength = IntPtr.Zero;
+            }
+            base.Dispose(disposing);
         }
 
         public override bool CanRead
@@ -69,7 +78,7 @@ namespace MediaDevices.Internal
 
         public override void Flush()
         {
-            this.stream.Commit(0);
+            Stream.Commit(0);
         }
 
         public override long Length
@@ -77,7 +86,7 @@ namespace MediaDevices.Internal
             get
             {
                 CheckDisposed();
-                return (long)this.size;
+                return (long)_size;
             }
         }
 
@@ -111,8 +120,8 @@ namespace MediaDevices.Internal
 
             try
             {
-                this.stream.Read(localBuffer, count, this.pLength);
-                int bytesRead = Marshal.ReadInt32(this.pLength);
+                Stream.Read(localBuffer, count, _pLength);
+                int bytesRead = Marshal.ReadInt32(_pLength);
 
                 if (offset > 0)
                 {
@@ -151,8 +160,8 @@ namespace MediaDevices.Internal
                     throw new ArgumentOutOfRangeException(nameof(origin));
             }
 
-            this.stream.Seek(offset, dwOrigin, this.pLength);
-            return Marshal.ReadInt64(this.pLength);
+            Stream.Seek(offset, dwOrigin, _pLength);
+            return Marshal.ReadInt64(_pLength);
 
             //throw new NotImplementedException("Seek not implemented");
         }
@@ -161,7 +170,7 @@ namespace MediaDevices.Internal
         {
             CheckDisposed();
 
-            stream.SetSize(value);
+            Stream.SetSize(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
@@ -183,7 +192,7 @@ namespace MediaDevices.Internal
 
             // workaround for Windows 10 Update 1703 problem 
             // https://social.msdn.microsoft.com/Forums/en-US/7f7a045d-9d9d-4ff4-b8e3-de2d7477a177/windows-10-update-1703-problem-with-wpd-and-mtp?forum=csharpgeneral
-            stream.Write(localBuffer, count, this.pLength);
+            Stream.Write(localBuffer, count, _pLength);
         }
     }
 }
