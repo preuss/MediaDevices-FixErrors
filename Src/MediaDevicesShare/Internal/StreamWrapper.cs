@@ -168,8 +168,6 @@ namespace MediaDevices.Internal
 
         public override void SetLength(long value)
         {
-            CheckDisposed();
-
             Stream.SetSize(value);
         }
 
