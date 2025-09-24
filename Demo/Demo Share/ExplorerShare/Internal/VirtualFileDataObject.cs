@@ -377,7 +377,7 @@ namespace ExplorerCtrl.Internal
                     {
                         // Create IStream for data
                         var ptr = IntPtr.Zero;
-                        var iStream = NativeMethods.CreateStreamOnHGlobal(IntPtr.Zero, true);
+                        IStream iStream = NativeMethods.CreateStreamOnHGlobal(IntPtr.Zero, true);
                         if (streamData != null)
                         {
                             // Wrap in a .NET-friendly Stream and call provided code to fill it

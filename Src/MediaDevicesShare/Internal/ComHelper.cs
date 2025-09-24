@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Security.Cryptography.X509Certificates;
 
 
@@ -8,7 +9,17 @@ namespace MediaDevices.Internal
 {
     internal static class ComHelper
     {
-        public static bool HasKeyValue(this IPortableDeviceValues values, PropertyKey findKey)
+	    public static void Release(this IPortableDeviceConnector? obj) {
+		    if(obj != null && Marshal.IsComObject(obj)) {
+			    Marshal.ReleaseComObject(obj);
+		    }
+	    }
+	    public static void Release(this IStream? obj) {
+		    if(obj != null && Marshal.IsComObject(obj)) {
+			    Marshal.ReleaseComObject(obj);
+		    }
+	    }
+		public static bool HasKeyValue(this IPortableDeviceValues values, PropertyKey findKey)
         {
             uint num = 0;
             values.GetCount(ref num);
