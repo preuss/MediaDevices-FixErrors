@@ -8,7 +8,7 @@ namespace MediaDevices.Internal
     internal interface IPortableDeviceValues
     {
         void GetCount(
-             [In] ref uint pcElems);
+             [In] ref uint pcelt);
 
         void GetAt(
             [In] uint index,
