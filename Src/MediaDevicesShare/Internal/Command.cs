@@ -170,7 +170,7 @@ namespace MediaDevices.Internal
         [Conditional("COMTRACE")]
         public void WriteResults()
         {
-			if (Result == null) throw new InvalidOperationException("Result not initialized");
+			//if (Result == null) throw new InvalidOperationException("Result not initialized");
 			ComTrace.WriteObject(Result);
         }
     }
