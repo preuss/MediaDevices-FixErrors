@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MediaDevices
@@ -536,31 +537,31 @@ namespace MediaDevices
 		}
 
 		/// <summary>
-		/// Functional unique id od the media device
+		/// Functional unique id of the media device
 		/// </summary>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public byte[] FunctionalUniqueId
+		public byte[]? FunctionalUniqueId
 		{
 			get
 			{
 				CheckConnected();
 
-				this.deviceValues.TryByteArrayValue(WPD.DEVICE_FUNCTIONAL_UNIQUE_ID, out byte[] val);
+				this.deviceValues.TryByteArrayValue(WPD.DEVICE_FUNCTIONAL_UNIQUE_ID, out byte[]? val);
 				return val;
 			}
 		}
 
 		/// <summary>
-		/// Model unique id od the media device
+		/// Model unique id of the media device
 		/// </summary>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public byte[] ModelUniqueId
+		public byte[]? ModelUniqueId
 		{
 			get
 			{
 				CheckConnected();
 
-				this.deviceValues.TryByteArrayValue(WPD.DEVICE_MODEL_UNIQUE_ID, out byte[] value);
+				this.deviceValues.TryByteArrayValue(WPD.DEVICE_MODEL_UNIQUE_ID, out byte[]? value);
 				return value;
 			}
 		}
@@ -650,7 +651,7 @@ namespace MediaDevices
 		/// <param name="enableCache">Enable or disable file list cache. Disabled cache is used by Explorer for a better performance.</param>
 		public async Task<MediaDevice> ConnectAsync(MediaDeviceAccess access = MediaDeviceAccess.Default, MediaDeviceShare share = MediaDeviceShare.Default, bool enableCache = false)
 		{
-			if(this.IsConnected)
+			if(IsConnected)
 			{
 				return this;
 			}
@@ -688,19 +689,19 @@ namespace MediaDevices
 			}
 
 			// open device
-			this.device.Open(this.DeviceId, clientInfo);
-			this.device.Capabilities(out this.deviceCapabilities);
-			this.device.Content(out this.deviceContent);
-			this.deviceContent.Properties(out this.deviceProperties);
-			this.deviceProperties.GetValues(Item.RootId, null, out this.deviceValues);
+			device.Open(DeviceId, clientInfo);
+			device.Capabilities(out deviceCapabilities);
+			device.Content(out deviceContent);
+			deviceContent.Properties(out deviceProperties);
+			deviceProperties.GetValues(Item.RootId, null, out deviceValues);
 
-			ComTrace.WriteObject(this.deviceValues);
+			ComTrace.WriteObject(deviceValues);
 
 			// advice event handler
-			this.eventCallback = new EventCallback(this);
-			this.device.Advise(0, this.eventCallback, null, out this.eventCookie);
+			eventCallback = new EventCallback(this);
+			device.Advise(0, eventCallback, null, out eventCookie);
 
-			this.IsConnected = true;
+			IsConnected = true;
 
 			await Task.CompletedTask;
 			return this;
@@ -1208,102 +1209,54 @@ namespace MediaDevices
 		/// Download data from a file on a portable device to a stream.
 		/// </summary>
 		/// <param name="path">The path to the file.</param>
-		/// <param name="stream">The stream to download to.</param>
+		/// <param name="targetStream">The stream to download to.</param>
+		/// <param name="progressReporter">The progress reporter (optional).</param>
+		/// <param name="bufferSize">The buffer size, default is 8192 bytes.</param>
+		/// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
 		/// <exception cref="System.IO.IOException">path is a file name.</exception>
 		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
 		/// <exception cref="System.ArgumentNullException">path is null.</exception>
 		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public void DownloadFile(string path, Stream stream)
-		{
-			DownloadFileAsync(path, stream).GetAwaiter().GetResult();
+		public void DownloadFile(string path, Stream targetStream, IProgress<FileProgressReport>? progressReporter = null, int bufferSize = 8192, CancellationToken cancellationToken = default) {
+			// Call the asynchronous core method synchronously
+			this.DownloadFileAsync(path, targetStream, progressReporter, bufferSize, cancellationToken).GetAwaiter().GetResult();
 		}
 
 		/// <summary>
 		/// Asynchronously download data from a file on a portable device to a stream.
 		/// </summary>
 		/// <param name="path">The path to the file.</param>
-		/// <param name="stream">The stream to download to.</param>
-		public async Task DownloadFileAsync(string path, Stream stream)
-		{
-			if(path == null)
-			{
-				throw new ArgumentNullException(nameof(path));
-			}
-			if(!IsPath(path))
-			{
-				throw new ArgumentException("Invalid path", nameof(path));
-			}
-			if(stream == null)
-			{
-				throw new ArgumentNullException(nameof(stream));
-			}
-			CheckConnected();
-
-			Item? item = Item.FindFile(this, path);
-			if(item == null)
-			{
-				throw new FileNotFoundException($"File {path} not found.");
-			}
-
-			using(Stream sourceStream = item.OpenRead())
-			{
-				await sourceStream.CopyToAsync(stream).ConfigureAwait(false);
-			}
-		}
-
-		/// <summary>
-		/// Download data from a file on a portable device to a stream.
-		/// </summary>
-		/// <param name="path">The path to the file.</param>
-		/// <param name="stream">The stream to download to.</param>
-		/// <param name="progress">The progress reporter.</param>
-		/// <param name="readBufferSize">The buffer size, default is 8192 bytes.</param>
+		/// <param name="targetStream">The stream to download to.</param>
+		/// <param name="progressReporter">The progress reporter (optional).</param>
+		/// <param name="bufferSize">The buffer size, default is 8192 bytes.</param>
+		/// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
 		/// <exception cref="System.IO.IOException">path is a file name.</exception>
 		/// <exception cref="System.ArgumentException">path is a zero-length string, contains only white space, or contains invalid characters as defined by System.IO.Path.GetInvalidPathChars.</exception>
 		/// <exception cref="System.ArgumentNullException">path is null.</exception>
 		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public void DownloadFile(string path, Stream stream, IProgress<FileProgressReport> progress, int readBufferSize = 8192)
-		{
-			if(path == null)
-			{
+		public async Task DownloadFileAsync(string path, Stream targetStream, IProgress<FileProgressReport>? progressReporter = null, int bufferSize = 8192, CancellationToken cancellationToken = default) {
+			if(path == null) {
 				throw new ArgumentNullException(nameof(path));
 			}
-			if(!IsPath(path))
-			{
+			if(!IsPath(path)) {
 				throw new ArgumentException("Invalid path", nameof(path));
 			}
-			if(stream == null)
-			{
-				throw new ArgumentNullException(nameof(stream));
+			if(targetStream == null) {
+				throw new ArgumentNullException(nameof(targetStream));
 			}
 			CheckConnected();
 
 			Item? item = Item.FindFile(this, path);
-			if(item == null)
-			{
+			if(item == null) {
 				throw new FileNotFoundException($"File {path} not found.");
 			}
 
-			using(Stream sourceStream = item.OpenRead())
-			{
-				DateTime startDateTime = System.DateTime.Now;
-
-				byte[] buffer = new byte[readBufferSize];
-				int bytesRead;
-				ulong totalBytesRead = 0;
-
-				DateTime reportDateTime;
-				while((bytesRead = sourceStream.Read(buffer, 0, buffer.Length)) > 0)
-				{
-					reportDateTime = System.DateTime.Now;
-					stream.Write(buffer, 0, bytesRead);
-					totalBytesRead += (ulong)bytesRead;
-
-					// Report progress
-					progress.Report(new FileProgressReport(totalBytesRead, item.Size, startDateTime, reportDateTime, reportDateTime.Subtract(startDateTime)));
-				}
+			using(Stream sourceStream = item.OpenRead()) {
+				// Call your shared CopyToStreamAsync extension method
+				await sourceStream.CopyToStreamAsync(targetStream, (ulong)item.Size, progressReporter, bufferSize, cancellationToken)
+					.ConfigureAwait(false);
 			}
 		}
 
@@ -1419,6 +1372,7 @@ namespace MediaDevices
 			CheckConnected();
 
 			string? folder = Path.GetDirectoryName(path);
+			// TODO: Should we use a "/" if folder path not found ?
 			if(folder == null)
 			{
 				throw new DirectoryNotFoundException($"The specified directory in path '{path}' does not exist.");
@@ -1590,7 +1544,7 @@ namespace MediaDevices
 		/// <returns>Array with all drives of the device.</returns>
 		public MediaDriveInfo[] GetDrives()
 		{
-			return this.FunctionalObjects(FunctionalCategory.Storage)?.Select(o => new MediaDriveInfo(this, o)).ToArray()
+			return FunctionalObjects(FunctionalCategory.Storage)?.Select(o => new MediaDriveInfo(this, o)).ToArray()
 				?? Array.Empty<MediaDriveInfo>();
 		}
 
@@ -1667,8 +1621,8 @@ namespace MediaDevices
 				DateTime reportDateTime;
 				while((bytesRead = sourceStream.Read(buffer, 0, buffer.Length)) > 0)
 				{
-					reportDateTime = System.DateTime.Now;
 					stream.Write(buffer, 0, bytesRead);
+					reportDateTime = System.DateTime.Now;
 					totalBytesRead += (ulong)bytesRead;
 
 					// Report progress

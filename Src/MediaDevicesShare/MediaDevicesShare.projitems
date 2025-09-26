@@ -102,6 +102,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Enums\Roaming.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enums\StorageAccessCapability.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enums\StorageType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Progress\StreamExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WMDM\IWMDeviceManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WMDM\IWMDeviceManager2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WMDM\IWMDeviceManager3.cs" />

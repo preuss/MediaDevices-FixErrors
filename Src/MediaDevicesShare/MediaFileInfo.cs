@@ -66,7 +66,7 @@ namespace MediaDevices
 
 			using(FileStream destinationFileStream = File.Open(destinationFileName, overwriteExistingFile ? FileMode.Create : FileMode.CreateNew)) {
 				using(Stream sourceStream = Item.OpenRead()) {
-					await CoreCopyAsync(sourceStream, destinationFileStream, Item.Size, progressReporter, bufferSize, cancellationToken);
+					await sourceStream.CopyToStreamAsync(destinationFileStream, Item.Size, progressReporter, bufferSize, cancellationToken);
 				}
 			}
 		}
@@ -96,10 +96,10 @@ namespace MediaDevices
 			}
 
 			using(Stream sourceStream = Item.OpenRead()) {
-				await CoreCopyAsync(sourceStream, destinationStream, Item.Size, progressReporter, bufferSize, cancellationToken);
+				await sourceStream.CopyToStreamAsync(destinationStream, Item.Size, progressReporter, bufferSize, cancellationToken);
 			}
 		}
-
+/*
 		/// <summary>
 		/// Asynchronously copies the contents from a source stream to a destination stream.
 		/// </summary>
@@ -142,7 +142,7 @@ namespace MediaDevices
 					ArrayPool<byte>.Shared.Return(buffer);
 				}
 			}
-		}
+		}*/
 
 		/// <summary>
 		/// Copies an icon of an existing file to a new file, allowing the overwriting of the existing file.
