@@ -1,7 +1,10 @@
 ﻿using MediaDevices.Internal;
-using System.IO;
 using MediaDevices.Progress;
 using System;
+using System.Buffers;
+using System.IO;
+using System.IO.Pipes;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MediaDevices
@@ -36,84 +39,107 @@ namespace MediaDevices
 		/// <summary>
 		/// Copies an existing file to a new file, allowing the overwriting of the existing file.
 		/// </summary>
-		/// <param name="destFileName">The name of the new file to copy to.</param>
-		/// <param name="overwrite">true to allow an existing file to be overwritten; otherwise, false. </param>
+		/// <param name="destinationFileName">The name of the new file to copy to.</param>
+		/// <param name="overwriteExistingFile">true to allow an existing file to be overwritten; otherwise, false. </param>
+		/// <param name="progressReporter">The progress reporter.</param>
+		/// <param name="bufferSize">The buffer size, default is 8192 bytes.</param>
+		/// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
 		/// <exception cref="System.IO.IOException">An error occurs, or the destination file already exists and overwrite is false. </exception>
 		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public void CopyTo(string destFileName, bool overwrite = true)
-		{
-			CopyToAsync(destFileName, overwrite).GetAwaiter().GetResult();
+		public void CopyTo(string destinationFileName, bool overwriteExistingFile = true, IProgress<FileProgressReport>? progressReporter = null, int bufferSize = 8192, CancellationToken cancellationToken = default) {
+			CopyToAsync(destinationFileName, overwriteExistingFile, progressReporter, bufferSize, cancellationToken).GetAwaiter().GetResult();
 		}
 
 		/// <summary>
 		/// Asynchronously copies an existing file to a new file, allowing the overwriting of the existing file.
 		/// </summary>
-		/// <param name="destFileName">The name of the new file to copy to.</param>
-		/// <param name="overwrite">true to allow an existing file to be overwritten; otherwise, false. </param>
-		public async Task CopyToAsync(string destFileName, bool overwrite = true)
-		{
-			if(!this._device.IsConnected)
-			{
+		/// <param name="destinationFileName">The name of the new file to copy to.</param>
+		/// <param name="overwriteExistingFile">true to allow an existing file to be overwritten; otherwise, false. </param>
+		/// <param name="progressReporter">The progress reporter.</param>
+		/// <param name="bufferSize">The buffer size, default is 20*4096 bytes (81920), that is just below the large object heap threshold (85K).</param>
+		/// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
+		public async Task CopyToAsync(string destinationFileName, bool overwriteExistingFile = true, IProgress<FileProgressReport>? progressReporter = null, int bufferSize = 20 * 4096, CancellationToken cancellationToken = default) {
+			if(!_device.IsConnected) {
 				throw new NotConnectedException("Not connected");
 			}
-			using(FileStream fileStream = File.Open(destFileName, overwrite ? FileMode.Create : FileMode.CreateNew))
-			{
-				using(Stream sourceStream = Item.OpenRead())
-				{
-					await sourceStream.CopyToAsync(fileStream);
+
+			using(FileStream destinationFileStream = File.Open(destinationFileName, overwriteExistingFile ? FileMode.Create : FileMode.CreateNew)) {
+				using(Stream sourceStream = Item.OpenRead()) {
+					await CoreCopyAsync(sourceStream, destinationFileStream, Item.Size, progressReporter, bufferSize, cancellationToken);
 				}
 			}
 		}
 
 		/// <summary>
-		/// Copies an existing file to a new file, allowing the overwriting of the existing file.
+		/// Copies the contents of the file to a stream.
 		/// </summary>
-		/// <param name="destFileName">The name of the new file to copy to.</param>
-		/// <param name="progress">The progress reporter.</param>
-		/// <param name="overwrite">true to allow an existing file to be overwritten; otherwise, false. </param>
-		/// <param name="readBufferSize">The buffer size, default is 8192 bytes.</param>
-		/// <exception cref="System.IO.IOException">An error occurs, or the destination file already exists and overwrite is false. </exception>
-		/// <exception cref="System.IO.DirectoryNotFoundException">path is invalid.</exception>
+		/// <param name="destinationStream">The destination stream.</param>
+		/// <param name="progressReporter">The progress reporter.</param>
+		/// <param name="bufferSize">The buffer size.</param>
+		/// <param name="cancellationToken">The cancellation token.</param>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public void CopyTo(string destFileName, IProgress<FileProgressReport> progress, bool overwrite = true, int readBufferSize = 8192)
-		{
-			CopyToAsync(destFileName, progress, overwrite, readBufferSize).GetAwaiter().GetResult();
+		public void CopyTo(Stream destinationStream, IProgress<FileProgressReport>? progressReporter = null, int bufferSize = 8192, CancellationToken cancellationToken = default) {
+			CopyToAsync(destinationStream, progressReporter, bufferSize, cancellationToken).GetAwaiter().GetResult();
 		}
 
 		/// <summary>
-		/// Asynchronously copies an existing file to a new file, allowing the overwriting of the existing file.
+		/// Asynchronously copies the contents of the file to a stream.
 		/// </summary>
-		/// <param name="destFileName">The name of the new file to copy to.</param>
-		/// <param name="progress">The progress reporter.</param>
-		/// <param name="overwrite">true to allow an existing file to be overwritten; otherwise, false. </param>
-		/// <param name="readBufferSize">The buffer size, default is 8192 bytes.</param>
-		public async Task CopyToAsync(string destFileName, IProgress<FileProgressReport> progress, bool overwrite = true, int readBufferSize = 8192)
-		{
-			if(!this._device.IsConnected)
-			{
+		/// <param name="destinationStream">The destination stream.</param>
+		/// <param name="progressReporter">The progress reporter.</param>
+		/// <param name="bufferSize">The buffer size.</param>
+		/// <param name="cancellationToken">The cancellation token.</param>
+		public async Task CopyToAsync(Stream destinationStream, IProgress<FileProgressReport>? progressReporter = null, int bufferSize = 20 * 4096, CancellationToken cancellationToken = default) {
+			if(!_device.IsConnected) {
 				throw new NotConnectedException("Not connected");
 			}
-			using(FileStream fileStream = File.Open(destFileName, overwrite ? FileMode.Create : FileMode.CreateNew))
+
+			using(Stream sourceStream = Item.OpenRead()) {
+				await CoreCopyAsync(sourceStream, destinationStream, Item.Size, progressReporter, bufferSize, cancellationToken);
+			}
+		}
+
+		/// <summary>
+		/// Asynchronously copies the contents from a source stream to a destination stream.
+		/// </summary>
+		/// <param name="sourceStream">The source stream to copy from.</param>
+		/// <param name="destinationStream">The destination stream to copy to.</param>
+		/// <param name="sourceSize">The total size of the source content.</param>
+		/// <param name="progressReporter">The progress reporter.</param>
+		/// <param name="bufferSize">The buffer size.</param>
+		/// <param name="cancellationToken">The cancellation token.</param>
+		private static async Task CoreCopyAsync(Stream sourceStream, Stream destinationStream, ulong sourceSize, IProgress<FileProgressReport>? progressReporter, int bufferSize, CancellationToken cancellationToken) 
+		{
+			if (progressReporter == null)
 			{
-				using(Stream sourceStream = Item.OpenRead())
+				await sourceStream.CopyToAsync(destinationStream, bufferSize, cancellationToken).ConfigureAwait(false);
+			}
+			else
+			{
+				byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+				try
 				{
-					DateTime startDateTime = System.DateTime.Now;
-
-					byte[] buffer = new byte[readBufferSize];
-					int bytesRead;
+					DateTime startDateTime = DateTime.Now;
+					int bytesReadCount;
 					ulong totalBytesRead = 0;
-
 					DateTime reportDateTime;
-					while((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-					{
-						reportDateTime = System.DateTime.Now;
-						await fileStream.WriteAsync(buffer, 0, bytesRead);
-						totalBytesRead += (ulong)bytesRead;
 
-						// Report progress
-						progress.Report(new FileProgressReport(totalBytesRead, Item.Size, startDateTime, reportDateTime, reportDateTime.Subtract(startDateTime)));
+					while ((bytesReadCount = await sourceStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
+						       .ConfigureAwait(false)) > 0)
+					{
+						await destinationStream.WriteAsync(buffer, 0, bytesReadCount, cancellationToken)
+							.ConfigureAwait(false);
+
+						totalBytesRead += (ulong)bytesReadCount;
+						reportDateTime = DateTime.Now;
+						progressReporter.Report(new FileProgressReport(totalBytesRead, sourceSize, startDateTime,
+							reportDateTime, reportDateTime.Subtract(startDateTime)));
 					}
+				}
+				finally
+				{
+					ArrayPool<byte>.Shared.Return(buffer);
 				}
 			}
 		}
@@ -128,7 +154,7 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public void CopyIconTo(string destFileName, bool overwrite = true)
 		{
-			if(!this._device.IsConnected)
+			if(!_device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
@@ -151,7 +177,7 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public void CopyThumbnail(string destFileName, bool overwrite = true)
 		{
-			if(!this._device.IsConnected)
+			if(!_device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
@@ -172,11 +198,11 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public Stream OpenRead()
 		{
-			if(!this._device.IsConnected)
+			if(!_device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
-			return this.Item.OpenRead();
+			return Item.OpenRead();
 		}
 
 		/// <summary>
@@ -187,11 +213,11 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public Stream OpenIcon()
 		{
-			if(!this._device.IsConnected)
+			if(!_device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
-			return this.Item.OpenReadIcon();
+			return Item.OpenReadIcon();
 		}
 
 		/// <summary>
@@ -202,11 +228,11 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public Stream OpenThumbnail()
 		{
-			if(!this._device.IsConnected)
+			if(!_device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
-			return this.Item.OpenReadThumbnail();
+			return Item.OpenReadThumbnail();
 		}
 		/// <summary>
 		/// Creates a StreamReader with UTF8 encoding that reads from an existing text file.
@@ -216,11 +242,11 @@ namespace MediaDevices
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
 		public StreamReader OpenText()
 		{
-			if(!this._device.IsConnected)
+			if(!_device.IsConnected)
 			{
 				throw new NotConnectedException("Not connected");
 			}
-			return new StreamReader(this.Item.OpenRead());
+			return new StreamReader(Item.OpenRead());
 		}
 	}
 }
