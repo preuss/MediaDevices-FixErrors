@@ -16,17 +16,17 @@ namespace MediaDevices
     /// </summary>
     public class MediaDeviceService : IDisposable
     {
-        internal MediaDevice device;
+        private readonly MediaDevice _device;
         private IPortableDeviceService? _deviceService;
         //protected IPortableDeviceValues values;
-        internal IPortableDeviceServiceCapabilities capabilities;
+        private readonly IPortableDeviceServiceCapabilities _capabilities;
         internal IPortableDeviceContent2 content;
 
         internal MediaDeviceService(MediaDevice device, string serviceId)
         {
 	        _deviceService = ComFactory.CreateDeviceService();
 
-			this.device = device;
+			this._device = device;
             ServiceId = serviceId;
 
             //Match match = Regex.Match(serviceId, @".*#(?<service>\{.*\})\\(?<name>\{.*\})");
@@ -53,7 +53,7 @@ namespace MediaDevices
             DeviceService.GetPnPServiceID(out string pnPServiceID);
             PnPServiceID = pnPServiceID;
 
-            DeviceService.Capabilities(out capabilities);
+            DeviceService.Capabilities(out _capabilities);
 
             DeviceService.Content(out content);
 
@@ -258,7 +258,7 @@ namespace MediaDevices
         /// <returns>List of supported methods</returns>
         public IEnumerable<Methods> GetSupportedMethods()
         {
-            capabilities.GetSupportedMethods(out IPortableDevicePropVariantCollection methods);
+            _capabilities.GetSupportedMethods(out IPortableDevicePropVariantCollection methods);
             ComTrace.WriteObject(methods);
             return methods.ToEnum<Methods>();
         }
@@ -269,7 +269,7 @@ namespace MediaDevices
         /// <returns>List of supported commands</returns>
         public IEnumerable<Commands> GetSupportedCommands()
         {
-            capabilities.GetSupportedCommands(out IPortableDeviceKeyCollection commands);
+            _capabilities.GetSupportedCommands(out IPortableDeviceKeyCollection commands);
             ComTrace.WriteObject(commands);
             return commands.ToEnum<Commands>();
         }
@@ -280,7 +280,7 @@ namespace MediaDevices
         /// <returns>list of supported events</returns>
         public IEnumerable<Events> GetSupportedEvents()
         {
-            capabilities.GetSupportedEvents(out IPortableDevicePropVariantCollection events);
+            _capabilities.GetSupportedEvents(out IPortableDevicePropVariantCollection events);
             ComTrace.WriteObject(events);
             return events.ToEnum<Events>();
         }
@@ -291,7 +291,7 @@ namespace MediaDevices
         /// <returns>List of supported formats</returns>
         public IEnumerable<Formats> GetSupportedFormats()
         {
-            capabilities.GetSupportedFormats(out IPortableDevicePropVariantCollection formats);
+            _capabilities.GetSupportedFormats(out IPortableDevicePropVariantCollection formats);
             ComTrace.WriteObject(formats);
             return formats.ToEnum<Formats>();
         }
