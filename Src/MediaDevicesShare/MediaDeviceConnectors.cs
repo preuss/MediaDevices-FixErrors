@@ -12,11 +12,11 @@ namespace MediaDevices
 
         #region static
 
-        private static IEnumPortableDeviceConnectors connectors;
+        private static IEnumPortableDeviceConnectors _connectors;
 
         static MediaDeviceConnectors()
         {
-            connectors = ComFactory.CreateDeviceConnectors();
+            _connectors = ComFactory.CreateDeviceConnectors();
         }
 
         #endregion
@@ -30,9 +30,9 @@ namespace MediaDevices
 
             //connectors.Reset();
 
-            IPortableDeviceConnector connector = null;
+            IPortableDeviceConnector connector;
             uint num = 1;
-            connectors.Next(1, out connector, ref num);
+            _connectors.Next(1, out connector, ref num);
 
             return new List<MediaDeviceConnector>() { new MediaDeviceConnector(connector) };
 

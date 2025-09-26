@@ -10,30 +10,34 @@ namespace MediaDevices
     {
         internal MediaDeviceEventArgs(Events eventEnum, MediaDevice mediaDevice, IPortableDeviceValues eventParameters)
         {
-            this.MediaDevice = mediaDevice;
-            this.Event = eventEnum;
+			ArgumentNullException.ThrowIfNull(eventEnum);
+			ArgumentNullException.ThrowIfNull(mediaDevice);
+			ArgumentNullException.ThrowIfNull(eventParameters);
 
-            eventParameters.TryGetStringValue(WPD.EVENT_PARAMETER_PNP_DEVICE_ID, out string pnpDeviceId);
-            this.PnpDeviceId = pnpDeviceId;
+			MediaDevice = mediaDevice;
+			Event = eventEnum;
 
-            eventParameters.TryGetUnsignedIntegerValue(WPD.EVENT_PARAMETER_OPERATION_STATE, out uint operationState);
-            this.OperationState = (OperationState)operationState;
+			PnpDeviceId = eventParameters.TryGetStringValue(WPD.EVENT_PARAMETER_PNP_DEVICE_ID, out string pnpDeviceId)
+				? pnpDeviceId : string.Empty;
 
-            eventParameters.TryGetUnsignedIntegerValue(WPD.EVENT_PARAMETER_OPERATION_PROGRESS, out uint operationProgress);
-            this.OperationProgress = operationProgress;
+			OperationState = eventParameters.TryGetUnsignedIntegerValue(WPD.EVENT_PARAMETER_OPERATION_STATE, out uint operationState)
+				? (OperationState)operationState : OperationState.Unspecified;
 
-            eventParameters.TryGetStringValue(WPD.EVENT_PARAMETER_OBJECT_PARENT_PERSISTENT_UNIQUE_ID, out string objectParentPersistanceUniqueId);
-            this.ObjectParentPersistanceUniqueId = objectParentPersistanceUniqueId;
+			OperationProgress = eventParameters.TryGetUnsignedIntegerValue(WPD.EVENT_PARAMETER_OPERATION_PROGRESS, out uint operationProgress)
+				? operationProgress : 0;
 
-            eventParameters.TryGetStringValue(WPD.EVENT_PARAMETER_OBJECT_CREATION_COOKIE, out string objectCreationCookie);
-            this.ObjectCreationCookie = objectCreationCookie;
+			ObjectParentPersistanceUniqueId = eventParameters.TryGetStringValue(WPD.EVENT_PARAMETER_OBJECT_PARENT_PERSISTENT_UNIQUE_ID, out string objectParentPersistanceUniqueId)
+				? objectParentPersistanceUniqueId : string.Empty;
 
-            eventParameters.TryGetBoolValue(WPD.EVENT_PARAMETER_CHILD_HIERARCHY_CHANGED, out bool childHierarchyChanged);
-            this.ChildHierarchyChanged = childHierarchyChanged;
+			ObjectCreationCookie = eventParameters.TryGetStringValue(WPD.EVENT_PARAMETER_OBJECT_CREATION_COOKIE, out string objectCreationCookie)
+				? objectCreationCookie : string.Empty;
 
-            eventParameters.TryGetStringValue(WPD.EVENT_PARAMETER_SERVICE_METHOD_CONTEXT, out string serviceMethodContext);
-            this.ServiceMethodContext = serviceMethodContext;
-        }
+			ChildHierarchyChanged = eventParameters.TryGetBoolValue(WPD.EVENT_PARAMETER_CHILD_HIERARCHY_CHANGED, out bool childHierarchyChanged)
+				? childHierarchyChanged : false;
+
+			ServiceMethodContext = eventParameters.TryGetStringValue(WPD.EVENT_PARAMETER_SERVICE_METHOD_CONTEXT, out string serviceMethodContext)
+				? serviceMethodContext : string.Empty;
+		}
 
         /// <summary>
         /// Corresponding media device

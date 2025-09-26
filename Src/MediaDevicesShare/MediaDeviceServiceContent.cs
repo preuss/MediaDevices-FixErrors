@@ -12,17 +12,20 @@ namespace MediaDevices
     /// </summary>
     public class MediaDeviceServiceContent
     {
-		private MediaDeviceService _service;
+		private readonly MediaDeviceService _service;
 
         internal MediaDeviceServiceContent(MediaDeviceService service, string objectId)
         {
+			ArgumentNullException.ThrowIfNull(service);
+			ArgumentNullException.ThrowIfNull(objectId);
+
             _service = service;
             ObjectId = objectId;
 
             UpdateProperties();
         }
 
-        internal virtual void UpdateProperties()
+        internal void UpdateProperties()
         {
             _service.content.Properties(out IPortableDeviceProperties properties);
 

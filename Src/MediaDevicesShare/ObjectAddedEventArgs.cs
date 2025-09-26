@@ -12,33 +12,29 @@ namespace MediaDevices
         internal ObjectAddedEventArgs(Events eventEnum, MediaDevice mediaDevice, IPortableDeviceValues eventParameters) 
             : base(eventEnum, mediaDevice, eventParameters)
         {
-            eventParameters.TryGetStringValue(WPD.OBJECT_ID, out string objectId);
-            this.ObjectId = objectId;
+	        ObjectId = eventParameters.TryGetStringValue(WPD.OBJECT_ID, out string objectId) 
+		        ? objectId : string.Empty;
             
-            eventParameters.TryGetStringValue(WPD.OBJECT_PERSISTENT_UNIQUE_ID, out string objectPersistentUniqueId);
-            this.ObjectPersistentUniqueId = objectPersistentUniqueId;
-            
-            eventParameters.TryGetStringValue(WPD.OBJECT_NAME, out string objectName);
-            this.ObjectName = objectName;
-            
-            if (eventParameters.TryGetGuidValue(WPD.OBJECT_CONTENT_TYPE, out Guid objectContentType))
-            { 
-                this.ObjectContentType = ComEnumerable.GetEnumFromAttrGuid<ContentType>(objectContentType); 
-            }
-            
-            if (eventParameters.TryGetGuidValue(WPD.FUNCTIONAL_OBJECT_CATEGORY, out Guid functionalObjectCategory))
-            { 
-                this.FunctionalObjectCategory = ComEnumerable.GetEnumFromAttrGuid<FunctionalCategory>(functionalObjectCategory);
-            }
-            
-            eventParameters.TryGetStringValue(WPD.OBJECT_ORIGINAL_FILE_NAME, out string objectOriginalFileName);
-            this.ObjectOriginalFileName = objectOriginalFileName;
-            
-            eventParameters.TryGetStringValue(WPD.OBJECT_PARENT_ID, out string objectParentId);
-            this.ObjectParentId = objectParentId;
+            ObjectPersistentUniqueId = eventParameters.TryGetStringValue(WPD.OBJECT_PERSISTENT_UNIQUE_ID, out string objectPersistentUniqueId) 
+				? objectPersistentUniqueId : string.Empty;
 
-            eventParameters.TryGetStringValue(WPD.OBJECT_CONTAINER_FUNCTIONAL_OBJECT_ID, out string objectContainerFunctionalObjectId);
-            this.ObjectContainerFunctionalObjectId = objectContainerFunctionalObjectId;
+            ObjectName = eventParameters.TryGetStringValue(WPD.OBJECT_NAME, out string objectName)
+				? objectName : string.Empty;
+            
+            ObjectContentType = eventParameters.TryGetGuidValue(WPD.OBJECT_CONTENT_TYPE, out Guid objectContentType) 
+	            ? ComEnumerable.GetEnumFromAttrGuid<ContentType>(objectContentType) : ContentType.Unknown;
+
+			FunctionalObjectCategory = eventParameters.TryGetGuidValue(WPD.FUNCTIONAL_OBJECT_CATEGORY, out Guid functionalObjectCategory) 
+				? ComEnumerable.GetEnumFromAttrGuid<FunctionalCategory>(functionalObjectCategory) : FunctionalCategory.Unknown;
+
+	        ObjectOriginalFileName = eventParameters.TryGetStringValue(WPD.OBJECT_ORIGINAL_FILE_NAME, out string objectOriginalFileName)
+				? objectOriginalFileName : string.Empty;
+            
+            ObjectParentId = eventParameters.TryGetStringValue(WPD.OBJECT_PARENT_ID, out string objectParentId)
+		        ? objectParentId : string.Empty;
+
+            ObjectContainerFunctionalObjectId = eventParameters.TryGetStringValue(WPD.OBJECT_CONTAINER_FUNCTIONAL_OBJECT_ID, out string objectContainerFunctionalObjectId)
+				? objectContainerFunctionalObjectId: string.Empty;
         }
 
         /// <summary>
