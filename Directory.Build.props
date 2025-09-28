@@ -2,7 +2,7 @@
   <PropertyGroup>
     <VersionPrefix>1.12.3</VersionPrefix>
     <ReleaseChannel>beta</ReleaseChannel>
-    <BuildNumber>54</BuildNumber>
+    <BuildNumber>56</BuildNumber>
     <VersionSuffix>$(ReleaseChannel)$(BuildNumber)</VersionSuffix>
     <!--
     <VersionSuffix>alpha</VersionSuffix>
