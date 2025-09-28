@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <PackageId>$(AssemblyName)</PackageId>
+    <Title>Media Devices</Title>
+    <Authors>Preuss;Ralf Beckers</Authors>
+    <Company>Preuss Software</Company>
+    <Description>Media Devices is a API to interact with MTP (Media Transfer Protocol), PTP (Picture Transport Protocol) and MSC (Mass Storage Class) devices like cell phones, tablets and cameras.</Description>
+    <Copyright>Copyright © 2023 - 2099 by Preuss</Copyright>
+    <PackageProjectUrl>https://github.com/preuss/MediaDevices-FixErrors</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/preuss/MediaDevices-FixErrors</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>MTP;WPD;Portable Device;Portable Devices API;phone;tablet</PackageTags>
+    <PackageReleaseNotes>Support for .NET 8.0</PackageReleaseNotes>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="Exists('SignAssembly') And Exists('MediaDevices.snk')">
+    <SignAssembly>True</SignAssembly>
+    <DelaySign>False</DelaySign>
+	<AssemblyOriginatorKeyFile>MediaDevices.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="Exists('SignAssembly') And !Exists('MediaDevices.snk') And Exists('MediaDevices.publickey')">
+    <SignAssembly>True</SignAssembly>
+    <DelaySign>True</DelaySign>
+    <AssemblyOriginatorKeyFile>MediaDevices.publickey</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <!--
+  <PropertyGroup Condition="!Exists('MediaDevices.snk') and Exists('MediaDevices.publickey')">
+	<DelaySign>true</DelaySign>
+	<AssemblyOriginatorKeyFile>MediaDevices.publickey</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  -->
+
+  <ItemGroup>
+    <Compile Remove="MediaDevices\**" />
+    <EmbeddedResource Remove="MediaDevices\**" />
+    <None Remove="MediaDevices\**" />
+  </ItemGroup>
+
+</Project>

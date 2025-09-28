@@ -1,5 +1,16 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <VersionPrefix>1.12.3</VersionPrefix>
+    <ReleaseChannel>beta</ReleaseChannel>
+    <BuildNumber>54</BuildNumber>
+    <VersionSuffix>$(ReleaseChannel)$(BuildNumber)</VersionSuffix>
+    <!--
+    <VersionSuffix>alpha</VersionSuffix>
+    <VersionSuffix>beta</VersionSuffix>
+    <VersionSuffix>rc</VersionSuffix>
+    <VersionSuffix>preview</VersionSuffix>
+    <VersionSuffix>dev</VersionSuffix>
+    <VersionSuffix>exp</VersionSuffix>
+    -->
   </PropertyGroup>
 </Project>
