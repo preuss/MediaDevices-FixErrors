@@ -1,10 +1,12 @@
 ﻿<Project>
-  <PropertyGroup>
-    <VersionPrefix>1.12.3</VersionPrefix>
-    <ReleaseChannel>beta</ReleaseChannel>
-    <BuildNumber>56</BuildNumber>
-    <VersionSuffix>$(ReleaseChannel)$(BuildNumber)</VersionSuffix>
-    <!--
+	<PropertyGroup>
+		<Major>1</Major>
+		<Minor>12</Minor>
+		<Patch>3</Patch>
+		<BuildNumber>61</BuildNumber>
+		<ReleaseChannel>beta</ReleaseChannel>
+		<ReleaseChannelNumber>8</ReleaseChannelNumber>
+		<!--
     <VersionSuffix>alpha</VersionSuffix>
     <VersionSuffix>beta</VersionSuffix>
     <VersionSuffix>rc</VersionSuffix>
@@ -12,5 +14,8 @@
     <VersionSuffix>dev</VersionSuffix>
     <VersionSuffix>exp</VersionSuffix>
     -->
-  </PropertyGroup>
+
+    <VersionPrefix>$(Major).$(Minor).$(Patch).$(BuildNumber)</VersionPrefix>
+    <VersionSuffix>$(ReleaseChannel)$(ReleaseChannelNumber)</VersionSuffix>
+	</PropertyGroup>
 </Project>
