@@ -15,10 +15,10 @@ namespace MediaDeviceApp.ViewModel
 {
     public class MainViewModel : BaseViewModel
     {
-        private List<MediaDevice> devices;
-        private MediaDevice selectedDevice;
-        private bool usePrivateDevices = false;
-        private bool canReset = true;
+        private List<MediaDevice> _devices;
+        private MediaDevice? _selectedDevice;
+        private bool _usePrivateDevices = false;
+        private bool _canReset = true;
 
         public DelegateCommand RefreshCommand { get; private set; }
         public DelegateCommand ResetCommand { get; private set; }
@@ -43,26 +43,26 @@ namespace MediaDeviceApp.ViewModel
 
         public MainViewModel()
         {
-            this.RefreshCommand = new DelegateCommand(OnRefresh);
-            this.ResetCommand = new DelegateCommand(OnReset);
-            this.UsbChangedCommand = new DelegateCommand(OnUsbChanged);
+            RefreshCommand = new DelegateCommand(OnRefresh);
+            ResetCommand = new DelegateCommand(OnReset);
+            UsbChangedCommand = new DelegateCommand(OnUsbChanged);
 
 
-            this.Info = new InfoViewModel();
-            this.Capability = new CapabilityViewModel();
-            this.ContentLocation = new ContentLocationViewModel();
-            this.Storage = new StorageViewModel();
-            this.Drive = new DriveViewModel();
-            this.Root = new RootViewModel();
-            this.Files = new FilesViewModel();
-            this.StillImage = new StillImageViewModel();
-            this.Sms = new SmsViewModel();
-            this.Explorer = new ExplorerViewModel();
-            this.Vendor = new VendorViewModel();
-            this.Services = new ServicesViewModel();
-            this.ServiceInfo = new ServiceInfoViewModel();
-            this.ServiceStatus = new ServiceStatusViewModel();
-            this.ServiceMetadata = new ServiceMetadataViewModel();
+            Info = new InfoViewModel();
+            Capability = new CapabilityViewModel();
+            ContentLocation = new ContentLocationViewModel();
+            Storage = new StorageViewModel();
+            Drive = new DriveViewModel();
+            Root = new RootViewModel();
+            Files = new FilesViewModel();
+            StillImage = new StillImageViewModel();
+            Sms = new SmsViewModel();
+            Explorer = new ExplorerViewModel();
+            Vendor = new VendorViewModel();
+            Services = new ServicesViewModel();
+            ServiceInfo = new ServiceInfoViewModel();
+            ServiceStatus = new ServiceStatusViewModel();
+            ServiceMetadata = new ServiceMetadataViewModel();
 
             OnRefresh();
         }
@@ -71,13 +71,13 @@ namespace MediaDeviceApp.ViewModel
         {
             get
             {
-                return this.usePrivateDevices;
+                return _usePrivateDevices;
             }
             set
             {
-                if (this.usePrivateDevices != value)
+                if (_usePrivateDevices != value)
                 {
-                    this.usePrivateDevices = value;
+                    _usePrivateDevices = value;
                     OnRefresh();
                     NotifyPropertyChanged(nameof(UsePrivateDevices));
                 }
@@ -86,86 +86,86 @@ namespace MediaDeviceApp.ViewModel
 
         private void OnRefresh()
         {
-            if (this.usePrivateDevices)
+            if (_usePrivateDevices)
             {
-                this.Devices = MediaDevice.GetPrivateDevices().ToList();
+                Devices = MediaDevice.GetPrivateDevices().ToList();
             }
             else
             {
-                this.Devices = MediaDevice.GetDevices().ToList();
+                Devices = MediaDevice.GetDevices().ToList();
             }
-            if (this.selectedDevice == null)
+            if (_selectedDevice == null)
             {
-                this.SelectedDevice = this.Devices.FirstOrDefault();
+                SelectedDevice = Devices.FirstOrDefault();
             }
         }
 
         private void OnUsbChanged()
         {
             SystemSounds.Beep.Play();
-            if (this.usePrivateDevices)
+            if (_usePrivateDevices)
             {
-                this.Devices = MediaDevice.GetPrivateDevices().ToList();
+                Devices = MediaDevice.GetPrivateDevices().ToList();
             }
             else
             {
-                this.Devices = MediaDevice.GetDevices().ToList();
+                Devices = MediaDevice.GetDevices().ToList();
             }
-            if (this.selectedDevice == null)
+            if (_selectedDevice == null)
             {
-                this.SelectedDevice = this.Devices.FirstOrDefault();
+                SelectedDevice = Devices.FirstOrDefault();
             }
         }
 
         public List<MediaDevice> Devices
         {
-            get { return this.devices; }
-            set { this.devices = value; NotifyPropertyChanged(nameof(Devices)); }
+            get { return _devices; }
+            set { _devices = value; NotifyPropertyChanged(nameof(Devices)); }
         }
 
         public MediaDevice SelectedDevice
         {
-            get { return this.selectedDevice; }
+            get { return _selectedDevice; }
             set
             {
-                if (value != this.selectedDevice)
+                if (value != _selectedDevice)
                 {
-                    if (this.selectedDevice != null)
+                    if (_selectedDevice != null)
                     {
                         try
                         {
-                            this.selectedDevice.Disconnect();
+                            _selectedDevice.Disconnect();
                         }
                         catch { }
                     }
-                    this.selectedDevice = value;
-                    if (this.selectedDevice != null)
+                    _selectedDevice = value;
+                    if (_selectedDevice != null)
                     {
-                        this.selectedDevice.Connect();
+                        _selectedDevice.Connect();
 
-                        this.canReset = true;
+                        _canReset = true;
                     }
                     else
                     {
-                        this.canReset = false;
+                        _canReset = false;
                     }
                     NotifyAllPropertiesChanged();
                     
-                    this.Info.Update(this.selectedDevice);
-                    this.Capability.Update(this.selectedDevice);
-                    this.ContentLocation.Update(this.selectedDevice);
-                    this.Storage.Update(this.selectedDevice);
-                    this.Drive.Update(this.selectedDevice);
-                    this.Root.Update(this.selectedDevice);
-                    this.Files.Update(this.selectedDevice);
-                    this.StillImage.Update(this.selectedDevice);
-                    this.Sms.Update(this.selectedDevice);
-                    this.Explorer.Update(this.selectedDevice);
-                    this.Vendor.Update(this.selectedDevice);
-                    this.Services.Update(this.selectedDevice);
-                    this.ServiceInfo.Update(this.selectedDevice);
-                    this.ServiceStatus.Update(this.selectedDevice);
-                    this.ServiceMetadata.Update(this.selectedDevice);
+                    Info.Update(_selectedDevice);
+                    Capability.Update(_selectedDevice);
+                    ContentLocation.Update(_selectedDevice);
+                    Storage.Update(_selectedDevice);
+                    Drive.Update(_selectedDevice);
+                    Root.Update(_selectedDevice);
+                    Files.Update(_selectedDevice);
+                    StillImage.Update(_selectedDevice);
+                    Sms.Update(_selectedDevice);
+                    Explorer.Update(_selectedDevice);
+                    Vendor.Update(_selectedDevice);
+                    Services.Update(_selectedDevice);
+                    ServiceInfo.Update(_selectedDevice);
+                    ServiceStatus.Update(_selectedDevice);
+                    ServiceMetadata.Update(_selectedDevice);
                     //if (selectedDevice.Description != "My Passport 25E2")
                     //{
                     //    var root = selectedDevice.GetRootDirectory();
@@ -183,7 +183,7 @@ namespace MediaDeviceApp.ViewModel
             {
                 try
                 {
-                    this.selectedDevice.ResetDevice();
+                    _selectedDevice.ResetDevice();
                 }
                 catch (Exception ex)
                 {
@@ -194,8 +194,8 @@ namespace MediaDeviceApp.ViewModel
 
         public bool CanReset
         {
-            get { return this.canReset; }
-            set { this.canReset = value; NotifyPropertyChanged(nameof(CanReset)); }
+            get { return _canReset; }
+            set { _canReset = value; NotifyPropertyChanged(nameof(CanReset)); }
 
         }
     }

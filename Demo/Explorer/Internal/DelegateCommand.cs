@@ -69,21 +69,18 @@ namespace ExplorerCtrl.Internal
     /// <typeparam name="T">Type of the parameter passed to the delegates</typeparam>
     internal class DelegateCommand<T> : ICommand
     {
-        private readonly Action<T> execute;
-        private readonly Func<T, bool> canExecute;
+        private readonly Action<T> _execute;
+        private readonly Func<T, bool> _canExecute;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public DelegateCommand(Action<T> execute, Func<T, bool> canExecuteMethod = null)
+        public DelegateCommand(Action<T> execute, Func<T, bool>? canExecuteMethod = null)
         {
-            if (execute == null)
-            {
-                throw new ArgumentNullException("execute");
-            }
+			ArgumentNullException.ThrowIfNull(execute);
 
-            this.execute = execute;
-            this.canExecute = canExecute ?? new Func<T, bool>(t => true);
+            this._execute = execute;
+            this._canExecute = canExecuteMethod ?? new Func<T, bool>(t => true);
         }
 
         /// <summary>
@@ -91,7 +88,7 @@ namespace ExplorerCtrl.Internal
         /// </summary>
         public bool CanExecute(object parameter)
         {
-            return this.canExecute((T)parameter);
+            return this._canExecute((T)parameter);
         }
 
         /// <summary>
@@ -99,13 +96,13 @@ namespace ExplorerCtrl.Internal
         /// </summary>
         public void Execute(object parameter)
         {
-            this.execute((T)parameter);
+            this._execute((T)parameter);
         }
 
         /// <summary>
         /// ICommand.CanExecuteChanged implementation
         /// </summary>
-        public event EventHandler CanExecuteChanged
+        public event EventHandler? CanExecuteChanged
         {
             add
             {

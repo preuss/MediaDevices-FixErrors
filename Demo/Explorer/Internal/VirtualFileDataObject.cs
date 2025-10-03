@@ -61,14 +61,14 @@ namespace ExplorerCtrl.Internal
         /// <summary>
         /// Stores the user-specified start action.
         /// </summary>
-        private Action<VirtualFileDataObject> _startAction;
+        private Action<VirtualFileDataObject>? _startAction;
 
         /// <summary>
         /// Stores the user-specified end action.
         /// </summary>
-        private Action<VirtualFileDataObject> _endAction;
+        private Action<VirtualFileDataObject>? _endAction;
 
-        private Action<Stream, FileDescriptor> _streamContents;
+        private Action<Stream, FileDescriptor>? _streamContents;
 
         /// <summary>
         /// Initializes a new instance of the VirtualFileDataObject class.
@@ -83,7 +83,8 @@ namespace ExplorerCtrl.Internal
         /// </summary>
         /// <param name="startAction">Optional action to run at the start of the data transfer.</param>
         /// <param name="endAction">Optional action to run at the end of the data transfer.</param>
-        public VirtualFileDataObject(Action<VirtualFileDataObject> startAction, Action<VirtualFileDataObject> endAction, Action<Stream, FileDescriptor> streamContents)
+        /// <param name="streamContents">Optional action that provides the contents of each virtual file as a stream.</param>
+        public VirtualFileDataObject(Action<VirtualFileDataObject>? startAction, Action<VirtualFileDataObject>? endAction, Action<Stream, FileDescriptor>? streamContents)
             : this()
         {
             _startAction = startAction;
@@ -355,12 +356,13 @@ namespace ExplorerCtrl.Internal
         /// </summary>
         /// <param name="dataFormat">Data format.</param>
         /// <param name="index">Index of data.</param>
+        /// <param name="fileDescriptor">Virtual file metadata.</param>
         /// <param name="streamData">Action generating the data.</param>
         /// <remarks>
         /// Uses Stream instead of IEnumerable(T) because Stream is more likely
         /// to be natural for the expected scenarios.
         /// </remarks>
-        public void SetData(short dataFormat, int index, FileDescriptor fileDescriptor, Action<Stream, FileDescriptor> streamData)
+        public void SetData(short dataFormat, int index, FileDescriptor fileDescriptor, Action<Stream, FileDescriptor>? streamData)
         {
             _dataObjects.Add(
                 new DataObject
@@ -463,7 +465,11 @@ namespace ExplorerCtrl.Internal
         public DragDropEffects? PasteSucceeded
         {
             get { return GetDropEffect(PASTESUCCEEDED); }
-            set { SetData(PASTESUCCEEDED, BitConverter.GetBytes((UInt32)value)); }
+            set
+            {
+	            ArgumentNullException.ThrowIfNull(value);
+	            SetData(PASTESUCCEEDED, BitConverter.GetBytes((UInt32)value));
+            }
         }
 
         /// <summary>
@@ -472,7 +478,11 @@ namespace ExplorerCtrl.Internal
         public DragDropEffects? PerformedDropEffect
         {
             get { return GetDropEffect(PERFORMEDDROPEFFECT); }
-            set { SetData(PERFORMEDDROPEFFECT, BitConverter.GetBytes((UInt32)value)); }
+            set
+            {
+	            ArgumentNullException.ThrowIfNull(value);
+	            SetData(PERFORMEDDROPEFFECT, BitConverter.GetBytes((UInt32)value));
+            }
         }
 
         /// <summary>
@@ -481,7 +491,11 @@ namespace ExplorerCtrl.Internal
         public DragDropEffects? PreferredDropEffect
         {
             get { return GetDropEffect(PREFERREDDROPEFFECT); }
-            set { SetData(PREFERREDDROPEFFECT, BitConverter.GetBytes((UInt32)value)); }
+            set
+            {
+	            ArgumentNullException.ThrowIfNull(value);
+	            SetData(PREFERREDDROPEFFECT, BitConverter.GetBytes((UInt32)value));
+            }
         }
 
         /// <summary>
@@ -674,7 +688,7 @@ namespace ExplorerCtrl.Internal
 			/// <summary>
 			/// IStream instance being wrapped.
 			/// </summary>
-			private IStream _iStream;
+			private readonly IStream _iStream;
 
 			/// <summary>
 			/// Initializes a new instance of the IStreamWrapper class.

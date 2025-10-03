@@ -8,7 +8,7 @@ namespace MediaDevices
     public enum Methods
     {
         /// <summary>
-        /// Ubknown method
+        /// Unknown method
         /// </summary>
         [EnumGuid]
         Unknown,
