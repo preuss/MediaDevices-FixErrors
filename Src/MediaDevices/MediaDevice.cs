@@ -26,14 +26,14 @@ namespace MediaDevices
 
 		#region Fields
 
-		internal IPortableDevice device;
+		private readonly IPortableDevice _device;
 		internal IPortableDeviceContent deviceContent;
 		internal IPortableDeviceProperties deviceProperties;
-		private IPortableDeviceCapabilities deviceCapabilities;
-		private IPortableDeviceValues deviceValues;
-		private string friendlyName = string.Empty;
-		private string? eventCookie;
-		private EventCallback eventCallback;
+		private IPortableDeviceCapabilities _deviceCapabilities;
+		private IPortableDeviceValues _deviceValues;
+		private string _friendlyName = string.Empty;
+		private string? _eventCookie;
+		private EventCallback _eventCallback;
 
 		#endregion Fields
 
@@ -89,11 +89,11 @@ namespace MediaDevices
 
 		#region Static Fields
 
-		private static readonly IPortableDeviceManager deviceManager;
-		private static readonly IPortableDeviceServiceManager serviceManager;
+		private static readonly IPortableDeviceManager _deviceManager;
+		private static readonly IPortableDeviceServiceManager _serviceManager;
 
-		private static List<MediaDevice>? devices;
-		private static List<MediaDevice>? privateDevices;
+		private static List<MediaDevice>? _devices;
+		private static List<MediaDevice>? _privateDevices;
 
 		#endregion Static Fields
 
@@ -103,8 +103,8 @@ namespace MediaDevices
 			try
 			{
 				//(deviceManager, serviceManager) = ComFactory.GetDeviceManagersInstance();
-				deviceManager = ComFactory.GetDeviceManagerInstance();
-				serviceManager = ComFactory.GetDeviceServiceManagerInstance();
+				_deviceManager = ComFactory.GetDeviceManagerInstance();
+				_serviceManager = ComFactory.GetDeviceServiceManagerInstance();
 
 				//var x = new MediaDevMgr();
 				//var f = new MediaDevMgrClassFactory();
@@ -128,11 +128,11 @@ namespace MediaDevices
 		/// <returns>>An enumerable collection of portable devices currently available.</returns>
 		public static IEnumerable<MediaDevice> GetDevices()
 		{
-			deviceManager.RefreshDeviceList();
+			_deviceManager.RefreshDeviceList();
 
 			// get number of devices
 			uint count = 0;
-			deviceManager.GetDevices(null, ref count);
+			_deviceManager.GetDevices(null, ref count);
 
 			if(count == 0)
 			{
@@ -141,16 +141,16 @@ namespace MediaDevices
 
 			// get device IDs
 			var deviceIds = new string[count];
-			deviceManager.GetDevices(deviceIds, ref count);
+			_deviceManager.GetDevices(deviceIds, ref count);
 
-			if(devices == null)
+			if(_devices == null)
 			{
-				devices = deviceIds.Select(d => new MediaDevice(d)).ToList();
+				_devices = deviceIds.Select(d => new MediaDevice(d)).ToList();
 			} else
 			{
-				UpdateDeviceList(devices, deviceIds);
+				UpdateDeviceList(_devices, deviceIds);
 			}
-			return devices.ToList();
+			return _devices.ToList();
 		}
 
 		private static void UpdateDeviceList(List<MediaDevice> deviceList, string[] deviceIdList)
@@ -186,11 +186,11 @@ namespace MediaDevices
 		/// <returns>>An enumerable collection of private portable devices currently available.</returns>
 		public static IEnumerable<MediaDevice> GetPrivateDevices()
 		{
-			deviceManager.RefreshDeviceList();
+			_deviceManager.RefreshDeviceList();
 
 			// get number of devices
 			uint count = 0;
-			deviceManager.GetPrivateDevices(null, ref count);
+			_deviceManager.GetPrivateDevices(null, ref count);
 
 			if(count == 0)
 			{
@@ -199,16 +199,16 @@ namespace MediaDevices
 
 			// get device IDs
 			var deviceIds = new string[count];
-			deviceManager.GetPrivateDevices(deviceIds, ref count);
+			_deviceManager.GetPrivateDevices(deviceIds, ref count);
 
-			if(privateDevices == null)
+			if(_privateDevices == null)
 			{
-				privateDevices = deviceIds.Select(d => new MediaDevice(d)).ToList();
+				_privateDevices = deviceIds.Select(d => new MediaDevice(d)).ToList();
 			} else
 			{
-				UpdateDeviceList(privateDevices, deviceIds);
+				UpdateDeviceList(_privateDevices, deviceIds);
 			}
-			return privateDevices.ToList();
+			return _privateDevices.ToList();
 		}
 
 		#endregion Static Methods
@@ -226,7 +226,7 @@ namespace MediaDevices
 			{
 				count = 256;
 				StringBuilder sb = new StringBuilder((int)count);
-				deviceManager.GetDeviceDescription(deviceId, sb, ref count);
+				_deviceManager.GetDeviceDescription(deviceId, sb, ref count);
 				this.Description = sb.ToString(); //new string(buffer, 0, (int)count - 1);
 			} catch(COMException ex)
 			{
@@ -237,18 +237,18 @@ namespace MediaDevices
 			{
 				count = 256;
 				StringBuilder sb = new StringBuilder((int)count);
-				deviceManager.GetDeviceFriendlyName(deviceId, sb, ref count);
-				this.friendlyName = sb.ToString();
+				_deviceManager.GetDeviceFriendlyName(deviceId, sb, ref count);
+				this._friendlyName = sb.ToString();
 			} catch(COMException ex)
 			{
 				Trace.WriteLine(ex.ToString());
-				this.friendlyName = string.Empty;
+				this._friendlyName = string.Empty;
 			}
 			try
 			{
 				count = 256;
 				StringBuilder sb = new StringBuilder((int)count);
-				deviceManager.GetDeviceManufacturer(deviceId, sb, ref count);
+				_deviceManager.GetDeviceManufacturer(deviceId, sb, ref count);
 				this.Manufacturer = sb.ToString();
 			} catch(COMException ex)
 			{
@@ -257,7 +257,36 @@ namespace MediaDevices
 			}
 
 			//this.device = new PortableDeviceApiLib.PortableDevice();
-			this.device = ComFactory.CreateDevice();
+			_device = ComFactory.CreateDevice();
+		}
+
+		private delegate void DeviceStringAccessor(string deviceId, StringBuilder buffer, ref uint length);
+
+		private static string GetDeviceString(string deviceId, DeviceStringAccessor stringAccessor, uint initialCapacity = 256) {
+			uint len = initialCapacity;
+			StringBuilder sb = new StringBuilder((int)len);
+			try {
+				stringAccessor(deviceId, sb, ref len);
+				return sb.ToString();
+			} catch(COMException ex) {
+				Trace.WriteLine(ex.ToString());
+				return string.Empty;
+			}
+		}
+
+		private string GetDeviceFriendlyName()
+		{
+			return GetDeviceString(DeviceId, _deviceManager.GetDeviceFriendlyName);
+		}
+
+		private string GetDeviceDescription()
+		{
+			return GetDeviceString(DeviceId, _deviceManager.GetDeviceDescription);
+		}
+
+		private string GetDeviceManufacturer()
+		{
+			return GetDeviceString(DeviceId, _deviceManager.GetDeviceManufacturer);
 		}
 
 		#endregion Constructor
@@ -270,7 +299,7 @@ namespace MediaDevices
 		public bool IsConnected { get; private set; }
 
 		/// <summary>
-		/// Select if path is case sensitive or not. Default is not. 
+		/// Select if path is case-sensitive or not. Default is not. 
 		/// </summary>
 		public bool IsCaseSensitive { get; private set; }
 
@@ -297,16 +326,16 @@ namespace MediaDevices
 			{
 				if(IsConnected)
 				{
-					if(this.deviceValues.TryGetStringValue(WPD.DEVICE_FRIENDLY_NAME, out string val))
+					if(this._deviceValues.TryGetStringValue(WPD.DEVICE_FRIENDLY_NAME, out string val))
 					{
 						return val;
 					} else
 					{
-						return this.friendlyName;
+						return this._friendlyName;
 					}
 				} else
 				{
-					return this.friendlyName;
+					return this._friendlyName;
 				}
 			}
 			set
@@ -321,7 +350,7 @@ namespace MediaDevices
 #pragma warning restore IDE0059 // Unnecessary assignment of a value
 
 				// reload device values with new friendly name 
-				this.deviceProperties.GetValues(Item.RootId, null, out this.deviceValues);
+				this.deviceProperties.GetValues(Item.RootId, null, out this._deviceValues);
 
 				// reload disconnected friendly name
 				try
@@ -329,12 +358,12 @@ namespace MediaDevices
 					char[] buffer = new char[260];
 					uint count = 256;
 					StringBuilder sb = new StringBuilder((int)count);
-					deviceManager.GetDeviceFriendlyName(this.DeviceId, sb, ref count);
-					this.friendlyName = sb.ToString();
+					_deviceManager.GetDeviceFriendlyName(this.DeviceId, sb, ref count);
+					this._friendlyName = sb.ToString();
 				} catch(COMException ex)
 				{
 					Trace.WriteLine(ex.ToString());
-					this.friendlyName = string.Empty;
+					this._friendlyName = string.Empty;
 				}
 			}
 		}
@@ -355,7 +384,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryGetStringValue(WPD.DEVICE_SYNC_PARTNER, out string val);
+				this._deviceValues.TryGetStringValue(WPD.DEVICE_SYNC_PARTNER, out string val);
 				return val;
 			}
 		}
@@ -370,7 +399,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryGetStringValue(WPD.DEVICE_FIRMWARE_VERSION, out string val);
+				this._deviceValues.TryGetStringValue(WPD.DEVICE_FIRMWARE_VERSION, out string val);
 				return val;
 			}
 		}
@@ -385,7 +414,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryGetSignedIntegerValue(WPD.DEVICE_POWER_LEVEL, out int val);
+				this._deviceValues.TryGetSignedIntegerValue(WPD.DEVICE_POWER_LEVEL, out int val);
 				return val;
 			}
 		}
@@ -400,7 +429,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				if(this.deviceValues.TryGetSignedIntegerValue(WPD.DEVICE_POWER_SOURCE, out int val))
+				if(this._deviceValues.TryGetSignedIntegerValue(WPD.DEVICE_POWER_SOURCE, out int val))
 				{
 					return (PowerSource)val;
 				} else
@@ -420,7 +449,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryGetStringValue(WPD.DEVICE_PROTOCOL, out string val);
+				this._deviceValues.TryGetStringValue(WPD.DEVICE_PROTOCOL, out string val);
 				return val;
 			}
 		}
@@ -435,7 +464,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryGetStringValue(WPD.DEVICE_MODEL, out string val);
+				this._deviceValues.TryGetStringValue(WPD.DEVICE_MODEL, out string val);
 				return val;
 			}
 		}
@@ -450,7 +479,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryGetStringValue(WPD.DEVICE_SERIAL_NUMBER, out string val);
+				this._deviceValues.TryGetStringValue(WPD.DEVICE_SERIAL_NUMBER, out string val);
 				return val;
 			}
 		}
@@ -465,7 +494,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				if(this.deviceValues.TryGetBoolValue(WPD.DEVICE_SUPPORTS_NON_CONSUMABLE, out bool val))
+				if(this._deviceValues.TryGetBoolValue(WPD.DEVICE_SUPPORTS_NON_CONSUMABLE, out bool val))
 				{
 					return val;
 				}
@@ -483,7 +512,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryGetDateTimeValue(WPD.DEVICE_DATETIME, out DateTime? val);
+				this._deviceValues.TryGetDateTimeValue(WPD.DEVICE_DATETIME, out DateTime? val);
 				return val;
 			}
 		}
@@ -498,7 +527,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				if(this.deviceValues.TryGetBoolValue(WPD.DEVICE_SUPPORTED_FORMATS_ARE_ORDERED, out bool val))
+				if(this._deviceValues.TryGetBoolValue(WPD.DEVICE_SUPPORTED_FORMATS_ARE_ORDERED, out bool val))
 				{
 					return val;
 				}
@@ -516,7 +545,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryGetSignedIntegerValue(WPD.DEVICE_TYPE, out int val);
+				this._deviceValues.TryGetSignedIntegerValue(WPD.DEVICE_TYPE, out int val);
 				return (DeviceType)val;
 			}
 		}
@@ -532,7 +561,7 @@ namespace MediaDevices
 
 				CheckConnected();
 
-				this.deviceValues.TryGetUnsignedLargeIntegerValue(WPD.DEVICE_NETWORK_IDENTIFIER, out ulong val);
+				this._deviceValues.TryGetUnsignedLargeIntegerValue(WPD.DEVICE_NETWORK_IDENTIFIER, out ulong val);
 				return val;
 			}
 		}
@@ -547,7 +576,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryByteArrayValue(WPD.DEVICE_FUNCTIONAL_UNIQUE_ID, out byte[]? val);
+				this._deviceValues.TryByteArrayValue(WPD.DEVICE_FUNCTIONAL_UNIQUE_ID, out byte[]? val);
 				return val;
 			}
 		}
@@ -562,7 +591,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryByteArrayValue(WPD.DEVICE_MODEL_UNIQUE_ID, out byte[]? value);
+				this._deviceValues.TryByteArrayValue(WPD.DEVICE_MODEL_UNIQUE_ID, out byte[]? value);
 				return value;
 			}
 		}
@@ -577,7 +606,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryGetSignedIntegerValue(WPD.DEVICE_TRANSPORT, out int val);
+				this._deviceValues.TryGetSignedIntegerValue(WPD.DEVICE_TRANSPORT, out int val);
 				return (DeviceTransport)val;
 			}
 		}
@@ -592,7 +621,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.deviceValues.TryGetUnsignedIntegerValue(WPD.DEVICE_USE_DEVICE_STAGE, out uint val);
+				this._deviceValues.TryGetUnsignedIntegerValue(WPD.DEVICE_USE_DEVICE_STAGE, out uint val);
 				return (DeviceTransport)val;
 			}
 		}
@@ -607,7 +636,7 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this.device.GetPnPDeviceID(out string pnPDeviceID);
+				this._device.GetPnPDeviceID(out string pnPDeviceID);
 				return pnPDeviceID;
 			}
 		}
@@ -661,7 +690,7 @@ namespace MediaDevices
 			var appName = Assembly.GetEntryAssembly()?.GetName()?.Name ?? "MediaDevices";
 
 			// set open device parameters
-			var clientInfo = ComFactory.CreateDeviceValues();
+			IPortableDeviceValues clientInfo = ComFactory.CreateDeviceValues();
 			clientInfo.SetStringValue(ref WPD.CLIENT_NAME, appName);
 
 			clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_MAJOR_VERSION, 1);
@@ -690,17 +719,17 @@ namespace MediaDevices
 			}
 
 			// open device
-			device.Open(DeviceId, clientInfo);
-			device.Capabilities(out deviceCapabilities);
-			device.Content(out deviceContent);
+			_device.Open(DeviceId, clientInfo);
+			_device.Capabilities(out _deviceCapabilities);
+			_device.Content(out deviceContent);
 			deviceContent.Properties(out deviceProperties);
-			deviceProperties.GetValues(Item.RootId, null, out deviceValues);
+			deviceProperties.GetValues(Item.RootId, null, out _deviceValues);
 
-			ComTrace.WriteObject(deviceValues);
+			ComTrace.WriteObject(_deviceValues);
 
 			// advice event handler
-			eventCallback = new EventCallback(this);
-			device.Advise(0, eventCallback, null, out eventCookie);
+			_eventCallback = new EventCallback(this);
+			_device.Advise(0, _eventCallback, null, out _eventCookie);
 
 			IsConnected = true;
 
@@ -717,12 +746,12 @@ namespace MediaDevices
 			{
 				return;
 			}
-			if(!string.IsNullOrEmpty(this.eventCookie))
+			if(!string.IsNullOrEmpty(this._eventCookie))
 			{
-				this.device.Unadvise(this.eventCookie);
-				this.eventCookie = null;
+				this._device.Unadvise(this._eventCookie);
+				this._eventCookie = null;
 			}
-			this.device.Close();
+			this._device.Close();
 			this.IsConnected = false;
 		}
 
@@ -733,7 +762,7 @@ namespace MediaDevices
 		public void Cancel()
 		{
 			CheckConnected();
-			this.device.Cancel();
+			this._device.Cancel();
 		}
 
 		/// <summary>
@@ -1726,7 +1755,7 @@ namespace MediaDevices
 
 			try
 			{
-				this.deviceCapabilities.GetSupportedCommands(out IPortableDeviceKeyCollection commands);
+				this._deviceCapabilities.GetSupportedCommands(out IPortableDeviceKeyCollection commands);
 				return commands.ToEnum<Commands>();
 			} catch(COMException ex)
 			{
@@ -1746,7 +1775,7 @@ namespace MediaDevices
 
 			try
 			{
-				this.deviceCapabilities.GetFunctionalCategories(out IPortableDevicePropVariantCollection categories);
+				this._deviceCapabilities.GetFunctionalCategories(out IPortableDevicePropVariantCollection categories);
 				return categories.ToEnum<FunctionalCategory>();
 			} catch(COMException ex)
 			{
@@ -1769,7 +1798,7 @@ namespace MediaDevices
 			{
 				var g = functionalCategory.Guid();
 				Guid guid = functionalCategory.Guid();
-				this.deviceCapabilities.GetFunctionalObjects(ref guid, out IPortableDevicePropVariantCollection objects);
+				this._deviceCapabilities.GetFunctionalObjects(ref guid, out IPortableDevicePropVariantCollection objects);
 				ComTrace.WriteObject(objects);
 				return objects.ToStrings();
 			} catch(COMException ex)
@@ -1793,7 +1822,7 @@ namespace MediaDevices
 			try
 			{
 				Guid guid = functionalCategory.Guid();
-				this.deviceCapabilities.GetSupportedContentTypes(ref guid, out IPortableDevicePropVariantCollection types);
+				this._deviceCapabilities.GetSupportedContentTypes(ref guid, out IPortableDevicePropVariantCollection types);
 				return types.ToEnum<ContentType>();
 			} catch(COMException ex)
 			{
@@ -1814,7 +1843,7 @@ namespace MediaDevices
 
 			try
 			{
-				this.deviceCapabilities.GetSupportedEvents(out IPortableDevicePropVariantCollection events);
+				this._deviceCapabilities.GetSupportedEvents(out IPortableDevicePropVariantCollection events);
 				return events.ToEnum<Events>();
 			} catch(COMException ex)
 			{
@@ -1835,7 +1864,7 @@ namespace MediaDevices
 		public void ResetDevice()
 		{
 			CheckConnected();
-			Command.Create(WPD.COMMAND_COMMON_RESET_DEVICE).Send(this.device);
+			Command.Create(WPD.COMMAND_COMMON_RESET_DEVICE).Send(this._device);
 		}
 
 		/// <summary>
@@ -1852,7 +1881,7 @@ namespace MediaDevices
 			{
 				Command cmd = Command.Create(WPD.COMMAND_DEVICE_HINTS_GET_CONTENT_LOCATION);
 				cmd.Add(WPD.PROPERTY_DEVICE_HINTS_CONTENT_TYPE, contentType.Guid());
-				if(!cmd.Send(this.device))
+				if(!cmd.Send(this._device))
 				{
 					cmd.WriteResults();
 					return new List<string>();
@@ -1907,7 +1936,7 @@ namespace MediaDevices
 		{
 			Command cmd = Command.Create(WPD.COMMAND_STORAGE_EJECT);
 			cmd.Add(WPD.PROPERTY_STORAGE_OBJECT_ID, id);
-			return cmd.Send(this.device);
+			return cmd.Send(this._device);
 		}
 
 		/// <summary>
@@ -1937,7 +1966,7 @@ namespace MediaDevices
 		{
 			Command cmd = Command.Create(WPD.COMMAND_STORAGE_FORMAT);
 			cmd.Add(WPD.PROPERTY_STORAGE_OBJECT_ID, id);
-			cmd.Send(this.device);
+			cmd.Send(this._device);
 		}
 
 		/// <summary>
@@ -1976,7 +2005,7 @@ namespace MediaDevices
 			cmd.Add(WPD.PROPERTY_SMS_RECIPIENT, recipient);
 			cmd.Add(WPD.PROPERTY_SMS_MESSAGE_TYPE, (uint)SmsMessageType.Text);
 			cmd.Add(WPD.PROPERTY_SMS_TEXT_MESSAGE, text);
-			return cmd.Send(this.device);
+			return cmd.Send(this._device);
 		}
 
 		/// <summary>
@@ -2013,7 +2042,7 @@ namespace MediaDevices
 
 			Command cmd = Command.Create(WPD.COMMAND_STILL_IMAGE_CAPTURE_INITIATE);
 			cmd.Add(WPD.PROPERTY_COMMON_COMMAND_TARGET, functionalObject);
-			return cmd.Send(this.device);
+			return cmd.Send(this._device);
 		}
 
 		internal void CallEvent(IPortableDeviceValues eventParameters)
@@ -2158,7 +2187,7 @@ namespace MediaDevices
 			CheckConnected();
 
 			Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_GET_SUPPORTED_VENDOR_OPCODES);
-			cmd.Send(this.device);
+			cmd.Send(this._device);
 			var list = cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_VENDOR_OPERATION_CODES);
 			return list.Select(p => p.ToUInt());
 		}
@@ -2178,7 +2207,7 @@ namespace MediaDevices
 			Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_EXECUTE_COMMAND_WITHOUT_DATA_PHASE);
 			cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_CODE, opCode);
 			cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_PARAMS, inputParams);
-			cmd.Send(this.device);
+			cmd.Send(this._device);
 			respCode = cmd.GetUInt(WPD.PROPERTY_MTP_EXT_RESPONSE_CODE);
 			return cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_RESPONSE_PARAMS).Select(p => p.ToUInt());
 		}
@@ -2197,7 +2226,7 @@ namespace MediaDevices
 			Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_EXECUTE_COMMAND_WITH_DATA_TO_READ);
 			cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_CODE, opCode);
 			cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_PARAMS, inputParams);
-			cmd.Send(this.device);
+			cmd.Send(this._device);
 			var list = cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_VENDOR_OPERATION_CODES).ToList();
 			return list.Select(p => p.ToUInt()); //.ToList();
 		}
@@ -2216,7 +2245,7 @@ namespace MediaDevices
 			Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_EXECUTE_COMMAND_WITH_DATA_TO_WRITE);
 			cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_CODE, opCode);
 			cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_PARAMS, inputParams);
-			cmd.Send(this.device);
+			cmd.Send(this._device);
 			var list = cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_VENDOR_OPERATION_CODES).ToList();
 			return list.Select(p => p.ToUInt()); //.ToList();
 		}
@@ -2253,7 +2282,7 @@ namespace MediaDevices
 		{
 			Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_END_DATA_TRANSFER);
 			cmd.Add(WPD.PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
-			cmd.Send(this.device);
+			cmd.Send(this._device);
 			respCode = cmd.GetUInt(WPD.PROPERTY_MTP_EXT_RESPONSE_CODE);
 			return cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_RESPONSE_PARAMS).Select(p => p.ToUInt());
 		}
@@ -2268,7 +2297,7 @@ namespace MediaDevices
 			CheckConnected();
 
 			Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_GET_VENDOR_EXTENSION_DESCRIPTION);
-			cmd.Send(this.device);
+			cmd.Send(this._device);
 			string description = cmd.GetString(WPD.PROPERTY_MTP_EXT_VENDOR_EXTENSION_DESCRIPTION);
 			return description;
 		}
@@ -2288,14 +2317,14 @@ namespace MediaDevices
 		{
 			Guid serviceGuid = service.Guid();
 			uint num = 0;
-			serviceManager.GetDeviceServices(this.DeviceId, ref serviceGuid, null, ref num);
+			_serviceManager.GetDeviceServices(this.DeviceId, ref serviceGuid, null, ref num);
 
 			if(num == 0)
 			{
 				return null;
 			}
 			string[] services = new string[num];
-			serviceManager.GetDeviceServices(this.DeviceId, ref serviceGuid, services, ref num);
+			_serviceManager.GetDeviceServices(this.DeviceId, ref serviceGuid, services, ref num);
 
 			//foreach (var ser in services)
 			//{

@@ -9,7 +9,7 @@ namespace MediaDevices
     {
         internal CompleteEventArgs(int hrStatus)
         {
-            this.Status = hrStatus;
+            Status = hrStatus;
         }
 
         /// <summary>
