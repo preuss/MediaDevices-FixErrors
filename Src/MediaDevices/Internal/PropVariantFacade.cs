@@ -41,51 +41,61 @@ namespace MediaDevices.Internal {
 			return ToString();
 		}
 
-		public override string ToString() {
-			switch(Value.vt) {
-				case PropVariantType.VT_LPSTR:
-					return Marshal.PtrToStringAnsi(Value.ptrVal) ?? "null";
+		public override string ToString()
+		{
+			try
+			{
+				switch (Value.vt)
+				{
+					case PropVariantType.VT_LPSTR:
+						return Marshal.PtrToStringAnsi(Value.ptrVal) ?? "null";
 
-				case PropVariantType.VT_LPWSTR:
-					return Marshal.PtrToStringUni(Value.ptrVal) ?? "null";
+					case PropVariantType.VT_LPWSTR:
+						return Marshal.PtrToStringUni(Value.ptrVal) ?? "null";
 
-				case PropVariantType.VT_BSTR:
-					return Marshal.PtrToStringBSTR(Value.ptrVal);
+					case PropVariantType.VT_BSTR:
+						return Marshal.PtrToStringBSTR(Value.ptrVal);
 
-				case PropVariantType.VT_CLSID:
-					return ToGuid().ToString();
+					case PropVariantType.VT_CLSID:
+						return ToGuid().ToString();
 
-				case PropVariantType.VT_DATE:
-					return ToNullableDate()?.ToString(CultureInfo.InvariantCulture) ?? "null";
+					case PropVariantType.VT_DATE:
+						return ToNullableDate()?.ToString(CultureInfo.InvariantCulture) ?? "null";
 
-				case PropVariantType.VT_BOOL:
-					return ToBool().ToString();
+					case PropVariantType.VT_BOOL:
+						return ToBool().ToString();
 
-				case PropVariantType.VT_INT:
-				case PropVariantType.VT_I1:
-				case PropVariantType.VT_I2:
-				case PropVariantType.VT_I4:
-					return ToInt().ToString();
+					case PropVariantType.VT_INT:
+					case PropVariantType.VT_I1:
+					case PropVariantType.VT_I2:
+					case PropVariantType.VT_I4:
+						return ToInt().ToString();
 
-				case PropVariantType.VT_UINT:
-				case PropVariantType.VT_UI1:
-				case PropVariantType.VT_UI2:
-				case PropVariantType.VT_UI4:
-					return ToUInt().ToString();
+					case PropVariantType.VT_UINT:
+					case PropVariantType.VT_UI1:
+					case PropVariantType.VT_UI2:
+					case PropVariantType.VT_UI4:
+						return ToUInt().ToString();
 
-				case PropVariantType.VT_I8:
-					return ToLong().ToString();
+					case PropVariantType.VT_I8:
+						return ToLong().ToString();
 
-				case PropVariantType.VT_UI8:
-					return ToUlong().ToString();
+					case PropVariantType.VT_UI8:
+						return ToUlong().ToString();
 
-				case PropVariantType.VT_ERROR:
-					Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
-					return "";
+					case PropVariantType.VT_ERROR:
+						Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+						return "";
 
-				default:
-					Debug.WriteLine($"Unknown PropVariantType: {Value.vt} (raw: {Value.vt})");
-					return "";
+					default:
+						Debug.WriteLine($"Unknown PropVariantType: {Value.vt} (raw: {Value.vt})");
+						return "";
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"Exception in ToString for PropVariantType {Value.vt}: {ex}");
+				return "null";
 			}
 		}
 
@@ -154,7 +164,17 @@ namespace MediaDevices.Internal {
 
 			return Value.ulongVal;
 		}
-
+		/// <summary>
+		/// Converts the underlying PROPVARIANT value to a <see cref="DateTime"/>.
+		/// </summary>
+		/// <returns>
+		/// The corresponding <see cref="DateTime"/> if the value is valid.
+		/// </returns>
+		/// <remarks>
+		/// If the PROPVARIANT type is <c>VT_ERROR</c>, returns a default <see cref="DateTime"/>.
+		/// If the value is not of type <c>VT_DATE</c>, throws <see cref="InvalidOperationException"/>.
+		/// If the underlying OLE Automation date is invalid, <see cref="DateTime.FromOADate"/> will throw an exception.
+		/// </remarks>
 		public DateTime ToDate() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
 				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
@@ -168,6 +188,16 @@ namespace MediaDevices.Internal {
 			return DateTime.FromOADate(Value.dateVal);
 		}
 
+		/// <summary>
+		/// Converts the underlying PROPVARIANT value to a nullable <see cref="DateTime"/>.
+		/// </summary>
+		/// <returns>
+		/// The corresponding <see cref="DateTime"/> if the value is valid; otherwise <c>null</c> if the value is empty, invalid, or represents "no date".
+		/// </returns>
+		/// <remarks>
+		/// Returns <c>null</c> for typical "no value" OLE Automation dates (e.g. 0.0, 1.0, NaN, Infinity, or out-of-range values).
+		/// Throws <see cref="InvalidOperationException"/> if the PROPVARIANT type is not <c>VT_DATE</c>.
+		/// </remarks>
 		public DateTime? ToNullableDate() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
 				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
@@ -183,8 +213,10 @@ namespace MediaDevices.Internal {
 			if(rawDateTime == 0.0
 			   // ReSharper disable once CompareOfFloatsByEqualityOperator
 			   || rawDateTime == 1.0
-				|| double.IsNaN(rawDateTime)
-				|| double.IsInfinity(rawDateTime)
+			   || double.IsNaN(rawDateTime)
+			   || double.IsInfinity(rawDateTime)
+			   || rawDateTime < -657434.0 // before year 1000
+			   || rawDateTime > 2958465.0 // after year 9999
 			) {
 				return null;
 			}
@@ -222,13 +254,20 @@ namespace MediaDevices.Internal {
 				return Guid.Empty;
 			}
 
-			object? guidObj = Marshal.PtrToStructure(Value.ptrVal, typeof(Guid));
-			if(guidObj is not Guid guid) {
-				Debug.WriteLine("ToGuid: Marshal.PtrToStructure returned null or wrong type");
+			try
+			{
+				object? guidObj = Marshal.PtrToStructure(Value.ptrVal, typeof(Guid));
+				if (guidObj is not Guid guid)
+				{
+					Debug.WriteLine("ToGuid: Marshal.PtrToStructure returned null or wrong type");
+					return Guid.Empty;
+				}
+				return guid;
+			} catch(Exception ex)
+			{
+				Debug.WriteLine($"ToGuid: Exception during Marshal.PtrToStructure: {ex}");
 				return Guid.Empty;
 			}
-
-			return guid;
 		}
 
 #if !NETCOREAPP
@@ -246,11 +285,25 @@ namespace MediaDevices.Internal {
 			}
 
 			int size = (int)Value.dataVal.cData;
-			byte[] managedArray = new byte[size];
+			if(size < 0 || Value.dataVal.pData == IntPtr.Zero)
+			{
+				Debug.WriteLine($"ToByteArray: Invalid size ({size}) or pData is null");
+				return null;
+			}
 
-			// bug fixed with manual COM wrapper classes
-			Marshal.Copy(Value.dataVal.pData, managedArray, 0, size);
-			return managedArray;
+			try
+			{
+				byte[] managedArray = new byte[size];
+
+				// bug fixed with manual COM wrapper classes
+				Marshal.Copy(Value.dataVal.pData, managedArray, 0, size);
+				return managedArray;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine($"ToByteArray: Exception during Marshal.Copy: {ex}");
+				return null;
+			}
 		}
 
 		public int ToError() {
