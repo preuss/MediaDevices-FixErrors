@@ -6,16 +6,16 @@
 		<BuildNumber>72</BuildNumber>
 		<ReleaseChannel>beta</ReleaseChannel>
 		<ReleaseChannelNumber>11</ReleaseChannelNumber>
-		<!--
-    <VersionSuffix>alpha</VersionSuffix>
-    <VersionSuffix>beta</VersionSuffix>
-    <VersionSuffix>rc</VersionSuffix>
-    <VersionSuffix>preview</VersionSuffix>
-    <VersionSuffix>dev</VersionSuffix>
-    <VersionSuffix>exp</VersionSuffix>
-    -->
+	<!--
+		<VersionSuffix>alpha</VersionSuffix>
+		<VersionSuffix>beta</VersionSuffix>
+		<VersionSuffix>rc</VersionSuffix>
+		<VersionSuffix>preview</VersionSuffix>
+		<VersionSuffix>dev</VersionSuffix>
+		<VersionSuffix>exp</VersionSuffix>
+	-->
 
-    <VersionPrefix>$(Major).$(Minor).$(Patch).$(BuildNumber)</VersionPrefix>
-    <VersionSuffix>$(ReleaseChannel)$(ReleaseChannelNumber)</VersionSuffix>
+		<VersionPrefix>$(Major).$(Minor).$(Patch).$(BuildNumber)</VersionPrefix>
+		<VersionSuffix>$(ReleaseChannel)$(ReleaseChannelNumber)</VersionSuffix>
 	</PropertyGroup>
 </Project>
