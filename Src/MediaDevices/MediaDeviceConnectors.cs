@@ -22,32 +22,26 @@ namespace MediaDevices
         #endregion
 
         /// <summary>
-        /// Get connextors.
+        /// Get connectors.
         /// </summary>
         /// <returns>List of connectors</returns>
         public static IEnumerable<MediaDeviceConnector> Connectors()
         {
-
-            //connectors.Reset();
-
+            var result = new List<MediaDeviceConnector>();
             IPortableDeviceConnector connector;
             uint num = 1;
-            _connectors.Next(1, out connector, ref num);
 
-            return new List<MediaDeviceConnector>() { new MediaDeviceConnector(connector) };
+            while (num > 0)
+            {
+                num = 1;
+                _connectors.Next(1, out connector, ref num);
+                if (num > 0)
+                {
+                    result.Add(new MediaDeviceConnector(connector));
+                }
+            }
 
-            //IPortableDeviceConnector[] connectorArray = new IPortableDeviceConnector[10]; 
-            //uint num = 10;
-            //connectors.Next(10, ref connectorArray, ref num);
-
-
-            //connectors.Clone(out IEnumPortableDeviceConnectors test);
-
-            //connectorArray = new IPortableDeviceConnector[10];
-            //num = 10;
-            //test.Next(10, ref connectorArray, ref num);
-
-            //return connectorArray?.Select(c => new MediaDeviceConnector(c));
+            return result;
         }
     }
 }

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
-using System.Security.Cryptography.X509Certificates;
 
 
 namespace MediaDevices.Internal
@@ -53,15 +51,13 @@ namespace MediaDevices.Internal
         {
             if (values.HasKeyValue(key))
             {
-                PropVariantFacade val = new PropVariantFacade();
+                var val = new PropVariantFacade();
                 values.GetValue(ref key, out val.Value);
                 value = val;
                 return true;
             }
-#pragma warning disable CS8625 // Api value is only null if return value is false
-			value = null;
-#pragma warning restore CS8625 // Api value is only null if return value is false
-			return false;
+            value = null!;
+            return false;
         }
 
         public static bool TryGetDateTimeValue(this IPortableDeviceValues values, PropertyKey key, out DateTime? value)

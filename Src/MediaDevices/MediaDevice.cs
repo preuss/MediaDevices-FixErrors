@@ -92,7 +92,10 @@ namespace MediaDevices
 		private static readonly IPortableDeviceManager _deviceManager;
 		private static readonly IPortableDeviceServiceManager _serviceManager;
 
+		private static readonly object _devicesLock = new();
 		private static List<MediaDevice>? _devices;
+
+		private static readonly object _privateDevicesLock = new();
 		private static List<MediaDevice>? _privateDevices;
 
 		#endregion Static Fields
@@ -100,26 +103,8 @@ namespace MediaDevices
 		#region Static Methods
 		static MediaDevice()
 		{
-			try
-			{
-				//(deviceManager, serviceManager) = ComFactory.GetDeviceManagersInstance();
-				_deviceManager = ComFactory.GetDeviceManagerInstance();
-				_serviceManager = ComFactory.GetDeviceServiceManagerInstance();
-
-				//var x = new MediaDevMgr();
-				//var f = new MediaDevMgrClassFactory();
-				//IWMDeviceManager3 devManager = (IWMDeviceManager3)f;
-
-				//devManager.GetRevision(out var revision);
-				//devManager.GetDeviceCount(out var count);
-				//devManager.EnumDevices2(out var e);
-			}
-			catch (Exception ex)
-			{
-				Trace.TraceError(ex.ToString());
-			}
-
-			// #define WMDM_E_NOTCERTIFIED                     0x80045005L
+			_deviceManager = ComFactory.GetDeviceManagerInstance();
+			_serviceManager = ComFactory.GetDeviceServiceManagerInstance();
 		}
 
 		/// <summary>
@@ -143,14 +128,17 @@ namespace MediaDevices
 			var deviceIds = new string[count];
 			_deviceManager.GetDevices(deviceIds, ref count);
 
-			if(_devices == null)
+			lock (_devicesLock)
 			{
-				_devices = deviceIds.Select(d => new MediaDevice(d)).ToList();
-			} else
-			{
-				UpdateDeviceList(_devices, deviceIds);
+				if(_devices == null)
+				{
+					_devices = deviceIds.Select(d => new MediaDevice(d)).ToList();
+				} else
+				{
+					UpdateDeviceList(_devices, deviceIds);
+				}
+				return _devices.ToList();
 			}
-			return _devices.ToList();
 		}
 
 		private static void UpdateDeviceList(List<MediaDevice> deviceList, string[] deviceIdList)
@@ -165,20 +153,6 @@ namespace MediaDevices
 			var add = idList.Where(id => !deviceList.Select(d => d.DeviceId).Contains(id)).ToList();
 			deviceList.AddRange(add.Select(id => new MediaDevice(id)));
 		}
-
-		//public static IEnumerable<MediaDevice> GetDevices(FunctionalCategory category)
-		//{
-		//    if (category == FunctionalCategory.All)
-		//    {
-		//        return GetDevices();
-		//    }
-
-		//    var devices = GetDevices();
-
-		//    var dev = devices.FirstOrDefault();
-
-		//    dev.deviceCapabilities
-		//}
 
 		/// <summary>
 		/// Returns an enumerable collection of currently available private portable devices.
@@ -201,14 +175,17 @@ namespace MediaDevices
 			var deviceIds = new string[count];
 			_deviceManager.GetPrivateDevices(deviceIds, ref count);
 
-			if(_privateDevices == null)
+			lock (_privateDevicesLock)
 			{
-				_privateDevices = deviceIds.Select(d => new MediaDevice(d)).ToList();
-			} else
-			{
-				UpdateDeviceList(_privateDevices, deviceIds);
+				if(_privateDevices == null)
+				{
+					_privateDevices = deviceIds.Select(d => new MediaDevice(d)).ToList();
+				} else
+				{
+					UpdateDeviceList(_privateDevices, deviceIds);
+				}
+				return _privateDevices.ToList();
 			}
-			return _privateDevices.ToList();
 		}
 
 		#endregion Static Methods
@@ -220,43 +197,10 @@ namespace MediaDevices
 			this.DeviceId = deviceId;
 			this.IsCaseSensitive = false;
 
+			this.Description = GetDeviceString(deviceId, _deviceManager.GetDeviceDescription);
+			this._friendlyName = GetDeviceString(deviceId, _deviceManager.GetDeviceFriendlyName);
+			this.Manufacturer = GetDeviceString(deviceId, _deviceManager.GetDeviceManufacturer);
 
-			uint count = 256;
-			try
-			{
-				count = 256;
-				StringBuilder sb = new StringBuilder((int)count);
-				_deviceManager.GetDeviceDescription(deviceId, sb, ref count);
-				this.Description = sb.ToString(); //new string(buffer, 0, (int)count - 1);
-			} catch(COMException ex)
-			{
-				Trace.WriteLine(ex.ToString());
-				this.Description = string.Empty;
-			}
-			try
-			{
-				count = 256;
-				StringBuilder sb = new StringBuilder((int)count);
-				_deviceManager.GetDeviceFriendlyName(deviceId, sb, ref count);
-				this._friendlyName = sb.ToString();
-			} catch(COMException ex)
-			{
-				Trace.WriteLine(ex.ToString());
-				this._friendlyName = string.Empty;
-			}
-			try
-			{
-				count = 256;
-				StringBuilder sb = new StringBuilder((int)count);
-				_deviceManager.GetDeviceManufacturer(deviceId, sb, ref count);
-				this.Manufacturer = sb.ToString();
-			} catch(COMException ex)
-			{
-				Trace.WriteLine(ex.ToString());
-				this.Manufacturer = string.Empty;
-			}
-
-			//this.device = new PortableDeviceApiLib.PortableDevice();
 			_device = ComFactory.CreateDevice();
 		}
 
@@ -342,29 +286,16 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				// set new friendly name
-				IPortableDeviceValues devInValues = ComFactory.CreateDeviceValues();
-				devInValues.SetStringValue(ref WPD.DEVICE_FRIENDLY_NAME, value);
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
-				this.deviceProperties.SetValues(Item.RootId, devInValues, out IPortableDeviceValues devValues);
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
+			// set new friendly name
+			IPortableDeviceValues devInValues = ComFactory.CreateDeviceValues();
+			devInValues.SetStringValue(ref WPD.DEVICE_FRIENDLY_NAME, value);
+			this.deviceProperties.SetValues(Item.RootId, devInValues, out _);
 
-				// reload device values with new friendly name 
-				this.deviceProperties.GetValues(Item.RootId, null, out this._deviceValues);
+			// reload device values with new friendly name 
+			this.deviceProperties.GetValues(Item.RootId, null, out this._deviceValues);
 
-				// reload disconnected friendly name
-				try
-				{
-					char[] buffer = new char[260];
-					uint count = 256;
-					StringBuilder sb = new StringBuilder((int)count);
-					_deviceManager.GetDeviceFriendlyName(this.DeviceId, sb, ref count);
-					this._friendlyName = sb.ToString();
-				} catch(COMException ex)
-				{
-					Trace.WriteLine(ex.ToString());
-					this._friendlyName = string.Empty;
-				}
+			// reload disconnected friendly name
+			this._friendlyName = GetDeviceFriendlyName();
 			}
 		}
 
@@ -615,14 +546,14 @@ namespace MediaDevices
 		/// Use device stage
 		/// </summary>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public DeviceTransport UseDeviceStage
+		public bool UseDeviceStage
 		{
 			get
 			{
 				CheckConnected();
 
 				this._deviceValues.TryGetUnsignedIntegerValue(WPD.DEVICE_USE_DEVICE_STAGE, out uint val);
-				return (DeviceTransport)val;
+				return val != 0;
 			}
 		}
 
@@ -1402,7 +1333,6 @@ namespace MediaDevices
 			CheckConnected();
 
 			string? folder = Path.GetDirectoryName(path);
-			// TODO: Should we use a "/" if folder path not found ?
 			if(folder == null)
 			{
 				throw new DirectoryNotFoundException($"The specified directory in path '{path}' does not exist.");

@@ -18,7 +18,7 @@
         /// <summary>
         /// Execute access
         /// </summary>
-        GenericExcecute = 0x20000000,
+        GenericExecute = 0x20000000,
 
         /// <summary>
         /// Write access

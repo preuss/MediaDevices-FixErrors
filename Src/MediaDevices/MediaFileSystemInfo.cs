@@ -46,7 +46,6 @@ namespace MediaDevices
                 {
 					_parent = new MediaDirectoryInfo(_device, Item.Parent);
                 }
-				// TODO: Should this return null if _parent is null?
 				return _parent;
             }
         }
@@ -69,7 +68,6 @@ namespace MediaDevices
         {
             get
             {
-				// TODO: Should this return null if item.Name is null?
 				if(Item.Name == null) {
 					return string.Empty;
 				}

@@ -185,25 +185,22 @@ namespace MediaDevices.Internal
 					Name = OriginalFileName;
 					Type = ItemType.File;
 				}
-				if (_path != null) // TODO check if we can remove empty paths
+			if (_path != null)
+			{
+				string? usingName = Name;
+				if (string.IsNullOrWhiteSpace(usingName))
 				{
-					// TODO: build full name, but should we use OriginalFileName as fallback?
-					string? usingName = Name;
-					if (string.IsNullOrWhiteSpace(usingName))
-					{
-						usingName = OriginalFileName;
-					}
-					if (string.IsNullOrWhiteSpace(usingName))
-					{
-						// TODO: Should we throw exception here, or append something to show error?
-						FullName = _path;
-					}
-					else
-					{
-						// don't use Path.Combine
-						FullName = _path.TrimEnd(DIRECTORY_SEPARATOR_CHAR) + DIRECTORY_SEPARATOR_CHAR + usingName;
-					}
+					usingName = OriginalFileName;
 				}
+				if (string.IsNullOrWhiteSpace(usingName))
+				{
+					FullName = _path;
+				}
+				else
+				{
+					FullName = _path.TrimEnd(DIRECTORY_SEPARATOR_CHAR) + DIRECTORY_SEPARATOR_CHAR + usingName;
+				}
+			}
 			}
 		}
 
@@ -456,31 +453,24 @@ namespace MediaDevices.Internal
 					deviceValues.SetGuidValue(ref WPD.OBJECT_CONTENT_TYPE, ref WPD.CONTENT_TYPE_FOLDER);
 
 					string id = string.Empty;
-					try
-					{
-						_device.deviceContent.CreateObjectWithPropertiesOnly(deviceValues, ref id);
-					}
-					catch (Exception ex)
-					{
-						Debug.WriteLine(ex.Message);
-						return null;
-					}
+				try
+				{
+					_device.deviceContent.CreateObjectWithPropertiesOnly(deviceValues, ref id);
+				}
+				catch (COMException ex)
+				{
+					throw new InvalidOperationException($"Failed to create subdirectory '{folder}' on device '{_device.FriendlyName}'.", ex);
+				}
 					child = Item.Create(_device, id, parent.FullName);
 				}
 				else if (child.Type == ItemType.File)
 				{
-					// folder is already a file
-					throw new Exception($"A path of the path {folder} is a file");
+					throw new InvalidOperationException($"A part of the path '{folder}' is a file.");
 				}
-				else
-				{
-					// folder exists
-					//id = child.Id;
-					//new Item()
-
-					// TODO
-				}
-				parent = child;
+			else
+			{
+			}
+			parent = child;
 			}
 			return child;
 		}
@@ -495,7 +485,6 @@ namespace MediaDevices.Internal
 			}
 
 			IPortableDevicePropVariantCollection results = ComFactory.CreateDevicePropVariantCollection();
-			// TODO: get the results back and handle failures correctly
 
 			_device.deviceContent.Delete(recursive ? PORTABLE_DEVICE_DELETE_WITH_RECURSION : PORTABLE_DEVICE_DELETE_NO_RECURSION, objectIdCollection, ref results);
 
@@ -513,18 +502,15 @@ namespace MediaDevices.Internal
 			StringBuilder sb = new StringBuilder();
 			do
 			{
-				// ++ TODO
 				if (string.IsNullOrWhiteSpace(item.ParentId))
 				{
 					item = TryHandleNonHierarchicalStorage();
 
-					if (item == null)
-					{
-						throw new Exception($"Problem occurred when trying to get full object path on device {_device.FriendlyName}.");
-					}
+				if (item == null)
+				{
+					throw new InvalidOperationException($"Failed to resolve full path for object '{Id}' on device '{_device.FriendlyName}'.");
 				}
-
-				// -- TODO
+				}
 
 				sb.Insert(0, item.Name);
 				sb.Insert(0, DIRECTORY_SEPARATOR_CHAR);
@@ -532,8 +518,6 @@ namespace MediaDevices.Internal
 			} while (!(item = new Item(_device, item.ParentId)).IsRoot);
 			return sb.ToString();
 		}
-
-		// TODO
 
 		/// <summary>
 		/// Handles DCF storages specific for Apple iPhones.
@@ -636,14 +620,14 @@ namespace MediaDevices.Internal
 				{
 					// id can change on rename (e.g. Amazon Kindle Paperwhite) so find new one
 					var newItem = _parent?.GetChildren().FirstOrDefault(i => _device.EqualsName(i.Name, newName));
-					if (newItem == null)
-					{
-						throw new InvalidDataException($"Rename error, newItem new name '{newName}' not accessible");
-					}
-					if (string.IsNullOrEmpty(newItem.Id))
-					{
-						throw new InvalidDataException($"Rename error, newItem new name '{newName}' does not have an ID");
-					}
+				if (newItem == null)
+				{
+					throw new InvalidOperationException($"Rename failed: item with new name '{newName}' not accessible after rename.");
+				}
+				if (string.IsNullOrEmpty(newItem.Id))
+				{
+					throw new InvalidOperationException($"Rename failed: item with new name '{newName}' has no ID after rename.");
+				}
 
 					Id = newItem.Id;
 

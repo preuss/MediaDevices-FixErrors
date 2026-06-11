@@ -57,11 +57,7 @@ namespace MediaDevices
             {
                 throw new NotConnectedException("Not connected");
             }
-            Item? createdSubdirectoryItem = Item.CreateSubdirectory(path);
-            if (createdSubdirectoryItem == null)
-            {
-                throw new DirectoryNotFoundException($"Failed to create subdirectory. The specified path '{path}' could not be resolved or created.");
-            }
+            Item createdSubdirectoryItem = Item.CreateSubdirectory(path);
             return new MediaDirectoryInfo(_device, createdSubdirectoryItem);
         }
 

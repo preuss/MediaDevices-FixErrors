@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace MediaDevices
 {
     /// <summary>
-    /// MediaDive connector
+    /// MediaDevice connector
     /// </summary>
     public class MediaDeviceConnector : IConnectionRequestCallback, IDisposable
     {
@@ -60,10 +60,6 @@ namespace MediaDevices
 		        _connector = null;
 	        }
 	        GC.SuppressFinalize(this);
-        }
-
-        ~MediaDeviceConnector() {
-	        Dispose();
         }
 
 		/// <summary>
