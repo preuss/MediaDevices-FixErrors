@@ -217,8 +217,8 @@ namespace MediaDevices.Internal
 			}
 			catch (Exception ex)
 			{
-				Trace.TraceError($"{ex.Message} for {Id}");
-				return;
+				throw new IOException(
+					$"Could not read properties for device '{_device.FriendlyName}', Id='{Id}'.", ex);
 			}
 
 			// read all properties
@@ -330,10 +330,17 @@ namespace MediaDevices.Internal
 		{
 			get
 			{
+				// Parent resolution may create a new Item and read its properties from the device.
+				// Cache it per Item instance so repeated path/parent access does not resolve
+				// the same parent chain again for this object.
+				//
+				// This is intentionally an instance-local cache. The same device object may
+				// still be resolved again if represented by another Item instance.
 				if (_parent == null)
 				{
-					_parent = string.IsNullOrEmpty(ParentId) ? null : new Item(_device, ParentId, Path.GetDirectoryName(Path.GetDirectoryName(FullName)));
+					_parent = ResolveParentForPath(this);
 				}
+
 				return _parent;
 			}
 		}
@@ -349,38 +356,47 @@ namespace MediaDevices.Internal
 			{
 				_device.deviceContent.EnumObjects(0, Id, null, out enumerator);
 			}
-			catch (COMException)
+			catch (COMException ex)
 			{
-				Trace.WriteLine("IPortableDeviceContent.EnumObjects failed");
-				yield break;
+				throw new IOException($"IPortableDeviceContent.EnumObjects failed for device '{_device.FriendlyName}', Id='{Id}'.", ex);
 			}
 
-			uint fetched = 0;
-			var objectIds = new string[NUM_OBJECTS_TO_REQUEST];
-			enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
-			while (fetched > 0)
+			try
 			{
-				for (int index = 0; index < fetched; index++)
-				{
-					Item? item = null;
-
-					try
-					{
-						item = Item.Create(_device, objectIds[index], FullName);
-					}
-					catch (FileNotFoundException)
-					{
-						// handle system files, that cannot be opened or read.
-						// Windows sometimes creates a fake files in e.g. System Volume Information.
-						// Let's handle such situations.
-					}
-
-					if (item != null)
-					{
-						yield return item;
-					}
-				}
+				uint fetched = 0;
+				var objectIds = new string[NUM_OBJECTS_TO_REQUEST];
 				enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+				while (fetched > 0)
+				{
+					for (int index = 0; index < fetched; index++)
+					{
+						Item? item = null;
+
+						try
+						{
+							item = Item.Create(_device, objectIds[index], FullName);
+						}
+						catch (FileNotFoundException)
+						{
+							// handle system files, that cannot be opened or read.
+							// Windows sometimes creates a fake files in e.g. System Volume Information.
+							// Let's handle such situations.
+						}
+
+						if (item != null)
+						{
+							yield return item;
+						}
+					}
+					enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+				}
+			}
+			finally
+			{
+				if (enumerator != null)
+				{
+					Marshal.ReleaseComObject(enumerator);
+				}
 			}
 		}
 
@@ -391,50 +407,60 @@ namespace MediaDevices.Internal
 			{
 				_device.deviceContent.EnumObjects(0, Id, null, out enumerator);
 			}
-			catch (COMException)
+			catch (COMException ex)
 			{
-				Trace.WriteLine("IPortableDeviceContent.EnumObjects failed");
-				yield break;
+				throw new IOException($"IPortableDeviceContent.EnumObjects failed for device '{_device.FriendlyName}', Id='{Id}'.", ex);
 			}
 
-			uint fetched = 0;
-			var objectIds = new string[NUM_OBJECTS_TO_REQUEST];
-			enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
-			while (fetched > 0)
+			try
 			{
-				for (int index = 0; index < fetched; index++)
+				uint fetched = 0;
+				var objectIds = new string[NUM_OBJECTS_TO_REQUEST];
+				enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+				while (fetched > 0)
 				{
-					Item? item = null;
+					for (int index = 0; index < fetched; index++)
+					{
+						Item? item = null;
 
-					try
-					{
-						item = Item.Create(_device, objectIds[index], FullName);
-					}
-					catch (FileNotFoundException)
-					{
-						// handle system files, that cannot be opened or read.
-						// Windows sometimes creates a fake files in e.g.System Volume Information.
-						// Let's handle such situations.
-					}
-
-					if (item != null)
-					{
-						if (pattern == null || (item.Name != null && Regex.IsMatch(item.Name, pattern, RegexOptions.IgnoreCase)))
+						try
 						{
-							yield return item;
+							item = Item.Create(_device, objectIds[index], FullName);
+						}
+						catch (FileNotFoundException)
+						{
+							// handle system files, that cannot be opened or read.
+							// Windows sometimes creates a fake files in e.g.System Volume Information.
+							// Let's handle such situations.
 						}
 
-						if (searchOption == SearchOption.AllDirectories && item.Type != ItemType.File)
+						if (item != null)
 						{
-							var children = item.GetChildren(pattern, searchOption);
-							foreach (var c in children)
+							if (pattern == null || (item.Name != null && Regex.IsMatch(item.Name, pattern, RegexOptions.IgnoreCase)))
 							{
-								yield return c;
+								yield return item;
+							}
+
+							if (searchOption == SearchOption.AllDirectories && item.Type != ItemType.File)
+							{
+								var children = item.GetChildren(pattern, searchOption);
+								foreach (var c in children)
+								{
+									yield return c;
+								}
 							}
 						}
 					}
+					Array.Clear(objectIds, 0, objectIds.Length);
+					enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
 				}
-				enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+			}
+			finally
+			{
+				if (enumerator != null)
+				{
+					Marshal.ReleaseComObject(enumerator);
+				}
 			}
 		}
 
@@ -470,7 +496,7 @@ namespace MediaDevices.Internal
 				else if (child.Type == ItemType.File)
 				{
 					// folder is already a file
-					throw new Exception($"A path of the path {folder} is a file");
+					throw new InvalidOperationException($"A path of the path {folder} is a file");
 				}
 				else
 				{
@@ -504,57 +530,139 @@ namespace MediaDevices.Internal
 
 		public string GetPath()
 		{
-			if (Id == Item.RootId)
+			if (IsRoot)
 			{
 				return @"\";
 			}
 
-			Item? item = this;
-			StringBuilder sb = new StringBuilder();
-			do
-			{
-				// ++ TODO
-				if (string.IsNullOrWhiteSpace(item.ParentId))
-				{
-					item = TryHandleNonHierarchicalStorage();
+			var parts = new Stack<string>();
+			var visited = new HashSet<string>(StringComparer.Ordinal);
 
-					if (item == null)
-					{
-						throw new Exception($"Problem occurred when trying to get full object path on device {_device.FriendlyName}.");
-					}
+			Item? current = this;
+
+			while (current != null && !current.IsRoot)
+			{
+				// WPD object graphs are provided by device drivers and are not always reliable.
+				// A broken device/driver may expose a cyclic parent chain. Without this guard,
+				// path resolution could loop forever.
+				if (!visited.Add(current.Id))
+				{
+					throw new InvalidOperationException(
+						$"Cycle detected while resolving path on device '{_device.FriendlyName}', Id='{current.Id}'.");
 				}
 
-				// -- TODO
+				// For folders/files we normally use Name. Some devices expose a weak or empty
+				// WPD_OBJECT_NAME but still provide WPD_OBJECT_ORIGINAL_FILE_NAME.
+				// Use OriginalFileName as a fallback before failing.
+				string? name = current.Name;
 
-				sb.Insert(0, item.Name);
-				sb.Insert(0, DIRECTORY_SEPARATOR_CHAR);
+				if (string.IsNullOrWhiteSpace(name))
+				{
+					name = current.OriginalFileName;
+				}
 
-			} while (!(item = new Item(_device, item.ParentId)).IsRoot);
-			return sb.ToString();
+				if (string.IsNullOrWhiteSpace(name))
+				{
+					throw new InvalidOperationException(
+						$"Object has no usable name while resolving path on device '{_device.FriendlyName}', Id='{current.Id}'.");
+				}
+
+				parts.Push(name);
+
+				// Parent resolution is intentionally centralized in Parent/ResolveParentForPath.
+				// Normal Android/generic MTP devices use ParentId.
+				// Apple/DCF-like devices may require fallback through ParentContainerId.
+				current = current.Parent;
+			}
+
+			if (current == null)
+			{
+				throw new InvalidOperationException(
+					$"Could not resolve full object path on device '{_device.FriendlyName}', Id='{Id}'.");
+			}
+
+			return DIRECTORY_SEPARATOR_CHAR + string.Join(DIRECTORY_SEPARATOR_CHAR.ToString(), parts);
 		}
 
-		// TODO
-
 		/// <summary>
-		/// Handles DCF storages specific for Apple iPhones.
+		/// Resolves the logical parent used for path construction.
 		/// </summary>
-		/// <returns></returns>
-		private Item? TryHandleNonHierarchicalStorage()
+		/// <remarks>
+		/// Most MTP devices expose a normal hierarchical object graph where each object
+		/// has a WPD_OBJECT_PARENT_ID. Android devices usually behave like this.
+		///
+		/// Some devices, especially Apple devices exposing DCF-style storage, may not
+		/// expose a usable ParentId for top-level folders. In those cases the object may
+		/// instead expose WPD_OBJECT_CONTAINER_FUNCTIONAL_OBJECT_ID, which points to the
+		/// closest functional object, typically the storage root.
+		///
+		/// This method keeps both behaviours in one place:
+		/// 1. Use ParentId for normal hierarchical devices.
+		/// 2. Treat functional storage objects as direct children of DEVICE.
+		/// 3. Fall back to ParentContainerId for non-hierarchical / DCF-like devices.
+		/// </remarks>
+		private Item? ResolveParentForPath(Item item)
 		{
-			// EXPLANATION
-			// Some MTP compatible devices uses different storage formats that Generic
-			// Hierarchical storage like WP, Android. Good examples are Apple devices,
-			// which are using DCF storage. The specific in that storage is a way how
-			// directories handles parent object ID. If in Generic Hierarchical storage
-			// we check parent ID of root directory, it contains an ID of functional storage
-			// so that means storage ID. In DCF when we check parent ID of root object
-			// it will have object ID, not storage ID, e.g. parent id is o10001 (object10001),
-			// but storage has ID = s10001 (storage10001). So to find a parent of top most folder
-			// we need to fetch an object functional container ID. Which is storage for top most
-			// directory.
-			var drives = _device.GetDrives();
-			var storageRoot = drives.FirstOrDefault(s => s.RootDirectory != null && s.RootDirectory.Id == ParentContainerId);
-			return storageRoot?.RootDirectory?.Item;
+			// Case 1:
+			// Normal hierarchical MTP.
+			//
+			// Android and most generic MTP devices expose a usable ParentId.
+			// In that case we can walk the object tree directly.
+			if (!string.IsNullOrWhiteSpace(item.ParentId))
+			{
+				return new Item(_device, item.ParentId);
+			}
+
+			// Case 2:
+			// The current object is itself a functional object, usually a storage root.
+			//
+			// Functional storage objects are conceptually direct children of DEVICE.
+			// They may not have a normal parent folder, so terminate the path at root.
+			if (item.ContentType == WPD.CONTENT_TYPE_FUNCTIONAL_OBJECT)
+			{
+				return GetRoot(_device);
+			}
+
+			// Case 3:
+			// Non-hierarchical / DCF-like storage fallback.
+			//
+			// Some devices, notably Apple devices, may expose top-level folders where
+			// ParentId is empty or not useful. For those objects, ParentContainerId may
+			// point to the storage functional object that logically contains them.
+			//
+			// Example:
+			// Generic hierarchical storage:
+			//   file/folder.ParentId -> parent folder/storage id
+			//
+			// DCF-like storage:
+			//   topFolder.ParentId may be empty or object-like
+			//   topFolder.ParentContainerId -> storage root id
+			if (!string.IsNullOrWhiteSpace(item.ParentContainerId))
+			{
+				var storageRoot = _device
+					.GetDrives()
+					.Select(d => d.RootDirectory?.Item)
+					.FirstOrDefault(root =>
+						root != null &&
+						string.Equals(root.Id, item.ParentContainerId, StringComparison.Ordinal));
+
+				if (storageRoot != null)
+				{
+					// Avoid making an object its own parent.
+					// If the functional container resolves to the same object,
+					// treat it as directly below DEVICE instead.
+					if (!string.Equals(storageRoot.Id, item.Id, StringComparison.Ordinal))
+					{
+						return storageRoot;
+					}
+
+					return GetRoot(_device);
+				}
+			}
+
+			// No reliable parent information could be resolved.
+			// The caller decides whether this is acceptable or should fail.
+			return null;
 		}
 
 		internal Stream OpenRead()

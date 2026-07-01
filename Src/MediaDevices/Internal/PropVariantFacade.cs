@@ -101,7 +101,7 @@ namespace MediaDevices.Internal {
 
 		public int ToInt() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
-				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				Debug.WriteLine($"VT_ERROR_int: 0x{Value.errorCode:X}");
 				return 0;
 			}
 
@@ -117,7 +117,7 @@ namespace MediaDevices.Internal {
 
 		public uint ToUInt() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
-				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				Debug.WriteLine($"VT_ERROR_uint: 0x{Value.errorCode:X}");
 				return 0;
 			}
 
@@ -133,7 +133,7 @@ namespace MediaDevices.Internal {
 
 		public long ToLong() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
-				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				Debug.WriteLine($"VT_ERROR_long: 0x{Value.errorCode:X}");
 				return 0;
 			}
 
@@ -150,7 +150,7 @@ namespace MediaDevices.Internal {
 
 		public ulong ToUlong() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
-				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				Debug.WriteLine($"VT_ERROR_ulong: 0x{Value.errorCode:X}");
 				return 0;
 			}
 
@@ -177,7 +177,7 @@ namespace MediaDevices.Internal {
 		/// </remarks>
 		public DateTime ToDate() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
-				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				Debug.WriteLine($"VT_ERROR_date: 0x{Value.errorCode:X}");
 				return new DateTime();
 			}
 
@@ -200,7 +200,7 @@ namespace MediaDevices.Internal {
 		/// </remarks>
 		public DateTime? ToNullableDate() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
-				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				Debug.WriteLine($"VT_ERROR_nullabledate: 0x{Value.errorCode:X}");
 				return null;
 			}
 
@@ -228,7 +228,7 @@ namespace MediaDevices.Internal {
 
 		public bool ToBool() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
-				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				Debug.WriteLine($"VT_ERROR_bool: 0x{Value.errorCode:X}");
 				return false;
 			}
 
@@ -241,7 +241,7 @@ namespace MediaDevices.Internal {
 
 		public Guid ToGuid() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
-				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				Debug.WriteLine($"VT_ERROR_guid: 0x{Value.errorCode:X}");
 				return Guid.Empty;
 			}
 
@@ -276,7 +276,7 @@ namespace MediaDevices.Internal {
 		[SecurityCritical]
 		public byte[]? ToByteArray() {
 			if(Value.vt == PropVariantType.VT_ERROR) {
-				Debug.WriteLine($"VT_ERROR: 0x{Value.errorCode:X}");
+				Debug.WriteLine($"VT_ERROR_bytearray: 0x{Value.errorCode:X}");
 				return null;
 			}
 
