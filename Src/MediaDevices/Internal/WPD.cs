@@ -10,6 +10,24 @@ namespace MediaDevices.Internal
     {
 
         //
+        // GUID_DEVINTERFACE_WPD
+        //   This GUID is used to identify devices / drivers that support the WPD DDI.
+        //   The WPD Class Extension component enables this device interface for WPD Drivers that use it. Clients use this PnP interface when registering for PnP device arrival messages for WPD devices.
+        public static Guid GUID_DEVINTERFACE_WPD = new Guid(0x6ac27878, 0xa6fa, 0x4155, 0xba, 0x85, 0xf9, 0x8f, 0x49, 0x1d, 0x4f, 0x33);
+
+        //
+        // GUID_DEVINTERFACE_WPD_PRIVATE
+        //   This GUID is used to identify devices / drivers that can be used only by a specialized WPD client and will not show up in normal WPD enumeration.
+        //   Devices identified with this interface cannot be used with normal WPD applications. Generic WPD drivers and clients should not use this interface.
+        public static Guid GUID_DEVINTERFACE_WPD_PRIVATE = new Guid(0xba0c718f, 0x4ded, 0x49b7, 0xbd, 0xd3, 0xfa, 0xbe, 0x28, 0x66, 0x12, 0x11);
+
+        //
+        // GUID_DEVINTERFACE_WPD_SERVICE
+        //   This GUID is used to identify services that support the WPD Services DDI.
+        //   The WPD Class Extension component enables this device interface for WPD Services that use it. Clients use this PnP interface when registering for PnP device arrival messages for ALL WPD services. To register for specific categories of services, client should use the service category or service implements GUID.
+        public static Guid GUID_DEVINTERFACE_WPD_SERVICE = new Guid(0x9ef44f80, 0x3d64, 0x4246, 0xa6, 0xaa, 0x20, 0x6f, 0x32, 0x8d, 0x1e, 0xdc);
+
+        //
         // WPD_EVENT_NOTIFICATION
         //   This GUID is used to identify all WPD driver events to the event sub-system. The driver uses this as the GUID identifier when it queues an event with IWdfDevice::PostEvent(). Applications never use this value.
         public static Guid EVENT_NOTIFICATION = new Guid(0x2ba2e40a, 0x6b4c, 0x4295, 0xbb, 0x43, 0x26, 0x32, 0x2b, 0x99, 0xae, 0xb2);
@@ -339,6 +357,18 @@ namespace MediaDevices.Internal
 
         
         public static Guid DEVICE_PROPERTIES_V2 = new Guid(0x463dd662, 0x7fc4, 0x4291, 0x91, 0x1c, 0x7f, 0x4c, 0x9c, 0xca, 0x97, 0x99);
+
+        
+        public static Guid DEVICE_PROPERTIES_V3 = new Guid(0x6c2b878c, 0xc2ec, 0x490d, 0xb4, 0x25, 0xd7, 0xa7, 0x5e, 0x23, 0xe5, 0xed);
+
+        //
+        // WPD_DEVICE_EDP_IDENTITY
+        //   [ VT_LPWSTR ] Represents EDP identity of the device.
+        public static PropertyKey DEVICE_EDP_IDENTITY = new PropertyKey()
+        {
+            fmtid = DEVICE_PROPERTIES_V3,
+            pid = 1
+        };
 
         
         public static Guid SERVICE_PROPERTIES_V1 = new Guid(0x7510698a, 0xcb54, 0x481c, 0xb8, 0xdb, 0x0d, 0x75, 0xc9, 0x3f, 0x1c, 0x06);
