@@ -27,7 +27,8 @@ namespace MediaDevices
 
         internal void UpdateProperties()
         {
-            _service.content.Properties(out IPortableDeviceProperties properties);
+            int errProperties = _service.content.Properties(out IPortableDeviceProperties properties);
+            MediaDeviceException.ThrowIfComError(errProperties, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Properties), ObjectId);
 
             //IPortableDeviceKeyCollection keyCol = (IPortableDeviceKeyCollection)new PortableDeviceKeyCollection();
 

@@ -9,23 +9,28 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDeviceContent
     {
-        void EnumObjects(
+        [PreserveSig]
+        int EnumObjects(
             [In] uint dwFlags,
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszParentObjectID,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues? pFilter,
             [Out, MarshalAs(UnmanagedType.Interface)] out IEnumPortableDeviceObjectIDs ppEnum);
 
-        void Properties(
+        [PreserveSig]
+        int Properties(
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceProperties ppProperties);
 
-        void Transfer(
+        [PreserveSig]
+        int Transfer(
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceResources ppResources);
 
-        void CreateObjectWithPropertiesOnly(
+        [PreserveSig]
+        int CreateObjectWithPropertiesOnly(
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues pValues,
             [In, Out, MarshalAs(UnmanagedType.LPWStr)] ref string ppszObjectID);
 
-        void CreateObjectWithPropertiesAndData(
+        [PreserveSig]
+        int CreateObjectWithPropertiesAndData(
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues pValues,
             [Out, MarshalAs(UnmanagedType.Interface)]out IStream ppData, 
             [In, Out] ref uint pdwOptimalWriteBufferSize, 
@@ -37,18 +42,22 @@ namespace MediaDevices.Internal
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDevicePropVariantCollection pObjectIDs,
             [In, Out, MarshalAs(UnmanagedType.Interface)] ref IPortableDevicePropVariantCollection ppResults);
 
-        void GetObjectIDsFromPersistentUniqueIDs(
+        [PreserveSig]
+        int GetObjectIDsFromPersistentUniqueIDs(
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDevicePropVariantCollection pPersistentUniqueIDs,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppObjectIDs);
 
-        void Cancel();
+        [PreserveSig]
+        int Cancel();
 
-        void Move(
+        [PreserveSig]
+        int Move(
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDevicePropVariantCollection pObjectIDs,
             [In, MarshalAs(UnmanagedType.LPWStr)]string pszDestinationFolderObjectID,
             [In, Out, MarshalAs(UnmanagedType.Interface)] ref IPortableDevicePropVariantCollection ppResults);
 
-        void Copy(
+        [PreserveSig]
+        int Copy(
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDevicePropVariantCollection pObjectIDs,
             [In, MarshalAs(UnmanagedType.LPWStr)]string pszDestinationFolderObjectID,
             [In, Out, MarshalAs(UnmanagedType.Interface)] ref IPortableDevicePropVariantCollection ppResults);

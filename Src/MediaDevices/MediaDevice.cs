@@ -722,7 +722,8 @@ namespace MediaDevices
 			_device.Open(DeviceId, clientInfo);
 			_device.Capabilities(out _deviceCapabilities);
 			_device.Content(out deviceContent);
-			deviceContent.Properties(out deviceProperties);
+			int errProperties = deviceContent.Properties(out deviceProperties);
+			MediaDeviceException.ThrowIfComError(errProperties, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Properties), DeviceId);
 			deviceProperties.GetValues(Item.RootId, null, out _deviceValues);
 
 			ComTrace.WriteObject(_deviceValues);

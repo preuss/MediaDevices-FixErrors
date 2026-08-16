@@ -17,7 +17,8 @@ namespace MediaDevices.Internal
             [In] ref PropertyKey key,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppResourceAttributes);
 
-        void GetStream(
+        [PreserveSig]
+        int GetStream(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszObjectID, 
             [In] ref PropertyKey key, 
             [In] uint dwMode, 

@@ -241,9 +241,9 @@ public enum Formats : ushort
     WBMPImage = 0xB803,
 
     /// <summary>
-    // WPD_OBJECT_FORMAT_JPEGXR
-    //   Image file format (JPEG XR, also known as HD Photo)
-    //   Device Services FormatId: FORMAT_JPEGXRImage
+    /// WPD_OBJECT_FORMAT_JPEGXR
+    /// Image file format (JPEG XR, also known as HD Photo)
+    /// Device Services FormatId: FORMAT_JPEGXRImage
     /// </summary>
     [EnumGuid(0xB8040000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
     JPEGXRImage = 0xB804,
@@ -440,7 +440,7 @@ public enum Formats : ushort
     MPEG4File = 0xB982,
 
     /// <summary>
-    // WPD_OBJECT_FORMAT_MP2
+    /// WPD_OBJECT_FORMAT_MP2
     /// Audio or Video file format
     /// Device Services FormatId: FORMAT_MPEG2File
     /// </summary>

@@ -105,7 +105,8 @@ namespace MediaDevices.Internal
 				collection.Add(ref propVariantPUID.Value);
 			}
 			// request id collection           
-			device.deviceContent.GetObjectIDsFromPersistentUniqueIDs(collection, out IPortableDevicePropVariantCollection results);
+			int err = device.deviceContent.GetObjectIDsFromPersistentUniqueIDs(collection, out IPortableDevicePropVariantCollection results);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.GetObjectIDsFromPersistentUniqueIDs), device.Description);
 
 			//var s = results.ToStrings().ToArray();
 			string? mediaObjectId = results.ToStrings().FirstOrDefault();
@@ -214,6 +215,20 @@ namespace MediaDevices.Internal
 			{
 				// get all predefined values
 				_device.deviceProperties.GetValues(Id, _keyCollection, out values);
+			}
+			catch (COMException ex) when (ex.HResult == (int)ErrorCodes.InvalidParameter)
+			{
+				// Some devices (e.g. Amazon Kindle Paperwhite) do not support GetValues
+				// with a keyCollection. Retry with null to get all values.
+				try
+				{
+					_device.deviceProperties.GetValues(Id, null, out values);
+				}
+				catch (Exception inner)
+				{
+					throw new IOException(
+						$"Could not read properties for device '{_device.FriendlyName}', Id='{Id}'.", inner);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -351,15 +366,8 @@ namespace MediaDevices.Internal
 
 		public IEnumerable<Item> GetChildren()
 		{
-			IEnumPortableDeviceObjectIDs enumerator;
-			try
-			{
-				_device.deviceContent.EnumObjects(0, Id, null, out enumerator);
-			}
-			catch (COMException ex)
-			{
-				throw new IOException($"IPortableDeviceContent.EnumObjects failed for device '{_device.FriendlyName}', Id='{Id}'.", ex);
-			}
+			int err = _device.deviceContent.EnumObjects(0, Id, null, out IEnumPortableDeviceObjectIDs enumerator);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.EnumObjects), _device.Description);
 
 			try
 			{
@@ -402,15 +410,8 @@ namespace MediaDevices.Internal
 
 		public IEnumerable<Item> GetChildren(string? pattern, SearchOption searchOption = SearchOption.TopDirectoryOnly)
 		{
-			IEnumPortableDeviceObjectIDs enumerator;
-			try
-			{
-				_device.deviceContent.EnumObjects(0, Id, null, out enumerator);
-			}
-			catch (COMException ex)
-			{
-				throw new IOException($"IPortableDeviceContent.EnumObjects failed for device '{_device.FriendlyName}', Id='{Id}'.", ex);
-			}
+			int err = _device.deviceContent.EnumObjects(0, Id, null, out IEnumPortableDeviceObjectIDs enumerator);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.EnumObjects), _device.Description);
 
 			try
 			{
@@ -466,6 +467,11 @@ namespace MediaDevices.Internal
 
 		internal Item? CreateSubdirectory(string path)
 		{
+			return CreateSubdirectory(path, DateTime.Now, DateTime.Now, DateTime.Now);
+		}
+
+		internal Item? CreateSubdirectory(string path, DateTime dateCreated, DateTime dateModified, DateTime dateAuthored)
+		{
 			Item? child = null;
 			Item parent = this;
 			var folders = path.Split(new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
@@ -481,10 +487,20 @@ namespace MediaDevices.Internal
 					deviceValues.SetStringValue(ref WPD.OBJECT_ORIGINAL_FILE_NAME, folder);
 					deviceValues.SetGuidValue(ref WPD.OBJECT_CONTENT_TYPE, ref WPD.CONTENT_TYPE_FOLDER);
 
+					using (PropVariantFacade created = PropVariantFacade.DateTimeToPropVariant(dateCreated))
+					using (PropVariantFacade modified = PropVariantFacade.DateTimeToPropVariant(dateModified))
+					using (PropVariantFacade authored = PropVariantFacade.DateTimeToPropVariant(dateAuthored))
+					{
+						deviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref created.Value);
+						deviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref modified.Value);
+						deviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref authored.Value);
+					}
+
 					string id = string.Empty;
 					try
 					{
-						_device.deviceContent.CreateObjectWithPropertiesOnly(deviceValues, ref id);
+						int errCreate = _device.deviceContent.CreateObjectWithPropertiesOnly(deviceValues, ref id);
+						MediaDeviceException.ThrowIfComError(errCreate, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.CreateObjectWithPropertiesOnly), _device.Description);
 					}
 					catch (Exception ex)
 					{
@@ -521,9 +537,16 @@ namespace MediaDevices.Internal
 			}
 
 			IPortableDevicePropVariantCollection results = ComFactory.CreateDevicePropVariantCollection();
-			// TODO: get the results back and handle failures correctly
 
-			_device.deviceContent.Delete(recursive ? PORTABLE_DEVICE_DELETE_WITH_RECURSION : PORTABLE_DEVICE_DELETE_NO_RECURSION, objectIdCollection, ref results);
+			int hr = _device.deviceContent.Delete(recursive ? PORTABLE_DEVICE_DELETE_WITH_RECURSION : PORTABLE_DEVICE_DELETE_NO_RECURSION, objectIdCollection, ref results);
+
+			// The device refused the delete. (Ex. Trying to Delete a "protected" file)
+			if (hr == (int)ErrorCodes.False)
+			{
+				throw new IOException($"Failed to delete {Name}!");
+			}
+
+			MediaDeviceException.ThrowIfComError(hr, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Delete), _device.Description);
 
 			ComTrace.WriteObject(objectIdCollection);
 		}
@@ -667,41 +690,59 @@ namespace MediaDevices.Internal
 
 		internal Stream OpenRead()
 		{
-			_device.deviceContent.Transfer(out IPortableDeviceResources resources);
+			int errTransfer = _device.deviceContent.Transfer(out IPortableDeviceResources resources);
+			MediaDeviceException.ThrowIfComError(errTransfer, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Transfer), _device.Description);
 
-			IStream wpdStream;
 			uint optimalTransferSize = 0;
 
-			resources.GetStream(Id, ref WPD.RESOURCE_DEFAULT, 0, ref optimalTransferSize, out wpdStream);
+			int err = resources.GetStream(Id, ref WPD.RESOURCE_DEFAULT, 0, ref optimalTransferSize, out IStream wpdStream);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceResources), nameof(IPortableDeviceResources.GetStream), _device.Description);
 
 			return new StreamWrapper(wpdStream, Size);
 		}
 
 		internal Stream OpenReadThumbnail()
 		{
-			_device.deviceContent.Transfer(out IPortableDeviceResources resources);
+			int errTransfer = _device.deviceContent.Transfer(out IPortableDeviceResources resources);
+			MediaDeviceException.ThrowIfComError(errTransfer, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Transfer), _device.Description);
 
-			IStream wpdStream;
 			uint optimalTransferSize = 0;
 
-			resources.GetStream(Id, ref WPD.RESOURCE_THUMBNAIL, 0, ref optimalTransferSize, out wpdStream);
+			int err = resources.GetStream(Id, ref WPD.RESOURCE_THUMBNAIL, 0, ref optimalTransferSize, out IStream wpdStream);
+
+			if (err == (int)ErrorCodes.ResourceNotAvailable || err == (int)ErrorCodes.InvalidParameter)
+			{
+				throw new NotSupportedException($"The device {_device.Description} does not support reading thumbnails.");
+			}
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceResources), nameof(IPortableDeviceResources.GetStream), _device.Description);
 
 			return new StreamWrapper(wpdStream, Size);
 		}
 
 		internal Stream OpenReadIcon()
 		{
-			_device.deviceContent.Transfer(out IPortableDeviceResources resources);
+			int errTransfer = _device.deviceContent.Transfer(out IPortableDeviceResources resources);
+			MediaDeviceException.ThrowIfComError(errTransfer, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Transfer), _device.Description);
 
-			IStream wpdStream;
 			uint optimalTransferSize = 0;
 
-			resources.GetStream(Id, ref WPD.RESOURCE_ICON, 0, ref optimalTransferSize, out wpdStream);
+			int err = resources.GetStream(Id, ref WPD.RESOURCE_ICON, 0, ref optimalTransferSize, out IStream wpdStream);
+
+			if (err == (int)ErrorCodes.ResourceNotAvailable || err == (int)ErrorCodes.InvalidParameter)
+			{
+				throw new NotSupportedException($"The device {_device.Description} does not support reading icons.");
+			}
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceResources), nameof(IPortableDeviceResources.GetStream), _device.Description);
 
 			return new StreamWrapper(wpdStream, Size);
 		}
 
 		internal void UploadFile(string fileName, Stream stream)
+		{
+			UploadFile(fileName, stream, DateTime.Now, DateTime.Now, DateTime.Now);
+		}
+
+		internal void UploadFile(string fileName, Stream stream, DateTime dateCreated, DateTime dateModified, DateTime dateAuthored)
 		{
 
 			IPortableDeviceValues portableDeviceValues = ComFactory.CreateDeviceValues();
@@ -710,15 +751,19 @@ namespace MediaDevices.Internal
 			portableDeviceValues.SetUnsignedLargeIntegerValue(ref WPD.OBJECT_SIZE, (ulong)stream.Length);
 			portableDeviceValues.SetStringValue(ref WPD.OBJECT_ORIGINAL_FILE_NAME, fileName);
 			portableDeviceValues.SetStringValue(ref WPD.OBJECT_NAME, fileName);
-			// test
-			using (PropVariantFacade now = PropVariantFacade.DateTimeToPropVariant(DateTime.Now))
+
+			using (PropVariantFacade created = PropVariantFacade.DateTimeToPropVariant(dateCreated))
+			using (PropVariantFacade modified = PropVariantFacade.DateTimeToPropVariant(dateModified))
+			using (PropVariantFacade authored = PropVariantFacade.DateTimeToPropVariant(dateAuthored))
 			{
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref now.Value);
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref now.Value);
+				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref created.Value);
+				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref modified.Value);
+				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref authored.Value);
 
 				uint num = 0u;
 				string? text = null;
-				_device.deviceContent.CreateObjectWithPropertiesAndData(portableDeviceValues, out IStream wpdStream, ref num, ref text);
+				int err = _device.deviceContent.CreateObjectWithPropertiesAndData(portableDeviceValues, out IStream wpdStream, ref num, ref text);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.CreateObjectWithPropertiesAndData), _device.Description);
 
 				using (StreamWrapper destinationStream = new StreamWrapper(wpdStream))
 				{

@@ -58,7 +58,8 @@ namespace MediaDevices
 
             DeviceService.Content(out content);
 
-            content.Properties(out IPortableDeviceProperties properties);
+            int errProperties = content.Properties(out IPortableDeviceProperties properties);
+            MediaDeviceException.ThrowIfComError(errProperties, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Properties), ServiceObjectID);
 
             properties.GetSupportedProperties(ServiceObjectID, out IPortableDeviceKeyCollection keyCol);
 
@@ -196,7 +197,8 @@ namespace MediaDevices
 
         internal IEnumerable<MediaDeviceServiceContent> GetContent(string objectID)
         {
-            content.EnumObjects(0, objectID, null, out IEnumPortableDeviceObjectIDs enumerator);
+            int errEnum = content.EnumObjects(0, objectID, null, out IEnumPortableDeviceObjectIDs enumerator);
+            MediaDeviceException.ThrowIfComError(errEnum, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.EnumObjects), ServiceObjectID);
 
             uint num = 0;
             string[] objectIdArray = new string[20];
@@ -207,7 +209,8 @@ namespace MediaDevices
 
         internal IPortableDeviceValues GetAllProperties(string objectID)
         {
-            content.Properties(out IPortableDeviceProperties properties);
+            int errProperties = content.Properties(out IPortableDeviceProperties properties);
+            MediaDeviceException.ThrowIfComError(errProperties, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Properties), objectID);
 
             properties.GetSupportedProperties(objectID, out IPortableDeviceKeyCollection keyCol);
 
@@ -218,7 +221,8 @@ namespace MediaDevices
                
         internal IPortableDeviceValues GetProperties(IPortableDeviceKeyCollection keyCol)
         {
-            content.Properties(out IPortableDeviceProperties properties);
+            int errProperties = content.Properties(out IPortableDeviceProperties properties);
+            MediaDeviceException.ThrowIfComError(errProperties, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Properties), ServiceObjectID);
 
             properties.GetValues(ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
 
