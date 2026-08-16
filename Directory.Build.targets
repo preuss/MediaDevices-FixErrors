@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <SolutionDir Condition="'$(SolutionDir)' == '' or '$(SolutionDir)' == '*Undefined*'">$(MSBuildThisFileDirectory)</SolutionDir>
     <!-- Ensure the script only runs once per build session -->
     <_BuildFirstOnceExecuted>false</_BuildFirstOnceExecuted>
   </PropertyGroup>

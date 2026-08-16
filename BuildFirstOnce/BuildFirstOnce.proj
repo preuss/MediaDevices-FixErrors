@@ -1,4 +1,7 @@
 <Project DefaultTargets="RunBumpScript">
+  <PropertyGroup>
+    <SolutionDir Condition="'$(SolutionDir)' == '' or '$(SolutionDir)' == '*Undefined*'">$(MSBuildThisFileDirectory)..\</SolutionDir>
+  </PropertyGroup>
 
   <Target Name="RunBumpScript">
     <Message Text="Run bump-build.ps1 to bump version..." Importance="high" />

@@ -31,7 +31,8 @@ namespace MediaDevices.Internal
             [In, Out] ref uint pdwOptimalWriteBufferSize, 
             [In, Out, MarshalAs(UnmanagedType.LPWStr)] ref string? ppszCookie);
 
-        void Delete(
+        [PreserveSig]
+        int Delete(
             [In] uint dwOptions,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDevicePropVariantCollection pObjectIDs,
             [In, Out, MarshalAs(UnmanagedType.Interface)] ref IPortableDevicePropVariantCollection ppResults);
