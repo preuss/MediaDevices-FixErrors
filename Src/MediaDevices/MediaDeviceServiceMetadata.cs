@@ -1,4 +1,4 @@
-﻿using MediaDevices.Internal;
+using MediaDevices.Internal;
 using System;
 
 namespace MediaDevices
@@ -19,74 +19,89 @@ namespace MediaDevices
         protected override void Update()
         {
             IPortableDeviceKeyCollection keyCol = ComFactory.CreateDeviceKeyCollection();
-            keyCol.Add(ref WPD.ParentId);
-            keyCol.Add(ref WPD.Name);
-            keyCol.Add(ref WPD.PUOID);
-            keyCol.Add(ref WPD.ObjectFormat);
-            keyCol.Add(ref WPD.ObjectSize);
-            keyCol.Add(ref WPD.StorageID);
-            keyCol.Add(ref WPD.LanguageLocale);
-            keyCol.Add(ref WPD.ContentID);
-            keyCol.Add(ref WPD.DefaultCAB);
+            AddKey(keyCol, ref WPD.ParentId);
+            AddKey(keyCol, ref WPD.Name);
+            AddKey(keyCol, ref WPD.PUOID);
+            AddKey(keyCol, ref WPD.ObjectFormat);
+            AddKey(keyCol, ref WPD.ObjectSize);
+            AddKey(keyCol, ref WPD.StorageID);
+            AddKey(keyCol, ref WPD.LanguageLocale);
+            AddKey(keyCol, ref WPD.ContentID);
+            AddKey(keyCol, ref WPD.DefaultCAB);
             
             IPortableDeviceValues values = GetProperties(keyCol);
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.ParentId, out value.Value);
+                int errValue = values.GetValue(ref WPD.ParentId, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.ParentId));
                 this.ParentId = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.Name, out value.Value);
+                int errValue = values.GetValue(ref WPD.Name, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.Name));
                 this.Name = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.PUOID, out value.Value);
+                int errValue = values.GetValue(ref WPD.PUOID, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.PUOID));
                 this.PUOID = value;
             }
 
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.ObjectFormat, out value.Value);
+                int errValue = values.GetValue(ref WPD.ObjectFormat, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.ObjectFormat));
                 this.ObjectFormat = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.ObjectSize, out value.Value);
+                int errValue = values.GetValue(ref WPD.ObjectSize, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.ObjectSize));
                 this.ObjectSize = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.StorageID, out value.Value);
+                int errValue = values.GetValue(ref WPD.StorageID, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.StorageID));
                 this.StorageID = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.LanguageLocale, out value.Value);
+                int errValue = values.GetValue(ref WPD.LanguageLocale, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.LanguageLocale));
                 this.LanguageLocale = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.ContentID, out value.Value);
+                int errValue = values.GetValue(ref WPD.ContentID, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.ContentID));
                 this.ContentID = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.DefaultCAB, out value.Value);
+                int errValue = values.GetValue(ref WPD.DefaultCAB, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.DefaultCAB));
                 this.DefaultCAB = value;
             }
 
             
+        }
+
+        private static void AddKey(IPortableDeviceKeyCollection keyCollection, ref PropertyKey key)
+        {
+            int err = keyCollection.Add(ref key);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add));
         }
 
         /// <summary>

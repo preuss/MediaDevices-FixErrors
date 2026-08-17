@@ -22,13 +22,15 @@ namespace MediaDevices.Internal
 		public static bool HasKeyValue(this IPortableDeviceValues values, PropertyKey findKey)
         {
             uint num = 0;
-            values.GetCount(ref num);
+            int err = values.GetCount(ref num);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetCount));
             for (uint i = 0; i < num; i++)
             {
                 PropertyKey key = new PropertyKey();
                 using (PropVariantFacade val = new PropVariantFacade())
                 {
-                    values.GetAt(i, ref key, ref val.Value);
+                    err = values.GetAt(i, ref key, ref val.Value);
+                    MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetAt), i.ToString());
                     if (key == findKey)
                     {
                         
@@ -44,7 +46,8 @@ namespace MediaDevices.Internal
         {
             using (PropVariantFacade val = new PropVariantFacade())
             {
-                values.GetValue(ref key, out val.Value);
+                int err = values.GetValue(ref key, out val.Value);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), key.ToString());
                 return val.VariantType;
             }
         }
@@ -54,7 +57,8 @@ namespace MediaDevices.Internal
             if (values.HasKeyValue(key))
             {
                 PropVariantFacade val = new PropVariantFacade();
-                values.GetValue(ref key, out val.Value);
+                int err = values.GetValue(ref key, out val.Value);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), key.ToString());
                 value = val;
                 return true;
             }
@@ -70,7 +74,8 @@ namespace MediaDevices.Internal
             {
                 using (PropVariantFacade val = new PropVariantFacade())
                 {
-                    values.GetValue(ref key, out val.Value);
+                    int err = values.GetValue(ref key, out val.Value);
+                    MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), key.ToString());
                     value = val.ToNullableDate();
                 }
                 return true;
@@ -83,7 +88,8 @@ namespace MediaDevices.Internal
         {
             if (values.HasKeyValue(key))
             {
-                values.GetStringValue(ref key, out value);
+                int err = values.GetStringValue(ref key, out value);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetStringValue), key.ToString());
                 return true;
             }
             value = string.Empty;
@@ -94,7 +100,8 @@ namespace MediaDevices.Internal
         {
             if (values.HasKeyValue(key))
             {
-                values.GetGuidValue(ref key, out value);
+                int err = values.GetGuidValue(ref key, out value);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetGuidValue), key.ToString());
                 return true;
             }
             value = Guid.Empty;
@@ -106,7 +113,8 @@ namespace MediaDevices.Internal
             if (values.HasKeyValue(key))
             {
                 int val;
-                values.GetBoolValue(ref key, out val);
+                int err = values.GetBoolValue(ref key, out val);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetBoolValue), key.ToString());
                 value = val != 0;
                 return true;
             }
@@ -118,7 +126,8 @@ namespace MediaDevices.Internal
         {
             if (values.HasKeyValue(key))
             {
-                values.GetUnsignedIntegerValue(ref key, out value);
+                int err = values.GetUnsignedIntegerValue(ref key, out value);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetUnsignedIntegerValue), key.ToString());
                 return true;
             }
             value = 0;
@@ -129,7 +138,8 @@ namespace MediaDevices.Internal
         {
             if (values.HasKeyValue(key))
             {
-                values.GetUnsignedLargeIntegerValue(ref key, out value);
+                int err = values.GetUnsignedLargeIntegerValue(ref key, out value);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetUnsignedLargeIntegerValue), key.ToString());
                 return true;
             }
             value = 0;
@@ -140,7 +150,8 @@ namespace MediaDevices.Internal
         {
             if (values.HasKeyValue(key))
             {
-                values.GetSignedIntegerValue(ref key, out value);
+                int err = values.GetSignedIntegerValue(ref key, out value);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetSignedIntegerValue), key.ToString());
                 return true;
             }
             value = 0;
@@ -151,7 +162,8 @@ namespace MediaDevices.Internal
         {
             if (values.HasKeyValue(key))
             {
-                values.GetIUnknownValue(ref key, out value);
+                int err = values.GetIUnknownValue(ref key, out value);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetIUnknownValue), key.ToString());
                 return true;
             }
             value = null;
@@ -164,7 +176,8 @@ namespace MediaDevices.Internal
             {
                 using (PropVariantFacade val = new PropVariantFacade())
                 {
-                    values.GetValue(ref key, out val.Value);
+                    int err = values.GetValue(ref key, out val.Value);
+                    MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), key.ToString());
                     value = val.ToByteArray();
                 }
                 return true;

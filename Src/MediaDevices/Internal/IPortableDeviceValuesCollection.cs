@@ -7,19 +7,24 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDeviceValuesCollection
     {
-        void GetCount(
+        [PreserveSig]
+        int GetCount(
             [In] ref uint pcElems);
 
-        void GetAt(
+        [PreserveSig]
+        int GetAt(
             [In] uint dwIndex,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppValues);
 
-        void Add(
+        [PreserveSig]
+        int Add(
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues pValues);
 
-        void Clear();
+        [PreserveSig]
+        int Clear();
 
-        void RemoveAt(
+        [PreserveSig]
+        int RemoveAt(
             [In] uint dwIndex);
     }
 }

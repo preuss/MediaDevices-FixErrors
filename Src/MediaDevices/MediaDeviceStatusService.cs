@@ -1,4 +1,4 @@
-﻿using MediaDevices.Internal;
+using MediaDevices.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,99 +24,118 @@ namespace MediaDevices
         protected override void Update()
         {
             IPortableDeviceKeyCollection keyCol = ComFactory.CreateDeviceKeyCollection();
-            keyCol.Add(ref WPD.SignalStrength);
-            keyCol.Add(ref WPD.TextMessages);
-            keyCol.Add(ref WPD.NewPictures);
-            keyCol.Add(ref WPD.MissedCalls);
-            keyCol.Add(ref WPD.VoiceMail);
-            keyCol.Add(ref WPD.NetworkName);
-            keyCol.Add(ref WPD.NetworkType);
-            keyCol.Add(ref WPD.Roaming);
-            keyCol.Add(ref WPD.BatteryLife);
-            keyCol.Add(ref WPD.ChargingState);
-            keyCol.Add(ref WPD.StorageCapacity);
-            keyCol.Add(ref WPD.StorageFreeSpace);
-            keyCol.Add(ref WPD.InternetConnected);
+            AddKey(keyCol, ref WPD.SignalStrength);
+            AddKey(keyCol, ref WPD.TextMessages);
+            AddKey(keyCol, ref WPD.NewPictures);
+            AddKey(keyCol, ref WPD.MissedCalls);
+            AddKey(keyCol, ref WPD.VoiceMail);
+            AddKey(keyCol, ref WPD.NetworkName);
+            AddKey(keyCol, ref WPD.NetworkType);
+            AddKey(keyCol, ref WPD.Roaming);
+            AddKey(keyCol, ref WPD.BatteryLife);
+            AddKey(keyCol, ref WPD.ChargingState);
+            AddKey(keyCol, ref WPD.StorageCapacity);
+            AddKey(keyCol, ref WPD.StorageFreeSpace);
+            AddKey(keyCol, ref WPD.InternetConnected);
             IPortableDeviceValues values = GetProperties(keyCol);
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.SignalStrength, out value.Value);
+                int errValue = values.GetValue(ref WPD.SignalStrength, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.SignalStrength));
 				SignalStrength = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.TextMessages, out value.Value);
+                int errValue = values.GetValue(ref WPD.TextMessages, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.TextMessages));
                 TextMessages = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.NewPictures, out value.Value);
+                int errValue = values.GetValue(ref WPD.NewPictures, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.NewPictures));
                 NewPictures = value;
             }
 
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.MissedCalls, out value.Value);
+                int errValue = values.GetValue(ref WPD.MissedCalls, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.MissedCalls));
                 MissedCalls = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.VoiceMail, out value.Value);
+                int errValue = values.GetValue(ref WPD.VoiceMail, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.VoiceMail));
                 VoiceMail = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.NetworkName, out value.Value);
+                int errValue = values.GetValue(ref WPD.NetworkName, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.NetworkName));
                 NetworkName = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.NetworkType, out value.Value);
+                int errValue = values.GetValue(ref WPD.NetworkType, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.NetworkType));
                 NetworkType = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.Roaming, out value.Value);
+                int errValue = values.GetValue(ref WPD.Roaming, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.Roaming));
                 Roaming = (Roaming)(byte)value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.BatteryLife, out value.Value);
+                int errValue = values.GetValue(ref WPD.BatteryLife, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.BatteryLife));
                 BatteryLife = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.ChargingState, out value.Value);
+                int errValue = values.GetValue(ref WPD.ChargingState, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.ChargingState));
                 ChargingState = (ChargingState)(byte)value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.StorageCapacity, out value.Value);
+                int errValue = values.GetValue(ref WPD.StorageCapacity, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.StorageCapacity));
                 StorageCapacity = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.StorageFreeSpace, out value.Value);
+                int errValue = values.GetValue(ref WPD.StorageFreeSpace, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.StorageFreeSpace));
                 StorageFreeSpace = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                values.GetValue(ref WPD.InternetConnected, out value.Value);
+                int errValue = values.GetValue(ref WPD.InternetConnected, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.InternetConnected));
                 InternetConnected = value;
             }
+        }
+
+        private static void AddKey(IPortableDeviceKeyCollection keyCollection, ref PropertyKey key)
+        {
+            int err = keyCollection.Add(ref key);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add));
         }
 
         /// <summary>

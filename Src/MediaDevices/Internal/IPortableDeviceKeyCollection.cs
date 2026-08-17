@@ -7,19 +7,24 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDeviceKeyCollection
     {
-        void GetCount(
+        [PreserveSig]
+        int GetCount(
             [In] ref uint pcElems);
 
-        void GetAt(
+        [PreserveSig]
+        int GetAt(
             [In] uint dwIndex,
             [In] ref PropertyKey pKey);
 
-        void Add(
+        [PreserveSig]
+        int Add(
             [In] ref PropertyKey key);
 
-        void Clear();
+        [PreserveSig]
+        int Clear();
 
-        void RemoveAt(
+        [PreserveSig]
+        int RemoveAt(
             [In] uint dwIndex);
     }
 }

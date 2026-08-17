@@ -8,38 +8,49 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDeviceService
     {
-        void Open(
+        [PreserveSig]
+        int Open(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszPnPServiceID, 
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues pClientInfo);
 
-        void Capabilities(
+        [PreserveSig]
+        int Capabilities(
             [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceServiceCapabilities ppCapabilities);
 
-        void Content(
+        [PreserveSig]
+        int Content(
             [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceContent2 ppContent);
 
-        void Methods(
+        [PreserveSig]
+        int Methods(
             [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceServiceMethods ppMethods);
 
-        void Cancel();
+        [PreserveSig]
+        int Cancel();
 
-        void Close();
+        [PreserveSig]
+        int Close();
 
-        void GetServiceObjectID(
+        [PreserveSig]
+        int GetServiceObjectID(
             [MarshalAs(UnmanagedType.LPWStr)] out string ppszServiceObjectID);
 
-        void GetPnPServiceID(
+        [PreserveSig]
+        int GetPnPServiceID(
             [MarshalAs(UnmanagedType.LPWStr)] out string ppszPnPServiceID);
 
-        void Advise(
+        [PreserveSig]
+        int Advise(
             [In] uint dwFlags, 
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceEventCallback pCallback, 
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues pParameters,
             [Out, MarshalAs(UnmanagedType.LPWStr)] out string ppszCookie);
 
-        void Unadvise([In] [MarshalAs(UnmanagedType.LPWStr)] string pszCookie);
+        [PreserveSig]
+        int Unadvise([In] [MarshalAs(UnmanagedType.LPWStr)] string pszCookie);
 
-        void SendCommand(
+        [PreserveSig]
+        int SendCommand(
             [In] uint dwFlags, 
             [In, MarshalAs(UnmanagedType.Interface)] ref IPortableDeviceValues pParameters, 
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppResults);

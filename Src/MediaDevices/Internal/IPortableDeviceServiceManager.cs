@@ -7,14 +7,16 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDeviceServiceManager
     {
-        void GetDeviceServices(
+        [PreserveSig]
+        int GetDeviceServices(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszPnPDeviceID,
             [In] ref Guid guidServiceCategory,
             //[Out, In, MarshalAs(UnmanagedType.LPWStr)] ref string[] pServices,
             [Out, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr)]string[]? pServices,
             [Out, In] ref uint pcServices);
         
-        void GetDeviceForService(
+        [PreserveSig]
+        int GetDeviceForService(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszPnPServiceID,
             [Out, MarshalAs(UnmanagedType.LPWStr)] out string ppszPnPDeviceID);
         

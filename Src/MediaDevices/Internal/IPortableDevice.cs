@@ -7,35 +7,44 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDevice
     {
-        void Open(
+        [PreserveSig]
+        int Open(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszPnPDeviceID,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues pClientInfo);
 
-        void SendCommand(
+        [PreserveSig]
+        int SendCommand(
             [In] uint dwFlags,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues pParameters,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppResults);
 
-        void Content(
+        [PreserveSig]
+        int Content(
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceContent ppContent);
 
-        void Capabilities(
+        [PreserveSig]
+        int Capabilities(
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceCapabilities ppCapabilities);
 
-        void Cancel();
+        [PreserveSig]
+        int Cancel();
 
-        void Close();
+        [PreserveSig]
+        int Close();
 
-        void Advise(
+        [PreserveSig]
+        int Advise(
             [In] uint dwFlags,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceEventCallback pCallback,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues? pParameters,
             [Out, MarshalAs(UnmanagedType.LPWStr)] out string ppszCookie);
 
-        void Unadvise(
+        [PreserveSig]
+        int Unadvise(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszCookie);
 
-        void GetPnPDeviceID(
+        [PreserveSig]
+        int GetPnPDeviceID(
             [Out, MarshalAs(UnmanagedType.LPWStr)]out string ppszPnPDeviceID);
     }
 }

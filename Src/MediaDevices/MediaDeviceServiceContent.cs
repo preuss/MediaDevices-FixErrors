@@ -32,19 +32,23 @@ namespace MediaDevices
 
             //IPortableDeviceKeyCollection keyCol = (IPortableDeviceKeyCollection)new PortableDeviceKeyCollection();
 
-            properties.GetSupportedProperties(ObjectId, out IPortableDeviceKeyCollection keyCol);
+            int err = properties.GetSupportedProperties(ObjectId, out IPortableDeviceKeyCollection keyCol);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetSupportedProperties), ObjectId);
 
-            properties.GetValues(ObjectId, keyCol, out IPortableDeviceValues deviceValues);
+            err = properties.GetValues(ObjectId, keyCol, out IPortableDeviceValues deviceValues);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues), ObjectId);
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                deviceValues.GetValue(ref WPD.ParentId, out value.Value);
+                int errValue = deviceValues.GetValue(ref WPD.ParentId, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.ParentId));
                 ParentId = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                deviceValues.GetValue(ref WPD.Name, out value.Value);
+                int errValue = deviceValues.GetValue(ref WPD.Name, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.Name));
                 Name = value;
             }
 

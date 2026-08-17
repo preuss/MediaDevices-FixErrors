@@ -7,161 +7,201 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDeviceValues
     {
-        void GetCount(
+        [PreserveSig]
+        int GetCount(
              [In] ref uint pcelt);
 
-        void GetAt(
+        [PreserveSig]
+        int GetAt(
             [In] uint index,
             [In, Out] ref PropertyKey pKey,
             [In, Out] ref PropVariant pValue);
 
-        void SetValue(
+        [PreserveSig]
+        int SetValue(
             [In] ref PropertyKey key,
             [In] ref PropVariant pValue);
 
-        void GetValue(
+        [PreserveSig]
+        int GetValue(
             [In] ref PropertyKey key,
             [Out] out PropVariant pValue);
 
-        void SetStringValue(
+        [PreserveSig]
+        int SetStringValue(
             [In] ref PropertyKey key,
             [In, MarshalAs(UnmanagedType.LPWStr)] string value);
 
-        void GetStringValue(
+        [PreserveSig]
+        int GetStringValue(
             [In] ref PropertyKey key, 
             [Out, MarshalAs(UnmanagedType.LPWStr)] out string pValue);
 
-        void SetUnsignedIntegerValue(
+        [PreserveSig]
+        int SetUnsignedIntegerValue(
             [In] ref PropertyKey key,
             [In] uint value);
 
-        void GetUnsignedIntegerValue(
+        [PreserveSig]
+        int GetUnsignedIntegerValue(
             [In] ref PropertyKey key, 
             [Out] out uint pValue);
 
-        void SetSignedIntegerValue(
+        [PreserveSig]
+        int SetSignedIntegerValue(
             [In] ref PropertyKey key,
             [In] int value);
 
-        void GetSignedIntegerValue(
+        [PreserveSig]
+        int GetSignedIntegerValue(
             [In] ref PropertyKey key, 
             [Out] out int pValue);
 
-        void SetUnsignedLargeIntegerValue(
+        [PreserveSig]
+        int SetUnsignedLargeIntegerValue(
             [In] ref PropertyKey key,
             [In] ulong value);
 
-        void GetUnsignedLargeIntegerValue(
+        [PreserveSig]
+        int GetUnsignedLargeIntegerValue(
             [In] ref PropertyKey key, 
             [Out] out ulong pValue);
 
-        void SetSignedLargeIntegerValue(
+        [PreserveSig]
+        int SetSignedLargeIntegerValue(
             [In] ref PropertyKey key,
             [In] long value);
 
-        void GetSignedLargeIntegerValue(
+        [PreserveSig]
+        int GetSignedLargeIntegerValue(
             [In] ref PropertyKey key, 
             [Out] out long pValue);
 
-        void SetFloatValue(
+        [PreserveSig]
+        int SetFloatValue(
             [In] ref PropertyKey key,
             [In] float value);
 
-        void GetFloatValue(
+        [PreserveSig]
+        int GetFloatValue(
             [In] ref PropertyKey key, 
             [Out] out float pValue);
 
-        void SetErrorValue(
+        [PreserveSig]
+        int SetErrorValue(
             [In] ref PropertyKey key,
             [In] int value);
 
-        void GetErrorValue(
+        [PreserveSig]
+        int GetErrorValue(
             [In] ref PropertyKey key, 
             [Out] out int pValue);
 
-        void SetKeyValue(
+        [PreserveSig]
+        int SetKeyValue(
             [In] ref PropertyKey key,
             [In] ref PropertyKey Value);
 
-        void GetKeyValue(
+        [PreserveSig]
+        int GetKeyValue(
             [In] ref PropertyKey key, 
             [Out] out PropertyKey pValue);
 
-        void SetBoolValue(
+        [PreserveSig]
+        int SetBoolValue(
             [In] ref PropertyKey key,
             [In] int value);
 
-        void GetBoolValue(
+        [PreserveSig]
+        int GetBoolValue(
             [In] ref PropertyKey key, 
             [Out] out int pValue);
 
-        void SetIUnknownValue(
+        [PreserveSig]
+        int SetIUnknownValue(
             [In] ref PropertyKey key,
             [In, MarshalAs(UnmanagedType.IUnknown)] object pValue);
 
-        void GetIUnknownValue(
+        [PreserveSig]
+        int GetIUnknownValue(
             [In] ref PropertyKey key,
             [Out, MarshalAs(UnmanagedType.IUnknown)] out object ppValue);
 
-        void SetGuidValue(
+        [PreserveSig]
+        int SetGuidValue(
             [In] ref PropertyKey key,
             [In] ref Guid value);
 
-        void GetGuidValue(
+        [PreserveSig]
+        int GetGuidValue(
             [In] ref PropertyKey key, 
             [Out] out Guid pValue);
 
-        void SetBufferValue(
+        [PreserveSig]
+        int SetBufferValue(
             [In] ref PropertyKey key,
             [In] ref byte pValue,
             [In] uint cbValue);
 
-        void GetBufferValue(
+        [PreserveSig]
+        int GetBufferValue(
             [In] ref PropertyKey key, 
             [Out] IntPtr ppValue, 
             [Out] out uint pcbValue);
 
-        void SetIPortableDeviceValuesValue(
+        [PreserveSig]
+        int SetIPortableDeviceValuesValue(
             [In] ref PropertyKey key,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues pValue);
 
-        void GetIPortableDeviceValuesValue(
+        [PreserveSig]
+        int GetIPortableDeviceValuesValue(
             [In] ref PropertyKey key,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppValue);
 
-        void SetIPortableDevicePropVariantCollectionValue(
+        [PreserveSig]
+        int SetIPortableDevicePropVariantCollectionValue(
             [In] ref PropertyKey key,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDevicePropVariantCollection pValue);
 
-        void GetIPortableDevicePropVariantCollectionValue(
+        [PreserveSig]
+        int GetIPortableDevicePropVariantCollectionValue(
             [In] ref PropertyKey key,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppValue);
 
-        void SetIPortableDeviceKeyCollectionValue(
+        [PreserveSig]
+        int SetIPortableDeviceKeyCollectionValue(
             [In] ref PropertyKey key,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceKeyCollection pValue);
 
-        void GetIPortableDeviceKeyCollectionValue(
+        [PreserveSig]
+        int GetIPortableDeviceKeyCollectionValue(
             [In] ref PropertyKey key,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceKeyCollection ppValue);
 
-        void SetIPortableDeviceValuesCollectionValue(
+        [PreserveSig]
+        int SetIPortableDeviceValuesCollectionValue(
             [In] ref PropertyKey key,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValuesCollection pValue);
 
-        void GetIPortableDeviceValuesCollectionValue(
+        [PreserveSig]
+        int GetIPortableDeviceValuesCollectionValue(
             [In] ref PropertyKey key,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValuesCollection ppValue);
 
-        void RemoveValue(
+        [PreserveSig]
+        int RemoveValue(
             [In] ref PropertyKey key);
 
-        void CopyValuesFromPropertyStore(
+        [PreserveSig]
+        int CopyValuesFromPropertyStore(
             [In, MarshalAs(UnmanagedType.Interface)] IPropertyStore pStore);
 
-        void CopyValuesToPropertyStore(
+        [PreserveSig]
+        int CopyValuesToPropertyStore(
             [In, MarshalAs(UnmanagedType.Interface)] IPropertyStore pStore);
 
-        void Clear();
+        [PreserveSig]
+        int Clear();
     }
 }

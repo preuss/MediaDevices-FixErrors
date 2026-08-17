@@ -10,52 +10,68 @@ namespace MediaDevices.Internal
     internal interface IPortableDeviceServiceCapabilities
     {
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetSupportedMethods([MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppMethods);
+        [PreserveSig]
+        int GetSupportedMethods([MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppMethods);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetSupportedMethodsByFormat([In] ref Guid Format, [MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppMethods);
+        [PreserveSig]
+        int GetSupportedMethodsByFormat([In] ref Guid Format, [MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppMethods);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetMethodAttributes([In] ref Guid Method, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
+        [PreserveSig]
+        int GetMethodAttributes([In] ref Guid Method, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetMethodParameterAttributes([In] ref Guid Method, [In] ref PropertyKey Parameter, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
+        [PreserveSig]
+        int GetMethodParameterAttributes([In] ref Guid Method, [In] ref PropertyKey Parameter, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetSupportedFormats([MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppFormats);
+        [PreserveSig]
+        int GetSupportedFormats([MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppFormats);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetFormatAttributes([In] ref Guid Format, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
+        [PreserveSig]
+        int GetFormatAttributes([In] ref Guid Format, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetSupportedFormatProperties([In] ref Guid Format, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceKeyCollection ppKeys);
+        [PreserveSig]
+        int GetSupportedFormatProperties([In] ref Guid Format, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceKeyCollection ppKeys);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetFormatPropertyAttributes([In] ref Guid Format, [In] ref PropertyKey Property, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
+        [PreserveSig]
+        int GetFormatPropertyAttributes([In] ref Guid Format, [In] ref PropertyKey Property, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetSupportedEvents([MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppEvents);
+        [PreserveSig]
+        int GetSupportedEvents([MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppEvents);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetEventAttributes([In] ref Guid Event, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
+        [PreserveSig]
+        int GetEventAttributes([In] ref Guid Event, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetEventParameterAttributes([In] ref Guid Event, [In] ref PropertyKey Parameter, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
+        [PreserveSig]
+        int GetEventParameterAttributes([In] ref Guid Event, [In] ref PropertyKey Parameter, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetInheritedServices([In] uint dwInheritanceType, [MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppServices);
+        [PreserveSig]
+        int GetInheritedServices([In] uint dwInheritanceType, [MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppServices);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetFormatRenderingProfiles([In] ref Guid Format, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValuesCollection ppRenderingProfiles);
+        [PreserveSig]
+        int GetFormatRenderingProfiles([In] ref Guid Format, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValuesCollection ppRenderingProfiles);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetSupportedCommands([MarshalAs(UnmanagedType.Interface)] out IPortableDeviceKeyCollection ppCommands);
+        [PreserveSig]
+        int GetSupportedCommands([MarshalAs(UnmanagedType.Interface)] out IPortableDeviceKeyCollection ppCommands);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void GetCommandOptions([In] ref PropertyKey Command, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppOptions);
+        [PreserveSig]
+        int GetCommandOptions([In] ref PropertyKey Command, [MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppOptions);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        void Cancel();
+        [PreserveSig]
+        int Cancel();
     }
 
 }

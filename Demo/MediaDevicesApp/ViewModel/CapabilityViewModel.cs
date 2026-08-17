@@ -18,8 +18,8 @@ namespace MediaDeviceApp.ViewModel
         {
             this.device = device;
 
-            this.FunctionalCategories = this.device?.FunctionalCategories()?.ToList();
-            this.SelectedFunctionalCategory = this.FunctionalCategories?.FirstOrDefault() ?? FunctionalCategory.Unknown;
+            this.FunctionalCategories = this.device.FunctionalCategories().ToList();
+            this.SelectedFunctionalCategory = this.FunctionalCategories.FirstOrDefault();
 
             NotifyAllPropertiesChanged();
         }
@@ -28,7 +28,7 @@ namespace MediaDeviceApp.ViewModel
         {
             get
             {
-                return this.device?.SupportedCommands()?.Select(c => c.ToString()).ToList();
+                return this.device.SupportedCommands().Select(c => c.ToString()).ToList();
             }
         }
 
@@ -36,7 +36,7 @@ namespace MediaDeviceApp.ViewModel
         {
             get
             {
-                return this.device?.SupportedEvents()?.Select(c => c.ToString()).ToList();
+                return this.device.SupportedEvents().Select(c => c.ToString()).ToList();
             }
         }
         
@@ -72,7 +72,7 @@ namespace MediaDeviceApp.ViewModel
         {
             get
             {
-                return this.device?.FunctionalObjects(this.selectedFunctionalCategory)?.Select(c => c.ToString()).ToList();
+                return this.device.FunctionalObjects(this.selectedFunctionalCategory).Select(c => c.ToString()).ToList();
             }
         }
 
@@ -80,7 +80,7 @@ namespace MediaDeviceApp.ViewModel
         {
             get
             {
-                return this.device?.SupportedContentTypes(this.selectedFunctionalCategory)?.Select(c => c.ToString()).ToList();
+                return this.device.SupportedContentTypes(this.selectedFunctionalCategory).Select(c => c.ToString()).ToList();
             }
         }
     }

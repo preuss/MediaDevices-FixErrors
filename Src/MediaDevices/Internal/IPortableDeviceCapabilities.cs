@@ -7,43 +7,54 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDeviceCapabilities
     {
-        void GetSupportedCommands(
+        [PreserveSig]
+        int GetSupportedCommands(
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceKeyCollection ppCommands);
 
-        void GetCommandOptions(
+        [PreserveSig]
+        int GetCommandOptions(
             [In] ref PropertyKey Command,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppOptions);
 
-        void GetFunctionalCategories(
+        [PreserveSig]
+        int GetFunctionalCategories(
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppCategories);
 
-        void GetFunctionalObjects(
+        [PreserveSig]
+        int GetFunctionalObjects(
             [In] ref Guid Category,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppObjectIDs);
 
-        void GetSupportedContentTypes(
+        [PreserveSig]
+        int GetSupportedContentTypes(
             [In] ref Guid Category,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppContentTypes);
 
-        void GetSupportedFormats(
+        [PreserveSig]
+        int GetSupportedFormats(
             [In] ref Guid ContentType,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppFormats);
 
-        void GetSupportedFormatProperties(
+        [PreserveSig]
+        int GetSupportedFormatProperties(
             [In] ref Guid Format,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceKeyCollection ppKeys);
 
-        void GetFixedPropertyAttributes(
+        [PreserveSig]
+        int GetFixedPropertyAttributes(
             [In] ref Guid Format,
             [In] ref PropertyKey key,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
 
-        void Cancel();
+        [PreserveSig]
+        int Cancel();
 
-        void GetSupportedEvents(
+        [PreserveSig]
+        int GetSupportedEvents(
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDevicePropVariantCollection ppEvents);
 
-        void GetEventOptions(
+        [PreserveSig]
+        int GetEventOptions(
             [In] ref Guid Event,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppOptions);
     }

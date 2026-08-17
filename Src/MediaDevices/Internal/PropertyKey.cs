@@ -28,5 +28,10 @@ namespace MediaDevices.Internal
         {
             return this.fmtid.GetHashCode() ^ this.pid.GetHashCode();
         }
+
+        public override string ToString()
+        {
+            return $"{fmtid}, {pid}";
+        }
     }
 }

@@ -20,22 +20,28 @@ namespace MediaDevices.Internal
 		{
 			// key collection with all used properties
 			_keyCollection = ComFactory.CreateDeviceKeyCollection();
-			_keyCollection.Add(ref WPD.OBJECT_CONTENT_TYPE);
-			_keyCollection.Add(ref WPD.OBJECT_NAME);
-			_keyCollection.Add(ref WPD.OBJECT_ORIGINAL_FILE_NAME);
+			AddKey(ref WPD.OBJECT_CONTENT_TYPE);
+			AddKey(ref WPD.OBJECT_NAME);
+			AddKey(ref WPD.OBJECT_ORIGINAL_FILE_NAME);
 
-			_keyCollection.Add(ref WPD.OBJECT_HINT_LOCATION_DISPLAY_NAME);
-			_keyCollection.Add(ref WPD.OBJECT_CONTAINER_FUNCTIONAL_OBJECT_ID);
-			_keyCollection.Add(ref WPD.OBJECT_SIZE);
-			_keyCollection.Add(ref WPD.OBJECT_DATE_CREATED);
-			_keyCollection.Add(ref WPD.OBJECT_DATE_MODIFIED);
-			_keyCollection.Add(ref WPD.OBJECT_DATE_AUTHORED);
-			_keyCollection.Add(ref WPD.OBJECT_CAN_DELETE);
-			_keyCollection.Add(ref WPD.OBJECT_ISSYSTEM);
-			_keyCollection.Add(ref WPD.OBJECT_ISHIDDEN);
-			_keyCollection.Add(ref WPD.OBJECT_IS_DRM_PROTECTED);
-			_keyCollection.Add(ref WPD.OBJECT_PARENT_ID);
-			_keyCollection.Add(ref WPD.OBJECT_PERSISTENT_UNIQUE_ID);
+			AddKey(ref WPD.OBJECT_HINT_LOCATION_DISPLAY_NAME);
+			AddKey(ref WPD.OBJECT_CONTAINER_FUNCTIONAL_OBJECT_ID);
+			AddKey(ref WPD.OBJECT_SIZE);
+			AddKey(ref WPD.OBJECT_DATE_CREATED);
+			AddKey(ref WPD.OBJECT_DATE_MODIFIED);
+			AddKey(ref WPD.OBJECT_DATE_AUTHORED);
+			AddKey(ref WPD.OBJECT_CAN_DELETE);
+			AddKey(ref WPD.OBJECT_ISSYSTEM);
+			AddKey(ref WPD.OBJECT_ISHIDDEN);
+			AddKey(ref WPD.OBJECT_IS_DRM_PROTECTED);
+			AddKey(ref WPD.OBJECT_PARENT_ID);
+			AddKey(ref WPD.OBJECT_PERSISTENT_UNIQUE_ID);
+		}
+
+		private static void AddKey(ref PropertyKey key)
+		{
+			int err = _keyCollection.Add(ref key);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add));
 		}
 
 		private readonly MediaDevice _device;
@@ -211,41 +217,34 @@ namespace MediaDevices.Internal
 		private void GetProperties()
 		{
 			IPortableDeviceValues values;
-			try
-			{
-				// get all predefined values
-				_device.deviceProperties.GetValues(Id, _keyCollection, out values);
-			}
-			catch (COMException ex) when (ex.HResult == (int)ErrorCodes.InvalidParameter)
+			// get all predefined values
+			int err = _device.deviceProperties.GetValues(Id, _keyCollection, out values);
+			if (err == (int)ErrorCodes.InvalidParameter)
 			{
 				// Some devices (e.g. Amazon Kindle Paperwhite) do not support GetValues
 				// with a keyCollection. Retry with null to get all values.
-				try
-				{
-					_device.deviceProperties.GetValues(Id, null, out values);
-				}
-				catch (Exception inner)
-				{
-					throw new IOException(
-						$"Could not read properties for device '{_device.FriendlyName}', Id='{Id}'.", inner);
-				}
+				err = _device.deviceProperties.GetValues(Id, null, out values);
+				// The retry can also fail; the final HRESULT check handles that.
 			}
-			catch (Exception ex)
+			if (err == (int)ErrorCodes.NotFound)
 			{
-				throw new IOException(
-					$"Could not read properties for device '{_device.FriendlyName}', Id='{Id}'.", ex);
+				// Object does not exist (e.g. ghost file) - let the caller skip it.
+				throw new FileNotFoundException($"Object with Id '{Id}' was not found on device '{_device.FriendlyName}'.");
 			}
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues), Id);
 
 			// read all properties
 			// use a loop to prevent exceptions during calling GetValue for non-existing values 
 			uint num = 0;
-			values.GetCount(ref num);
+			int errGetCount = values.GetCount(ref num);
+			MediaDeviceException.ThrowIfComError(errGetCount, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetCount));
 			for (uint i = 0; i < num; i++)
 			{
 				PropertyKey key = new PropertyKey();
 				using (PropVariantFacade val = new PropVariantFacade())
 				{
-					values.GetAt(i, ref key, ref val.Value);
+					errGetCount = values.GetAt(i, ref key, ref val.Value);
+					MediaDeviceException.ThrowIfComError(errGetCount, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetAt), i.ToString());
 
 					if (key.fmtid == WPD.OBJECT_PROPERTIES_V1)
 					{
@@ -373,7 +372,8 @@ namespace MediaDevices.Internal
 			{
 				uint fetched = 0;
 				var objectIds = new string[NUM_OBJECTS_TO_REQUEST];
-				enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+				err = enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+				MediaDeviceException.ThrowIfComError(err, nameof(IEnumPortableDeviceObjectIDs), nameof(IEnumPortableDeviceObjectIDs.Next));
 				while (fetched > 0)
 				{
 					for (int index = 0; index < fetched; index++)
@@ -396,7 +396,8 @@ namespace MediaDevices.Internal
 							yield return item;
 						}
 					}
-					enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+					err = enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+					MediaDeviceException.ThrowIfComError(err, nameof(IEnumPortableDeviceObjectIDs), nameof(IEnumPortableDeviceObjectIDs.Next));
 				}
 			}
 			finally
@@ -417,7 +418,8 @@ namespace MediaDevices.Internal
 			{
 				uint fetched = 0;
 				var objectIds = new string[NUM_OBJECTS_TO_REQUEST];
-				enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+				err = enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+				MediaDeviceException.ThrowIfComError(err, nameof(IEnumPortableDeviceObjectIDs), nameof(IEnumPortableDeviceObjectIDs.Next));
 				while (fetched > 0)
 				{
 					for (int index = 0; index < fetched; index++)
@@ -453,7 +455,8 @@ namespace MediaDevices.Internal
 						}
 					}
 					Array.Clear(objectIds, 0, objectIds.Length);
-					enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+					err = enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIds, ref fetched);
+					MediaDeviceException.ThrowIfComError(err, nameof(IEnumPortableDeviceObjectIDs), nameof(IEnumPortableDeviceObjectIDs.Next));
 				}
 			}
 			finally
@@ -482,18 +485,25 @@ namespace MediaDevices.Internal
 				{
 					// create a new directory
 					IPortableDeviceValues deviceValues = ComFactory.CreateDeviceValues();
-					deviceValues.SetStringValue(ref WPD.OBJECT_PARENT_ID, parent.Id);
-					deviceValues.SetStringValue(ref WPD.OBJECT_NAME, folder);
-					deviceValues.SetStringValue(ref WPD.OBJECT_ORIGINAL_FILE_NAME, folder);
-					deviceValues.SetGuidValue(ref WPD.OBJECT_CONTENT_TYPE, ref WPD.CONTENT_TYPE_FOLDER);
+					int err = deviceValues.SetStringValue(ref WPD.OBJECT_PARENT_ID, parent.Id);
+					MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetStringValue), nameof(WPD.OBJECT_PARENT_ID));
+					err = deviceValues.SetStringValue(ref WPD.OBJECT_NAME, folder);
+					MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetStringValue), nameof(WPD.OBJECT_NAME));
+					err = deviceValues.SetStringValue(ref WPD.OBJECT_ORIGINAL_FILE_NAME, folder);
+					MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetStringValue), nameof(WPD.OBJECT_ORIGINAL_FILE_NAME));
+					err = deviceValues.SetGuidValue(ref WPD.OBJECT_CONTENT_TYPE, ref WPD.CONTENT_TYPE_FOLDER);
+					MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetGuidValue), nameof(WPD.OBJECT_CONTENT_TYPE));
 
 					using (PropVariantFacade created = PropVariantFacade.DateTimeToPropVariant(dateCreated))
 					using (PropVariantFacade modified = PropVariantFacade.DateTimeToPropVariant(dateModified))
 					using (PropVariantFacade authored = PropVariantFacade.DateTimeToPropVariant(dateAuthored))
 					{
-						deviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref created.Value);
-						deviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref modified.Value);
-						deviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref authored.Value);
+						err = deviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref created.Value);
+						MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_CREATED));
+						err = deviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref modified.Value);
+						MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_MODIFIED));
+						err = deviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref authored.Value);
+						MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_AUTHORED));
 					}
 
 					string id = string.Empty;
@@ -747,18 +757,25 @@ namespace MediaDevices.Internal
 
 			IPortableDeviceValues portableDeviceValues = ComFactory.CreateDeviceValues();
 
-			portableDeviceValues.SetStringValue(ref WPD.OBJECT_PARENT_ID, Id);
-			portableDeviceValues.SetUnsignedLargeIntegerValue(ref WPD.OBJECT_SIZE, (ulong)stream.Length);
-			portableDeviceValues.SetStringValue(ref WPD.OBJECT_ORIGINAL_FILE_NAME, fileName);
-			portableDeviceValues.SetStringValue(ref WPD.OBJECT_NAME, fileName);
+			int errValue = portableDeviceValues.SetStringValue(ref WPD.OBJECT_PARENT_ID, Id);
+			MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetStringValue), nameof(WPD.OBJECT_PARENT_ID));
+			errValue = portableDeviceValues.SetUnsignedLargeIntegerValue(ref WPD.OBJECT_SIZE, (ulong)stream.Length);
+			MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetUnsignedLargeIntegerValue), nameof(WPD.OBJECT_SIZE));
+			errValue = portableDeviceValues.SetStringValue(ref WPD.OBJECT_ORIGINAL_FILE_NAME, fileName);
+			MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetStringValue), nameof(WPD.OBJECT_ORIGINAL_FILE_NAME));
+			errValue = portableDeviceValues.SetStringValue(ref WPD.OBJECT_NAME, fileName);
+			MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetStringValue), nameof(WPD.OBJECT_NAME));
 
 			using (PropVariantFacade created = PropVariantFacade.DateTimeToPropVariant(dateCreated))
 			using (PropVariantFacade modified = PropVariantFacade.DateTimeToPropVariant(dateModified))
 			using (PropVariantFacade authored = PropVariantFacade.DateTimeToPropVariant(dateAuthored))
 			{
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref created.Value);
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref modified.Value);
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref authored.Value);
+				errValue = portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref created.Value);
+				MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_CREATED));
+				errValue = portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref modified.Value);
+				MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_MODIFIED));
+				errValue = portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref authored.Value);
+				MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_AUTHORED));
 
 				uint num = 0u;
 				string? text = null;
@@ -779,8 +796,10 @@ namespace MediaDevices.Internal
 			IPortableDeviceValues result;
 
 			// with OBJECT_NAME does not work for Amazon Kindle Paperwhite
-			portableDeviceValues.SetStringValue(ref WPD.OBJECT_ORIGINAL_FILE_NAME, newName);
-			_device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+			int errRename = portableDeviceValues.SetStringValue(ref WPD.OBJECT_ORIGINAL_FILE_NAME, newName);
+			MediaDeviceException.ThrowIfComError(errRename, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetStringValue), nameof(WPD.OBJECT_ORIGINAL_FILE_NAME));
+			int err = _device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.SetValues), Id);
 			ComTrace.WriteObject(result);
 
 			if (result.TryGetStringValue(WPD.OBJECT_ORIGINAL_FILE_NAME, out string check))
@@ -814,8 +833,10 @@ namespace MediaDevices.Internal
 
 			using (PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value))
 			{
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref val.Value);
-				_device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				int errSetDate = portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref val.Value);
+				MediaDeviceException.ThrowIfComError(errSetDate, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_CREATED));
+				int err = _device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.SetValues), Id);
 				ComTrace.WriteObject(result);
 			}
 
@@ -828,8 +849,10 @@ namespace MediaDevices.Internal
 
 			using (PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value))
 			{
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref val.Value);
-				_device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				int errSetDate = portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_CREATED, ref val.Value);
+				MediaDeviceException.ThrowIfComError(errSetDate, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_CREATED));
+				int err = _device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.SetValues), Id);
 				ComTrace.WriteObject(result);
 			}
 
@@ -842,8 +865,10 @@ namespace MediaDevices.Internal
 
 			using (PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value))
 			{
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref val.Value);
-				_device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				int errSetDate = portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref val.Value);
+				MediaDeviceException.ThrowIfComError(errSetDate, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_MODIFIED));
+				int err = _device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.SetValues), Id);
 				ComTrace.WriteObject(result);
 			}
 
@@ -856,8 +881,10 @@ namespace MediaDevices.Internal
 
 			using (PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value))
 			{
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref val.Value);
-				_device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				int errSetDate = portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_MODIFIED, ref val.Value);
+				MediaDeviceException.ThrowIfComError(errSetDate, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_MODIFIED));
+				int err = _device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.SetValues), Id);
 				ComTrace.WriteObject(result);
 			}
 
@@ -870,8 +897,10 @@ namespace MediaDevices.Internal
 
 			using (PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value))
 			{
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref val.Value);
-				_device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				int errSetDate = portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref val.Value);
+				MediaDeviceException.ThrowIfComError(errSetDate, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_AUTHORED));
+				int err = _device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.SetValues), Id);
 				ComTrace.WriteObject(result);
 			}
 
@@ -884,8 +913,10 @@ namespace MediaDevices.Internal
 
 			using (PropVariantFacade val = PropVariantFacade.DateTimeToPropVariant(value))
 			{
-				portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref val.Value);
-				_device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				int errSetDate = portableDeviceValues.SetValue(ref WPD.OBJECT_DATE_AUTHORED, ref val.Value);
+				MediaDeviceException.ThrowIfComError(errSetDate, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetValue), nameof(WPD.OBJECT_DATE_AUTHORED));
+				int err = _device.deviceProperties.SetValues(Id, portableDeviceValues, out result);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.SetValues), Id);
 				ComTrace.WriteObject(result);
 			}
 

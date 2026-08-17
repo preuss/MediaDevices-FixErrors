@@ -57,11 +57,11 @@ namespace MediaDevices.Internal
 		[Conditional("COMTRACE")]
 		public static void WriteObject(IPortableDeviceProperties deviceProperties, string objectId, [CallerMemberName] string caller = "")
 		{
-			IPortableDeviceKeyCollection keys;
-			deviceProperties.GetSupportedProperties(objectId, out keys);
+			int err = deviceProperties.GetSupportedProperties(objectId, out IPortableDeviceKeyCollection keys);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetSupportedProperties), objectId);
 
-			IPortableDeviceValues values;
-			deviceProperties.GetValues(objectId, keys, out values);
+			err = deviceProperties.GetValues(objectId, keys, out IPortableDeviceValues values);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues), objectId);
 
 			InternalWriteObject(values, caller);
 		}
@@ -88,12 +88,14 @@ namespace MediaDevices.Internal
 		{
 			Trace.WriteLine("###############################");
 			uint num = 0;
-			collection.GetCount(ref num);
+			int err = collection.GetCount(ref num);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetCount));
 			for (uint index = 0; index < num; index++)
 			{
 				using (PropVariantFacade val = new PropVariantFacade())
 				{
-					collection.GetAt(index, ref val.Value);
+					err = collection.GetAt(index, ref val.Value);
+					MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetAt), index.ToString());
 
 					Trace.WriteLine($"##### {val.ToDebugString()}");
 				}
@@ -105,11 +107,13 @@ namespace MediaDevices.Internal
 		{
 			Trace.WriteLine("###############################");
 			uint num = 0;
-			collection.GetCount(ref num);
+			int err = collection.GetCount(ref num);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.GetCount));
 			for (uint index = 0; index < num; index++)
 			{
 				PropertyKey key = new PropertyKey();
-				collection.GetAt(index, ref key);
+				err = collection.GetAt(index, ref key);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.GetAt), index.ToString());
 
 				PropertyKeys propertyKey = key.GetEnumFromAttrKey<PropertyKeys>();
 				Trace.WriteLine($"##### {propertyKey}");

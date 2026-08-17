@@ -21,8 +21,10 @@ namespace MediaDevices.Internal
 		private Command(PropertyKey commandKey)
         {
             _values = ComFactory.CreateDeviceValues();
-            _values.SetGuidValue(ref WPD.PROPERTY_COMMON_COMMAND_CATEGORY, ref commandKey.fmtid);
-            _values.SetUnsignedIntegerValue(ref WPD.PROPERTY_COMMON_COMMAND_ID, commandKey.pid);
+            int err = _values.SetGuidValue(ref WPD.PROPERTY_COMMON_COMMAND_CATEGORY, ref commandKey.fmtid);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetGuidValue), nameof(WPD.PROPERTY_COMMON_COMMAND_CATEGORY));
+            err = _values.SetUnsignedIntegerValue(ref WPD.PROPERTY_COMMON_COMMAND_ID, commandKey.pid);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetUnsignedIntegerValue), nameof(WPD.PROPERTY_COMMON_COMMAND_ID));
         }
 
         public static Command Create(PropertyKey commandKey)
@@ -32,22 +34,26 @@ namespace MediaDevices.Internal
 
         public void Add(PropertyKey key, Guid value)
         {
-            _values.SetGuidValue(ref key, ref value);
+            int err = _values.SetGuidValue(ref key, ref value);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetGuidValue));
         }
 
         public void Add(PropertyKey key, int value)
         {
-            _values.SetSignedIntegerValue(ref key, value);
+            int err = _values.SetSignedIntegerValue(ref key, value);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetSignedIntegerValue));
         }
 
         public void Add(PropertyKey key, uint value)
         {
-            _values.SetUnsignedIntegerValue(ref key, value);
+            int err = _values.SetUnsignedIntegerValue(ref key, value);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetUnsignedIntegerValue));
         }
 
         public void Add(PropertyKey key, IPortableDevicePropVariantCollection value)
         {
-            _values.SetIPortableDevicePropVariantCollectionValue(ref key, value);
+            int err = _values.SetIPortableDevicePropVariantCollectionValue(ref key, value);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetIPortableDevicePropVariantCollectionValue));
         }
         
         public void Add(PropertyKey key, IEnumerable<int> values)
@@ -56,9 +62,11 @@ namespace MediaDevices.Internal
             foreach (var value in values)
             {
                 var var = PropVariantFacade.IntToPropVariant(value);
-                col.Add(ref var.Value);
+                int errAdd = col.Add(ref var.Value);
+                MediaDeviceException.ThrowIfComError(errAdd, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.Add));
             }
-            _values.SetIPortableDevicePropVariantCollectionValue(ref key, col);
+            int err = _values.SetIPortableDevicePropVariantCollectionValue(ref key, col);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetIPortableDevicePropVariantCollectionValue));
         }
 
 		public void Add(PropertyKey key, IEnumerable<uint> values)
@@ -67,14 +75,17 @@ namespace MediaDevices.Internal
 			foreach (var value in values)
 			{
 				var var = PropVariantFacade.UIntToPropVariant(value);
-				col.Add(ref var.Value);
+				int errAdd = col.Add(ref var.Value);
+				MediaDeviceException.ThrowIfComError(errAdd, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.Add));
 			}
-			_values.SetIPortableDevicePropVariantCollectionValue(ref key, col);
+			int err = _values.SetIPortableDevicePropVariantCollectionValue(ref key, col);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetIPortableDevicePropVariantCollectionValue));
 		}
 
 		public void Add(PropertyKey key, string value)
         {
-            _values.SetStringValue(ref key, value);
+            int err = _values.SetStringValue(ref key, value);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetStringValue));
         }
 
         //public void Add(PropertyKey key, byte[] buffer, int size)
@@ -86,35 +97,44 @@ namespace MediaDevices.Internal
         public Guid GetGuid(PropertyKey key)
         {
             Guid value;
-            Result.GetGuidValue(ref key, out value);
+            int err = Result.GetGuidValue(ref key, out value);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetGuidValue));
             return value;
         }
 
         public int GetInt(PropertyKey key)
         {
             int value;
-            Result.GetSignedIntegerValue(ref key, out value);
+            int err = Result.GetSignedIntegerValue(ref key, out value);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetSignedIntegerValue));
             return value;
         }
 
         public uint GetUInt(PropertyKey key)
         {
             uint value;
-            Result.GetUnsignedIntegerValue(ref key, out value);
+            int err = Result.GetUnsignedIntegerValue(ref key, out value);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetUnsignedIntegerValue));
             return value;
         }
 
         public string GetString(PropertyKey key)
         {
             string value;
-            Result.GetStringValue(ref key, out value);
+            int err = Result.GetStringValue(ref key, out value);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetStringValue));
             return value;
         }
         
         public IEnumerable<PropVariantFacade> GetPropVariants(PropertyKey key)
 		{
 			object? obj = null;
-            Result.GetIUnknownValue(ref key, out obj);
+            int err = Result.GetIUnknownValue(ref key, out obj);
+            if (err == (int)ErrorCodes.NotFound)
+            {
+                yield break;
+            }
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetIUnknownValue));
             var col = obj as IPortableDevicePropVariantCollection;
 
 			if (col == null)
@@ -123,11 +143,13 @@ namespace MediaDevices.Internal
 			}
 
 			uint count = 0;
-            col.GetCount(ref count);
+            int errCount = col.GetCount(ref count);
+            MediaDeviceException.ThrowIfComError(errCount, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetCount));
             for (uint i = 0; i < count; i++)
             {
                 PropVariantFacade val = new PropVariantFacade();
-                col.GetAt(i, ref val.Value);
+                errCount = col.GetAt(i, ref val.Value);
+                MediaDeviceException.ThrowIfComError(errCount, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetAt), i.ToString());
                 yield return val;
             }
         }
@@ -135,12 +157,14 @@ namespace MediaDevices.Internal
         public bool Has(PropertyKey key)
         {
 			uint count = 0;
-            Result.GetCount(ref count);
+            int err = Result.GetCount(ref count);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetCount));
             for (uint i = 0; i < count; i++)
             {
                 PropertyKey k = new PropertyKey();
                 PropVariant v = new PropVariant();
-                Result.GetAt(i, ref k, ref v);
+                err = Result.GetAt(i, ref k, ref v);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetAt), i.ToString());
                 if (key == k)
                 {
                     return true;
@@ -151,10 +175,12 @@ namespace MediaDevices.Internal
 
         public bool Send(IPortableDevice device)
         {
-            device.SendCommand(0, _values, out _result);
+            int err = device.SendCommand(0, _values, out _result);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevice), nameof(IPortableDevice.SendCommand));
 
 			int error = 0;
-            Result.GetErrorValue(ref WPD.PROPERTY_COMMON_HRESULT, out error);
+            err = Result.GetErrorValue(ref WPD.PROPERTY_COMMON_HRESULT, out error);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetErrorValue), nameof(WPD.PROPERTY_COMMON_HRESULT));
             switch ((HResult)error)
             {
             case HResult.S_OK:

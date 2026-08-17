@@ -11,13 +11,15 @@ namespace MediaDevices.Internal
         public static IEnumerable<KeyValuePair<string, string>> ToKeyValuePair(this IPortableDeviceValues values)
         {
             uint num = 0;
-            values.GetCount(ref num);
+            int err = values.GetCount(ref num);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetCount));
             for (uint i = 0; i < num; i++)
             {
                 PropertyKey key = new();
                 using (PropVariantFacade val = new())
                 {
-                    values.GetAt(i, ref key, ref val.Value);
+                    err = values.GetAt(i, ref key, ref val.Value);
+                    MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetAt), i.ToString());
 
                     string fieldName = string.Empty;
                     FieldInfo? propField = ComTrace.FindPropertyKeyField(key);
@@ -77,11 +79,13 @@ namespace MediaDevices.Internal
         public static IEnumerable<PropertyKey> ToEnum(this IPortableDeviceKeyCollection col) 
         {
             uint count = 0;
-            col.GetCount(ref count);
+            int err = col.GetCount(ref count);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.GetCount));
             for (uint i = 0; i < count; i++)
             {
                 PropertyKey key = new PropertyKey();
-                col.GetAt(i, ref key);
+                err = col.GetAt(i, ref key);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.GetAt), i.ToString());
                 yield return key;
             }
         }
@@ -89,11 +93,13 @@ namespace MediaDevices.Internal
         public static IEnumerable<TEnum> ToEnum<TEnum>(this IPortableDeviceKeyCollection col) where TEnum : struct // enum
         {
             uint count = 0;
-            col.GetCount(ref count);
+            int err = col.GetCount(ref count);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.GetCount));
             for (uint i = 0; i < count; i++)
             {
                 PropertyKey key = new PropertyKey();
-                col.GetAt(i, ref key);
+                err = col.GetAt(i, ref key);
+                MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.GetAt), i.ToString());
                 yield return GetEnumFromAttrKey<TEnum>(key);
             }
         }
@@ -101,12 +107,14 @@ namespace MediaDevices.Internal
         public static IEnumerable<TEnum> ToEnum<TEnum>(this IPortableDevicePropVariantCollection col) where TEnum : struct // enum
         {
             uint count = 0;
-            col.GetCount(ref count);
+            int err = col.GetCount(ref count);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetCount));
             for (uint i = 0; i < count; i++)
             {
                 using (PropVariantFacade val = new PropVariantFacade())
                 {
-                    col.GetAt(i, ref val.Value);
+                    err = col.GetAt(i, ref val.Value);
+                    MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetAt), i.ToString());
                     yield return GetEnumFromAttrGuid<TEnum>(val.ToGuid());
                 }
             }
@@ -176,12 +184,14 @@ namespace MediaDevices.Internal
         public static IEnumerable<Guid> ToGuid(this IPortableDevicePropVariantCollection col) 
         {
             uint count = 0;
-            col.GetCount(ref count);
+            int err = col.GetCount(ref count);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetCount));
             for (uint i = 0; i < count; i++)
             {
                 using (PropVariantFacade val = new())
                 {
-                    col.GetAt(i, ref val.Value);
+                    err = col.GetAt(i, ref val.Value);
+                    MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetAt), i.ToString());
                     yield return val.ToGuid();
                 }
             }
@@ -190,12 +200,14 @@ namespace MediaDevices.Internal
         public static IEnumerable<string> ToStrings(this IPortableDevicePropVariantCollection col)
         {
             uint count = 0;
-            col.GetCount(ref count);
+            int err = col.GetCount(ref count);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetCount));
             for (uint i = 0; i < count; i++)
             {
                 using (PropVariantFacade val = new())
                 {
-                    col.GetAt(i, ref val.Value);
+                    err = col.GetAt(i, ref val.Value);
+                    MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetAt), i.ToString());
                     yield return val.ToString();
                 }
             }

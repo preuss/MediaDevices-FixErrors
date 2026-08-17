@@ -128,11 +128,13 @@ namespace MediaDevices
 		/// <returns>>An enumerable collection of portable devices currently available.</returns>
 		public static IEnumerable<MediaDevice> GetDevices()
 		{
-			_deviceManager.RefreshDeviceList();
+			int err = _deviceManager.RefreshDeviceList();
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceManager), nameof(IPortableDeviceManager.RefreshDeviceList));
 
 			// get number of devices
 			uint count = 0;
-			_deviceManager.GetDevices(null, ref count);
+			err = _deviceManager.GetDevices(null, ref count);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceManager), nameof(IPortableDeviceManager.GetDevices));
 
 			if(count == 0)
 			{
@@ -141,7 +143,8 @@ namespace MediaDevices
 
 			// get device IDs
 			var deviceIds = new string[count];
-			_deviceManager.GetDevices(deviceIds, ref count);
+			err = _deviceManager.GetDevices(deviceIds, ref count);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceManager), nameof(IPortableDeviceManager.GetDevices));
 
 			if(_devices == null)
 			{
@@ -186,11 +189,13 @@ namespace MediaDevices
 		/// <returns>>An enumerable collection of private portable devices currently available.</returns>
 		public static IEnumerable<MediaDevice> GetPrivateDevices()
 		{
-			_deviceManager.RefreshDeviceList();
+			int err = _deviceManager.RefreshDeviceList();
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceManager), nameof(IPortableDeviceManager.RefreshDeviceList));
 
 			// get number of devices
 			uint count = 0;
-			_deviceManager.GetPrivateDevices(null, ref count);
+			err = _deviceManager.GetPrivateDevices(null, ref count);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceManager), nameof(IPortableDeviceManager.GetPrivateDevices));
 
 			if(count == 0)
 			{
@@ -199,7 +204,8 @@ namespace MediaDevices
 
 			// get device IDs
 			var deviceIds = new string[count];
-			_deviceManager.GetPrivateDevices(deviceIds, ref count);
+			err = _deviceManager.GetPrivateDevices(deviceIds, ref count);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceManager), nameof(IPortableDeviceManager.GetPrivateDevices));
 
 			if(_privateDevices == null)
 			{
@@ -222,56 +228,58 @@ namespace MediaDevices
 
 
 			uint count = 256;
-			try
+			StringBuilder sb = new StringBuilder((int)count);
+			int err = _deviceManager.GetDeviceDescription(deviceId, sb, ref count);
+			if (err < 0)
 			{
-				count = 256;
-				StringBuilder sb = new StringBuilder((int)count);
-				_deviceManager.GetDeviceDescription(deviceId, sb, ref count);
-				this.Description = sb.ToString(); //new string(buffer, 0, (int)count - 1);
-			} catch(COMException ex)
-			{
-				Trace.WriteLine(ex.ToString());
+				Trace.WriteLine($"GetDeviceDescription failed: 0x{err:x8}");
 				this.Description = string.Empty;
 			}
-			try
+			else
 			{
-				count = 256;
-				StringBuilder sb = new StringBuilder((int)count);
-				_deviceManager.GetDeviceFriendlyName(deviceId, sb, ref count);
-				this._friendlyName = sb.ToString();
-			} catch(COMException ex)
+				this.Description = sb.ToString();
+			}
+			count = 256;
+			sb = new StringBuilder((int)count);
+			err = _deviceManager.GetDeviceFriendlyName(deviceId, sb, ref count);
+			if (err < 0)
 			{
-				Trace.WriteLine(ex.ToString());
+				Trace.WriteLine($"GetDeviceFriendlyName failed: 0x{err:x8}");
 				this._friendlyName = string.Empty;
 			}
-			try
+			else
 			{
-				count = 256;
-				StringBuilder sb = new StringBuilder((int)count);
-				_deviceManager.GetDeviceManufacturer(deviceId, sb, ref count);
-				this.Manufacturer = sb.ToString();
-			} catch(COMException ex)
+				this._friendlyName = sb.ToString();
+			}
+			count = 256;
+			sb = new StringBuilder((int)count);
+			err = _deviceManager.GetDeviceManufacturer(deviceId, sb, ref count);
+			if (err < 0)
 			{
-				Trace.WriteLine(ex.ToString());
+				Trace.WriteLine($"GetDeviceManufacturer failed: 0x{err:x8}");
 				this.Manufacturer = string.Empty;
+			}
+			else
+			{
+				this.Manufacturer = sb.ToString();
 			}
 
 			//this.device = new PortableDeviceApiLib.PortableDevice();
 			_device = ComFactory.CreateDevice();
 		}
 
-		private delegate void DeviceStringAccessor(string deviceId, StringBuilder buffer, ref uint length);
+		private delegate int DeviceStringAccessor(string deviceId, StringBuilder buffer, ref uint length);
 
 		private static string GetDeviceString(string deviceId, DeviceStringAccessor stringAccessor, uint initialCapacity = 256) {
 			uint len = initialCapacity;
 			StringBuilder sb = new StringBuilder((int)len);
-			try {
-				stringAccessor(deviceId, sb, ref len);
-				return sb.ToString();
-			} catch(COMException ex) {
-				Trace.WriteLine(ex.ToString());
+			int err = stringAccessor(deviceId, sb, ref len);
+			if (err < 0)
+			{
+				Trace.WriteLine($"GetDeviceString failed: 0x{err:x8}");
 				return string.Empty;
 			}
+			return sb.ToString();
 		}
 
 		private string GetDeviceFriendlyName()
@@ -344,26 +352,31 @@ namespace MediaDevices
 
 				// set new friendly name
 				IPortableDeviceValues devInValues = ComFactory.CreateDeviceValues();
-				devInValues.SetStringValue(ref WPD.DEVICE_FRIENDLY_NAME, value);
+				int errSetName = devInValues.SetStringValue(ref WPD.DEVICE_FRIENDLY_NAME, value);
+				MediaDeviceException.ThrowIfComError(errSetName, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetStringValue), nameof(WPD.DEVICE_FRIENDLY_NAME));
+
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
-				this.deviceProperties.SetValues(Item.RootId, devInValues, out IPortableDeviceValues devValues);
+				int err = this.deviceProperties.SetValues(Item.RootId, devInValues, out IPortableDeviceValues devValues);
 #pragma warning restore IDE0059 // Unnecessary assignment of a value
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.SetValues));
 
 				// reload device values with new friendly name 
-				this.deviceProperties.GetValues(Item.RootId, null, out this._deviceValues);
+				err = this.deviceProperties.GetValues(Item.RootId, null, out this._deviceValues);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues));
 
 				// reload disconnected friendly name
-				try
+				char[] buffer = new char[260];
+				uint count = 256;
+				StringBuilder sb = new StringBuilder((int)count);
+				err = _deviceManager.GetDeviceFriendlyName(this.DeviceId, sb, ref count);
+				if (err < 0)
 				{
-					char[] buffer = new char[260];
-					uint count = 256;
-					StringBuilder sb = new StringBuilder((int)count);
-					_deviceManager.GetDeviceFriendlyName(this.DeviceId, sb, ref count);
-					this._friendlyName = sb.ToString();
-				} catch(COMException ex)
-				{
-					Trace.WriteLine(ex.ToString());
+					Trace.WriteLine($"GetDeviceFriendlyName failed: 0x{err:x8}");
 					this._friendlyName = string.Empty;
+				}
+				else
+				{
+					this._friendlyName = sb.ToString();
 				}
 			}
 		}
@@ -636,7 +649,8 @@ namespace MediaDevices
 			{
 				CheckConnected();
 
-				this._device.GetPnPDeviceID(out string pnPDeviceID);
+				int err = this._device.GetPnPDeviceID(out string pnPDeviceID);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevice), nameof(IPortableDevice.GetPnPDeviceID));
 				return pnPDeviceID;
 			}
 		}
@@ -691,46 +705,59 @@ namespace MediaDevices
 
 			// set open device parameters
 			IPortableDeviceValues clientInfo = ComFactory.CreateDeviceValues();
-			clientInfo.SetStringValue(ref WPD.CLIENT_NAME, appName);
+			int errClient = clientInfo.SetStringValue(ref WPD.CLIENT_NAME, appName);
+			MediaDeviceException.ThrowIfComError(errClient, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetStringValue), nameof(WPD.CLIENT_NAME));
 
-			clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_MAJOR_VERSION, 1);
-			clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_MINOR_VERSION, 0);
-			clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_REVISION, 0);
+			errClient = clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_MAJOR_VERSION, 1);
+			MediaDeviceException.ThrowIfComError(errClient, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetUnsignedIntegerValue), nameof(WPD.CLIENT_MAJOR_VERSION));
+			errClient = clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_MINOR_VERSION, 0);
+			MediaDeviceException.ThrowIfComError(errClient, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetUnsignedIntegerValue), nameof(WPD.CLIENT_MINOR_VERSION));
+			errClient = clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_REVISION, 0);
+			MediaDeviceException.ThrowIfComError(errClient, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetUnsignedIntegerValue), nameof(WPD.CLIENT_REVISION));
 			// Some device drivers need to impersonate the caller in order to function correctly. Since our application does not
 			// need to restrict its identity, specify SECURITY_IMPERSONATION so that we work with all devices.
-			clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_SECURITY_QUALITY_OF_SERVICE, (uint)Security.IMPERSONATION);
+			errClient = clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_SECURITY_QUALITY_OF_SERVICE, (uint)Security.IMPERSONATION);
+			MediaDeviceException.ThrowIfComError(errClient, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetUnsignedIntegerValue), nameof(WPD.CLIENT_SECURITY_QUALITY_OF_SERVICE));
 
 
 			if(access != MediaDeviceAccess.Default)
 			{
-				clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_DESIRED_ACCESS, (uint)access);
+				errClient = clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_DESIRED_ACCESS, (uint)access);
+				MediaDeviceException.ThrowIfComError(errClient, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetUnsignedIntegerValue), nameof(WPD.CLIENT_DESIRED_ACCESS));
 			}
 			if(share != MediaDeviceShare.Default)
 			{
-				clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_SHARE_MODE, (uint)share);
+				errClient = clientInfo.SetUnsignedIntegerValue(ref WPD.CLIENT_SHARE_MODE, (uint)share);
+				MediaDeviceException.ThrowIfComError(errClient, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetUnsignedIntegerValue), nameof(WPD.CLIENT_SHARE_MODE));
 			}
 			if(enableCache == false)
 			{
 				// disable file list cache
-				clientInfo.SetGuidValue(ref WPD.CLIENT_EVENT_COOKIE, ref WPD.CLSID_PORTABLE_DEVICES);
+				errClient = clientInfo.SetGuidValue(ref WPD.CLIENT_EVENT_COOKIE, ref WPD.CLSID_PORTABLE_DEVICES);
+				MediaDeviceException.ThrowIfComError(errClient, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetGuidValue), nameof(WPD.CLIENT_EVENT_COOKIE));
 
 				//clientInfo.SetStringValue(ref WPD.CLIENT_EVENT_COOKIE, "{35786D3C-B075-49B9-88DD-029876E11C01}");
 
 			}
 
 			// open device
-			_device.Open(DeviceId, clientInfo);
-			_device.Capabilities(out _deviceCapabilities);
-			_device.Content(out deviceContent);
+			int err = _device.Open(DeviceId, clientInfo);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevice), nameof(IPortableDevice.Open));
+			err = _device.Capabilities(out _deviceCapabilities);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevice), nameof(IPortableDevice.Capabilities));
+			err = _device.Content(out deviceContent);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevice), nameof(IPortableDevice.Content));
 			int errProperties = deviceContent.Properties(out deviceProperties);
 			MediaDeviceException.ThrowIfComError(errProperties, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Properties), DeviceId);
-			deviceProperties.GetValues(Item.RootId, null, out _deviceValues);
+			err = deviceProperties.GetValues(Item.RootId, null, out _deviceValues);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues), DeviceId);
 
 			ComTrace.WriteObject(_deviceValues);
 
 			// advice event handler
 			_eventCallback = new EventCallback(this);
-			_device.Advise(0, _eventCallback, null, out _eventCookie);
+			err = _device.Advise(0, _eventCallback, null, out _eventCookie);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevice), nameof(IPortableDevice.Advise));
 
 			IsConnected = true;
 
@@ -749,10 +776,12 @@ namespace MediaDevices
 			}
 			if(!string.IsNullOrEmpty(this._eventCookie))
 			{
-				this._device.Unadvise(this._eventCookie);
+				int err = this._device.Unadvise(this._eventCookie);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevice), nameof(IPortableDevice.Unadvise));
 				this._eventCookie = null;
 			}
-			this._device.Close();
+			int errClose = this._device.Close();
+			MediaDeviceException.ThrowIfComError(errClose, nameof(IPortableDevice), nameof(IPortableDevice.Close));
 			this.IsConnected = false;
 		}
 
@@ -763,7 +792,8 @@ namespace MediaDevices
 		public void Cancel()
 		{
 			CheckConnected();
-			this._device.Cancel();
+			int err = this._device.Cancel();
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevice), nameof(IPortableDevice.Cancel));
 		}
 
 		/// <summary>
@@ -1575,8 +1605,7 @@ namespace MediaDevices
 		/// <returns>Array with all drives of the device.</returns>
 		public MediaDriveInfo[] GetDrives()
 		{
-			return FunctionalObjects(FunctionalCategory.Storage)?.Select(o => new MediaDriveInfo(this, o)).ToArray()
-				?? Array.Empty<MediaDriveInfo>();
+			return FunctionalObjects(FunctionalCategory.Storage).Select(o => new MediaDriveInfo(this, o)).ToArray();
 		}
 
 		/// <summary>
@@ -1750,19 +1779,13 @@ namespace MediaDevices
 		/// </summary>
 		/// <returns>List with supported commands</returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<Commands>? SupportedCommands()
+		public IEnumerable<Commands> SupportedCommands()
 		{
 			CheckConnected();
 
-			try
-			{
-				this._deviceCapabilities.GetSupportedCommands(out IPortableDeviceKeyCollection commands);
-				return commands.ToEnum<Commands>();
-			} catch(COMException ex)
-			{
-				Trace.WriteLine(ex.ToString());
-			}
-			return null;
+			int err = this._deviceCapabilities.GetSupportedCommands(out IPortableDeviceKeyCollection commands);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceCapabilities), nameof(IPortableDeviceCapabilities.GetSupportedCommands));
+			return commands.ToEnum<Commands>();
 		}
 
 		/// <summary>
@@ -1770,19 +1793,13 @@ namespace MediaDevices
 		/// </summary>
 		/// <returns>List with functional categories</returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<FunctionalCategory>? FunctionalCategories()
+		public IEnumerable<FunctionalCategory> FunctionalCategories()
 		{
 			CheckConnected();
 
-			try
-			{
-				this._deviceCapabilities.GetFunctionalCategories(out IPortableDevicePropVariantCollection categories);
-				return categories.ToEnum<FunctionalCategory>();
-			} catch(COMException ex)
-			{
-				Trace.WriteLine(ex.ToString());
-			}
-			return null;
+			int err = this._deviceCapabilities.GetFunctionalCategories(out IPortableDevicePropVariantCollection categories);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceCapabilities), nameof(IPortableDeviceCapabilities.GetFunctionalCategories));
+			return categories.ToEnum<FunctionalCategory>();
 		}
 
 		/// <summary>
@@ -1791,22 +1808,15 @@ namespace MediaDevices
 		/// <param name="functionalCategory">Select functional category</param>
 		/// <returns>List with functional objects</returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<string>? FunctionalObjects(FunctionalCategory functionalCategory)
+		public IEnumerable<string> FunctionalObjects(FunctionalCategory functionalCategory)
 		{
 			CheckConnected();
 
-			try
-			{
-				var g = functionalCategory.Guid();
-				Guid guid = functionalCategory.Guid();
-				this._deviceCapabilities.GetFunctionalObjects(ref guid, out IPortableDevicePropVariantCollection objects);
-				ComTrace.WriteObject(objects);
-				return objects.ToStrings();
-			} catch(COMException ex)
-			{
-				Trace.WriteLine(ex.ToString());
-			}
-			return null;
+			Guid guid = functionalCategory.Guid();
+			int err = this._deviceCapabilities.GetFunctionalObjects(ref guid, out IPortableDevicePropVariantCollection objects);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceCapabilities), nameof(IPortableDeviceCapabilities.GetFunctionalObjects), functionalCategory.ToString());
+			ComTrace.WriteObject(objects);
+			return objects.ToStrings();
 		}
 
 
@@ -1816,20 +1826,14 @@ namespace MediaDevices
 		/// <param name="functionalCategory">Select functional category</param>
 		/// <returns>List with supported content types </returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<ContentType>? SupportedContentTypes(FunctionalCategory functionalCategory)
+		public IEnumerable<ContentType> SupportedContentTypes(FunctionalCategory functionalCategory)
 		{
 			CheckConnected();
 
-			try
-			{
-				Guid guid = functionalCategory.Guid();
-				this._deviceCapabilities.GetSupportedContentTypes(ref guid, out IPortableDevicePropVariantCollection types);
-				return types.ToEnum<ContentType>();
-			} catch(COMException ex)
-			{
-				Trace.WriteLine(ex.ToString());
-			}
-			return null;
+			Guid guid = functionalCategory.Guid();
+			int err = this._deviceCapabilities.GetSupportedContentTypes(ref guid, out IPortableDevicePropVariantCollection types);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceCapabilities), nameof(IPortableDeviceCapabilities.GetSupportedContentTypes), functionalCategory.ToString());
+			return types.ToEnum<ContentType>();
 		}
 
 
@@ -1838,19 +1842,13 @@ namespace MediaDevices
 		/// </summary>
 		/// <returns>List with supported events</returns>
 		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
-		public IEnumerable<Events>? SupportedEvents()
+		public IEnumerable<Events> SupportedEvents()
 		{
 			CheckConnected();
 
-			try
-			{
-				this._deviceCapabilities.GetSupportedEvents(out IPortableDevicePropVariantCollection events);
-				return events.ToEnum<Events>();
-			} catch(COMException ex)
-			{
-				Trace.WriteLine(ex.ToString());
-			}
-			return null;
+			int err = this._deviceCapabilities.GetSupportedEvents(out IPortableDevicePropVariantCollection events);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceCapabilities), nameof(IPortableDeviceCapabilities.GetSupportedEvents));
+			return events.ToEnum<Events>();
 		}
 
 		#endregion
@@ -2000,6 +1998,14 @@ namespace MediaDevices
 			{
 				throw new ArgumentNullException(nameof(functionalObject));
 			}
+			if(string.IsNullOrEmpty(recipient))
+			{
+				throw new ArgumentNullException(nameof(recipient));
+			}
+			if(string.IsNullOrEmpty(text))
+			{
+				throw new ArgumentNullException(nameof(text));
+			}
 
 			Command cmd = Command.Create(WPD.COMMAND_SMS_SEND);
 			cmd.Add(WPD.PROPERTY_COMMON_COMMAND_TARGET, functionalObject);
@@ -2049,7 +2055,8 @@ namespace MediaDevices
 		internal void CallEvent(IPortableDeviceValues eventParameters)
 		{
 			//ComTrace.WriteObject(eventParameters);
-			eventParameters.GetGuidValue(ref WPD.EVENT_PARAMETER_EVENT_ID, out Guid eventGuid);
+			int err = eventParameters.GetGuidValue(ref WPD.EVENT_PARAMETER_EVENT_ID, out Guid eventGuid);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetGuidValue), nameof(WPD.EVENT_PARAMETER_EVENT_ID));
 			Events eventEnum = eventGuid.GetEnumFromAttrGuid<Events>();
 
 			switch(eventEnum)
@@ -2118,22 +2125,34 @@ namespace MediaDevices
 			}
 
 			IPortableDeviceKeyCollection keys = ComFactory.CreateDeviceKeyCollection();
-			keys.Add(ref WPD.STORAGE_TYPE);
-			keys.Add(ref WPD.STORAGE_FILE_SYSTEM_TYPE);
-			keys.Add(ref WPD.STORAGE_CAPACITY);
-			keys.Add(ref WPD.STORAGE_FREE_SPACE_IN_BYTES);
-			keys.Add(ref WPD.STORAGE_FREE_SPACE_IN_OBJECTS);
-			keys.Add(ref WPD.STORAGE_DESCRIPTION);
-			keys.Add(ref WPD.STORAGE_SERIAL_NUMBER);
-			keys.Add(ref WPD.STORAGE_MAX_OBJECT_SIZE);
-			keys.Add(ref WPD.STORAGE_CAPACITY_IN_OBJECTS);
-			keys.Add(ref WPD.STORAGE_ACCESS_CAPABILITY);
+			int errKeys = keys.Add(ref WPD.STORAGE_TYPE);
+			MediaDeviceException.ThrowIfComError(errKeys, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add), nameof(WPD.STORAGE_TYPE));
+			errKeys = keys.Add(ref WPD.STORAGE_FILE_SYSTEM_TYPE);
+			MediaDeviceException.ThrowIfComError(errKeys, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add), nameof(WPD.STORAGE_FILE_SYSTEM_TYPE));
+			errKeys = keys.Add(ref WPD.STORAGE_CAPACITY);
+			MediaDeviceException.ThrowIfComError(errKeys, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add), nameof(WPD.STORAGE_CAPACITY));
+			errKeys = keys.Add(ref WPD.STORAGE_FREE_SPACE_IN_BYTES);
+			MediaDeviceException.ThrowIfComError(errKeys, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add), nameof(WPD.STORAGE_FREE_SPACE_IN_BYTES));
+			errKeys = keys.Add(ref WPD.STORAGE_FREE_SPACE_IN_OBJECTS);
+			MediaDeviceException.ThrowIfComError(errKeys, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add), nameof(WPD.STORAGE_FREE_SPACE_IN_OBJECTS));
+			errKeys = keys.Add(ref WPD.STORAGE_DESCRIPTION);
+			MediaDeviceException.ThrowIfComError(errKeys, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add), nameof(WPD.STORAGE_DESCRIPTION));
+			errKeys = keys.Add(ref WPD.STORAGE_SERIAL_NUMBER);
+			MediaDeviceException.ThrowIfComError(errKeys, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add), nameof(WPD.STORAGE_SERIAL_NUMBER));
+			errKeys = keys.Add(ref WPD.STORAGE_MAX_OBJECT_SIZE);
+			MediaDeviceException.ThrowIfComError(errKeys, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add), nameof(WPD.STORAGE_MAX_OBJECT_SIZE));
+			errKeys = keys.Add(ref WPD.STORAGE_CAPACITY_IN_OBJECTS);
+			MediaDeviceException.ThrowIfComError(errKeys, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add), nameof(WPD.STORAGE_CAPACITY_IN_OBJECTS));
+			errKeys = keys.Add(ref WPD.STORAGE_ACCESS_CAPABILITY);
+			MediaDeviceException.ThrowIfComError(errKeys, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.Add), nameof(WPD.STORAGE_ACCESS_CAPABILITY));
 
 			try
 			{
-				this.deviceProperties.GetSupportedProperties(storageObjectId, out IPortableDeviceKeyCollection ppKeys);
+				int errGetSupportedProperties = this.deviceProperties.GetSupportedProperties(storageObjectId, out IPortableDeviceKeyCollection ppKeys);
+				MediaDeviceException.ThrowIfComError(errGetSupportedProperties, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetSupportedProperties), storageObjectId);
 				ComTrace.WriteObject(ppKeys);
-				this.deviceProperties.GetValues(storageObjectId, keys, out IPortableDeviceValues values);
+				int errGetValues = this.deviceProperties.GetValues(storageObjectId, keys, out IPortableDeviceValues values);
+				MediaDeviceException.ThrowIfComError(errGetValues, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues), storageObjectId);
 
 				values.TryGetUnsignedIntegerValue(WPD.STORAGE_TYPE, out uint type);
 
@@ -2281,6 +2300,7 @@ namespace MediaDevices
 		/// <returns>identifying response params if any</returns>
 		public IEnumerable<uint> VendorEndTransfer(string context, out uint respCode)
 		{
+			CheckConnected();
 			Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_END_DATA_TRANSFER);
 			cmd.Add(WPD.PROPERTY_MTP_EXT_TRANSFER_CONTEXT, context);
 			cmd.Send(this._device);
@@ -2318,14 +2338,16 @@ namespace MediaDevices
 		{
 			Guid serviceGuid = service.Guid();
 			uint num = 0;
-			_serviceManager.GetDeviceServices(this.DeviceId, ref serviceGuid, null, ref num);
+			int err = _serviceManager.GetDeviceServices(this.DeviceId, ref serviceGuid, null, ref num);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceServiceManager), nameof(IPortableDeviceServiceManager.GetDeviceServices), service.ToString());
 
 			if(num == 0)
 			{
 				return null;
 			}
 			string[] services = new string[num];
-			_serviceManager.GetDeviceServices(this.DeviceId, ref serviceGuid, services, ref num);
+			err = _serviceManager.GetDeviceServices(this.DeviceId, ref serviceGuid, services, ref num);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceServiceManager), nameof(IPortableDeviceServiceManager.GetDeviceServices), service.ToString());
 
 			//foreach (var ser in services)
 			//{

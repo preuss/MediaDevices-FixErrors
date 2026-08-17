@@ -8,35 +8,42 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDeviceManager
     {
-        void GetDevices(
+        [PreserveSig]
+        int GetDevices(
             [Out, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr)] string[]? pPnPDeviceIDs,
             [In, Out] ref uint pcPnPDeviceIDs);
 
-        void RefreshDeviceList();
+        [PreserveSig]
+        int RefreshDeviceList();
 
-        void GetDeviceFriendlyName(
+        [PreserveSig]
+        int GetDeviceFriendlyName(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszPnPDeviceID,
             [In, Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pDeviceFriendlyName,
             [In, Out] ref uint pcchDeviceFriendlyName);
 
-        void GetDeviceDescription(
+        [PreserveSig]
+        int GetDeviceDescription(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszPnPDeviceID, 
             [In, Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pDeviceDescription,
             [In, Out] ref uint pcchDeviceDescription);
 
-        void GetDeviceManufacturer(
+        [PreserveSig]
+        int GetDeviceManufacturer(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszPnPDeviceID,
             [In, Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder pDeviceManufacturer,
             [In, Out]ref uint pcchDeviceManufacturer);
 
-        void GetDeviceProperty(
+        [PreserveSig]
+        int GetDeviceProperty(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszPnPDeviceID,
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszDevicePropertyName,
             [In, Out] ref byte pData,
             [In, Out] ref uint pcbData,
             [In, Out] ref uint pdwType);
 
-        void GetPrivateDevices(
+        [PreserveSig]
+        int GetPrivateDevices(
             [Out, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr)]string[]? pPnPDeviceIDs,
             [In, Out] ref uint pcPnPDeviceIDs);
     }

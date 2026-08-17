@@ -8,29 +8,35 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDeviceProperties
     {
-        void GetSupportedProperties(
+        [PreserveSig]
+        int GetSupportedProperties(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszObjectID,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceKeyCollection ppKeys);
 
-        void GetPropertyAttributes(
+        [PreserveSig]
+        int GetPropertyAttributes(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszObjectID, 
             [In] ref PropertyKey key,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppAttributes);
 
-        void GetValues(
+        [PreserveSig]
+        int GetValues(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszObjectID,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceKeyCollection? pKeys,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppValues);
 
-        void SetValues(
+        [PreserveSig]
+        int SetValues(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszObjectID,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceValues pValues,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppResults);
 
-        void Delete(
+        [PreserveSig]
+        int Delete(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszObjectID,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceKeyCollection pKeys);
 
-        void Cancel();
+        [PreserveSig]
+        int Cancel();
     }
 }

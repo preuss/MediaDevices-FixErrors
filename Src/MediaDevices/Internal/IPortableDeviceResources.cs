@@ -8,11 +8,13 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDeviceResources
     {
-        void GetSupportedResources(
+        [PreserveSig]
+        int GetSupportedResources(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszObjectID,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceKeyCollection ppKeys);
 
-        void GetResourceAttributes(
+        [PreserveSig]
+        int GetResourceAttributes(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszObjectID, 
             [In] ref PropertyKey key,
             [Out, MarshalAs(UnmanagedType.Interface)] out IPortableDeviceValues ppResourceAttributes);
@@ -25,13 +27,16 @@ namespace MediaDevices.Internal
             [In, Out] ref uint pdwOptimalBufferSize,
             [Out, MarshalAs(UnmanagedType.Interface)] out IStream ppStream);
 
-        void Delete(
+        [PreserveSig]
+        int Delete(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pszObjectID,
             [In, MarshalAs(UnmanagedType.Interface)] IPortableDeviceKeyCollection pKeys);
 
-        void Cancel();
+        [PreserveSig]
+        int Cancel();
 
-        void CreateResource(
+        [PreserveSig]
+        int CreateResource(
             [In, MarshalAs(UnmanagedType.Interface)]IPortableDeviceValues pResourceAttributes,
             [Out, MarshalAs(UnmanagedType.Interface)] out IStream ppData,
             [In, Out]ref uint pdwOptimalWriteBufferSize,

@@ -7,25 +7,32 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IPortableDevicePropVariantCollection
     {
-        void GetCount(
+        [PreserveSig]
+        int GetCount(
             [In] ref uint pcElems);
 
-        void GetAt(
+        [PreserveSig]
+        int GetAt(
             [In] uint dwIndex, 
             [In] ref PropVariant pValue);
 
-        void Add(
+        [PreserveSig]
+        int Add(
             [In] ref PropVariant pValue);
 
-        void GetType(
+        [PreserveSig]
+        int GetType(
             [Out] out ushort pvt);
 
-        void ChangeType(
+        [PreserveSig]
+        int ChangeType(
             [In] ushort vt);
          
-        void Clear();
+        [PreserveSig]
+        int Clear();
 
-        void RemoveAt(
+        [PreserveSig]
+        int RemoveAt(
             [In] uint dwIndex);
     }
 }

@@ -7,19 +7,24 @@ namespace MediaDevices.Internal
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IEnumPortableDeviceObjectIDs
     {
-        void Next(
+        [PreserveSig]
+        int Next(
             [In] uint cObjects,
             [Out, MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr)] string[] pObjIDs,
             [In, Out]ref uint pcFetched);
 
-        void Skip(
+        [PreserveSig]
+        int Skip(
             [In] uint cObjects);
 
-        void Reset();
+        [PreserveSig]
+        int Reset();
 
-        void Clone(
+        [PreserveSig]
+        int Clone(
             [Out, MarshalAs(UnmanagedType.Interface)] out IEnumPortableDeviceObjectIDs ppEnum);
 
-        void Cancel();
+        [PreserveSig]
+        int Cancel();
     }
 }

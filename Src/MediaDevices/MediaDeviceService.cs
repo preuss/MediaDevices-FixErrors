@@ -46,24 +46,31 @@ namespace MediaDevices
             //this.ServiceName = serviceId.Substring(serviceId.LastIndexOf(@"\") + 1);
 
             IPortableDeviceValues values = ComFactory.CreateDeviceValues();
-			DeviceService.Open(ServiceId, values);
+			int errService = DeviceService.Open(ServiceId, values);
+			MediaDeviceException.ThrowIfComError(errService, nameof(IPortableDeviceService), nameof(IPortableDeviceService.Open), ServiceId);
 
-            DeviceService.GetServiceObjectID(out string serviceObjectID);
-            ServiceObjectID = serviceObjectID;
+			errService = DeviceService.GetServiceObjectID(out string serviceObjectID);
+			MediaDeviceException.ThrowIfComError(errService, nameof(IPortableDeviceService), nameof(IPortableDeviceService.GetServiceObjectID));
+			ServiceObjectID = serviceObjectID;
 
-            DeviceService.GetPnPServiceID(out string pnPServiceID);
-            PnPServiceID = pnPServiceID;
+			errService = DeviceService.GetPnPServiceID(out string pnPServiceID);
+			MediaDeviceException.ThrowIfComError(errService, nameof(IPortableDeviceService), nameof(IPortableDeviceService.GetPnPServiceID));
+			PnPServiceID = pnPServiceID;
 
-            DeviceService.Capabilities(out _capabilities);
+			errService = DeviceService.Capabilities(out _capabilities);
+			MediaDeviceException.ThrowIfComError(errService, nameof(IPortableDeviceService), nameof(IPortableDeviceService.Capabilities));
 
-            DeviceService.Content(out content);
+			errService = DeviceService.Content(out content);
+			MediaDeviceException.ThrowIfComError(errService, nameof(IPortableDeviceService), nameof(IPortableDeviceService.Content));
 
             int errProperties = content.Properties(out IPortableDeviceProperties properties);
             MediaDeviceException.ThrowIfComError(errProperties, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Properties), ServiceObjectID);
 
-            properties.GetSupportedProperties(ServiceObjectID, out IPortableDeviceKeyCollection keyCol);
+            int err = properties.GetSupportedProperties(ServiceObjectID, out IPortableDeviceKeyCollection keyCol);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetSupportedProperties), ServiceObjectID);
 
-            properties.GetValues(ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
+            err = properties.GetValues(ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues), ServiceObjectID);
 
             ComTrace.WriteObject(deviceValues);
 
@@ -72,13 +79,15 @@ namespace MediaDevices
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-				deviceValues.GetValue(ref WPD.OBJECT_NAME, out value.Value);
+				int errValue = deviceValues.GetValue(ref WPD.OBJECT_NAME, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.OBJECT_NAME));
                 Name = value;
             }
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-				deviceValues.GetValue(ref WPD.FUNCTIONAL_OBJECT_CATEGORY, out value.Value);
+				int errValue = deviceValues.GetValue(ref WPD.FUNCTIONAL_OBJECT_CATEGORY, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.FUNCTIONAL_OBJECT_CATEGORY));
                 
                 Guid serviceGuid = new Guid((string)value);
                 Service = serviceGuid.GetEnum<MediaDeviceServices>();
@@ -87,7 +96,8 @@ namespace MediaDevices
 
             using (PropVariantFacade value = new PropVariantFacade())
             {
-                deviceValues.GetValue(ref WPD.SERVICE_VERSION, out value.Value);
+                int errValue = deviceValues.GetValue(ref WPD.SERVICE_VERSION, out value.Value);
+                MediaDeviceException.ThrowIfComError(errValue, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.GetValue), nameof(WPD.SERVICE_VERSION));
                 ServiceVersion = value;
             }
 
@@ -136,7 +146,8 @@ namespace MediaDevices
             {
                 if (_deviceService != null)
                 {
-                    _deviceService.Close();
+                    int err = _deviceService.Close();
+                    MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceService), nameof(IPortableDeviceService.Close));
                     _deviceService = null;
                 }
             }
@@ -202,7 +213,8 @@ namespace MediaDevices
 
             uint num = 0;
             string[] objectIdArray = new string[20];
-            enumerator.Next(20, objectIdArray, ref num);
+            errEnum = enumerator.Next(20, objectIdArray, ref num);
+            MediaDeviceException.ThrowIfComError(errEnum, nameof(IEnumPortableDeviceObjectIDs), nameof(IEnumPortableDeviceObjectIDs.Next));
 
             return objectIdArray.Take((int)num).Select(o => new MediaDeviceServiceContent(this, o));
         }
@@ -212,9 +224,11 @@ namespace MediaDevices
             int errProperties = content.Properties(out IPortableDeviceProperties properties);
             MediaDeviceException.ThrowIfComError(errProperties, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Properties), objectID);
 
-            properties.GetSupportedProperties(objectID, out IPortableDeviceKeyCollection keyCol);
+            int err = properties.GetSupportedProperties(objectID, out IPortableDeviceKeyCollection keyCol);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetSupportedProperties), objectID);
 
-            properties.GetValues(objectID, keyCol, out IPortableDeviceValues deviceValues);
+            err = properties.GetValues(objectID, keyCol, out IPortableDeviceValues deviceValues);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues), objectID);
 
             return deviceValues;
         }
@@ -224,7 +238,8 @@ namespace MediaDevices
             int errProperties = content.Properties(out IPortableDeviceProperties properties);
             MediaDeviceException.ThrowIfComError(errProperties, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.Properties), ServiceObjectID);
 
-            properties.GetValues(ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
+            int err = properties.GetValues(ServiceObjectID, keyCol, out IPortableDeviceValues deviceValues);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues), ServiceObjectID);
 
             return deviceValues;
         }
@@ -263,7 +278,8 @@ namespace MediaDevices
         /// <returns>List of supported methods</returns>
         public IEnumerable<Methods> GetSupportedMethods()
         {
-            _capabilities.GetSupportedMethods(out IPortableDevicePropVariantCollection methods);
+            int err = _capabilities.GetSupportedMethods(out IPortableDevicePropVariantCollection methods);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceServiceCapabilities), nameof(IPortableDeviceServiceCapabilities.GetSupportedMethods));
             ComTrace.WriteObject(methods);
             return methods.ToEnum<Methods>();
         }
@@ -274,7 +290,8 @@ namespace MediaDevices
         /// <returns>List of supported commands</returns>
         public IEnumerable<Commands> GetSupportedCommands()
         {
-            _capabilities.GetSupportedCommands(out IPortableDeviceKeyCollection commands);
+            int err = _capabilities.GetSupportedCommands(out IPortableDeviceKeyCollection commands);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceServiceCapabilities), nameof(IPortableDeviceServiceCapabilities.GetSupportedCommands));
             ComTrace.WriteObject(commands);
             return commands.ToEnum<Commands>();
         }
@@ -285,7 +302,8 @@ namespace MediaDevices
         /// <returns>list of supported events</returns>
         public IEnumerable<Events> GetSupportedEvents()
         {
-            _capabilities.GetSupportedEvents(out IPortableDevicePropVariantCollection events);
+            int err = _capabilities.GetSupportedEvents(out IPortableDevicePropVariantCollection events);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceServiceCapabilities), nameof(IPortableDeviceServiceCapabilities.GetSupportedEvents));
             ComTrace.WriteObject(events);
             return events.ToEnum<Events>();
         }
@@ -296,7 +314,8 @@ namespace MediaDevices
         /// <returns>List of supported formats</returns>
         public IEnumerable<Formats> GetSupportedFormats()
         {
-            _capabilities.GetSupportedFormats(out IPortableDevicePropVariantCollection formats);
+            int err = _capabilities.GetSupportedFormats(out IPortableDevicePropVariantCollection formats);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceServiceCapabilities), nameof(IPortableDeviceServiceCapabilities.GetSupportedFormats));
             ComTrace.WriteObject(formats);
             return formats.ToEnum<Formats>();
         }
@@ -307,26 +326,33 @@ namespace MediaDevices
         /// <param name="method">Method GUID</param>
         /// <param name="parameters">Method parameters</param>
 #pragma warning disable IDE0060 // Remove unused parameter
+        // TODO: Complete service-method parameter/result mapping. Current implementation ignores object[] parameters, invokes with empty IPortableDeviceValues, and discards results.
         public void CallMethod(Guid method, object[] parameters)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
-            DeviceService.Methods(out IPortableDeviceServiceMethods methods);
+            int err = DeviceService.Methods(out IPortableDeviceServiceMethods methods);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceService), nameof(IPortableDeviceService.Methods));
 
             IPortableDeviceValues values = ComFactory.CreateDeviceValues();
             //values.SetStringValue();
             IPortableDeviceValues results = ComFactory.CreateDeviceValues();
-            methods.Invoke(ref method, ref values, ref results);
+            err = methods.Invoke(ref method, ref values, ref results);
+            MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceServiceMethods), nameof(IPortableDeviceServiceMethods.Invoke));
         }
 
         internal void SendCommand(PropertyKey commandKey)
         {
             IPortableDeviceValues values = ComFactory.CreateDeviceValues();
-			values.SetGuidValue(ref WPD.PROPERTY_COMMON_COMMAND_CATEGORY, ref commandKey.fmtid);
-			values.SetUnsignedIntegerValue(ref WPD.PROPERTY_COMMON_COMMAND_ID, commandKey.pid);
+			int err = values.SetGuidValue(ref WPD.PROPERTY_COMMON_COMMAND_CATEGORY, ref commandKey.fmtid);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetGuidValue), nameof(WPD.PROPERTY_COMMON_COMMAND_CATEGORY));
+			err = values.SetUnsignedIntegerValue(ref WPD.PROPERTY_COMMON_COMMAND_ID, commandKey.pid);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceValues), nameof(IPortableDeviceValues.SetUnsignedIntegerValue), nameof(WPD.PROPERTY_COMMON_COMMAND_ID));
+
 
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
-            DeviceService.SendCommand(0, ref values, out IPortableDeviceValues results);
+			err = DeviceService.SendCommand(0, ref values, out IPortableDeviceValues results);
 #pragma warning restore IDE0059 // Unnecessary assignment of a value
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceService), nameof(IPortableDeviceService.SendCommand));
         }
 
         
