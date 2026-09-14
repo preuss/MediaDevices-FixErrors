@@ -35,6 +35,7 @@ namespace MediaDevices.Internal
 			AddKey(ref WPD.OBJECT_ISHIDDEN);
 			AddKey(ref WPD.OBJECT_IS_DRM_PROTECTED);
 			AddKey(ref WPD.OBJECT_PARENT_ID);
+
 			AddKey(ref WPD.OBJECT_PERSISTENT_UNIQUE_ID);
 		}
 
@@ -108,31 +109,52 @@ namespace MediaDevices.Internal
 
 			using (var propVariantPUID = PropVariantFacade.StringToPropVariant(persistentUniqueId))
 			{
-				collection.Add(ref propVariantPUID.Value);
+				int errAdd = collection.Add(ref propVariantPUID.Value);
+				MediaDeviceException.ThrowIfComError(errAdd, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.Add));
 			}
 			// request id collection           
 			int err = device.deviceContent.GetObjectIDsFromPersistentUniqueIDs(collection, out IPortableDevicePropVariantCollection results);
 			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.GetObjectIDsFromPersistentUniqueIDs), device.Description);
+			if (results == null)
+			{
+				return null;
+			}
 
-			//var s = results.ToStrings().ToArray();
-			string? mediaObjectId = results.ToStrings().FirstOrDefault();
+			uint count = 0;
+			err = results.GetCount(ref count);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetCount));
+			if (count == 0)
+			{
+				return null;
+			}
+
+			string? mediaObjectId;
+			using (PropVariantFacade value = new PropVariantFacade())
+			{
+				err = results.GetAt(0, ref value.Value);
+				MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetAt));
+				mediaObjectId = value.ToString();
+			}
 
 			// return result item
-			return mediaObjectId == null ? null : Item.Create(device, mediaObjectId);
-			//return string.IsNullOrEmpty(mediaObjectId) ? null : Item.Create(device, mediaObjectId);
+			if (string.IsNullOrEmpty(mediaObjectId))
+			{
+				return null;
+			}
+			return Item.Create(device, mediaObjectId);
 		}
 
 		private Item(MediaDevice device, string id, string? path)
 		{
-			_device = device;
-			Id = id;
-			_path = path;
+			this._device = device;
+			this.Id = id;
+			this._path = path;
 
 			if (id == Item.RootId)
 			{
-				Name = @"\";
-				FullName = @"\";
-				Type = ItemType.Object;
+				this.Name = @"\";
+				this.FullName = @"\";
+				this.Type = ItemType.Object;
 			}
 			else
 			{
@@ -142,8 +164,8 @@ namespace MediaDevices.Internal
 				if (string.IsNullOrEmpty(path))
 				{
 					string p = GetPath();
-					_path = Path.GetDirectoryName(p);
-					FullName = p;
+					this._path = Path.GetDirectoryName(p);
+					this.FullName = p;
 				}
 			}
 		}
@@ -155,8 +177,8 @@ namespace MediaDevices.Internal
 		/// <param name="id"></param>
 		private Item(MediaDevice device, string id)
 		{
-			_device = device;
-			Id = id;
+			this._device = device;
+			this.Id = id;
 			if (id == Item.RootId)
 			{
 				Name = @"\";
@@ -367,6 +389,10 @@ namespace MediaDevices.Internal
 		{
 			int err = _device.deviceContent.EnumObjects(0, Id, null, out IEnumPortableDeviceObjectIDs enumerator);
 			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.EnumObjects), _device.Description);
+			if (enumerator == null)
+			{
+				yield break;
+			}
 
 			try
 			{
@@ -413,6 +439,10 @@ namespace MediaDevices.Internal
 		{
 			int err = _device.deviceContent.EnumObjects(0, Id, null, out IEnumPortableDeviceObjectIDs enumerator);
 			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.EnumObjects), _device.Description);
+			if (enumerator == null)
+			{
+				yield break;
+			}
 
 			try
 			{
