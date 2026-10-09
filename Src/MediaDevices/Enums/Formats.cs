@@ -118,6 +118,12 @@ public enum Formats : ushort
     [EnumGuid(0x300C0000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
     ASFFile = 0x300C,
 
+    /// <summary>
+    /// Used by Apple to pass configuration files in XML format (such as .plist files) to the MTP subsystem.
+    /// </summary>
+    [EnumGuid(0x300D0000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    PLISTFile = 0x300D,
+
     #region Image
 
     /// <summary>
@@ -255,6 +261,28 @@ public enum Formats : ushort
     /// </summary>
     [EnumGuid(0xB8810000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
     HDPhotoImage = 0xB881,
+
+    #endregion
+
+    #region Canon 0xB1xx
+
+    /// <summary>
+    /// Legacy Canon RAW format used by older PowerShot and early EOS models.
+    /// </summary>
+    [EnumGuid(0xB1010000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    CanonCRWFormat = 0xB101,
+
+    /// <summary>
+    /// Modern Canon RAW image data formats (CR2 and CR3).
+    /// </summary>
+    [EnumGuid(0xB1030000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    CanonCR2CR3Format = 0xB103,
+
+    /// <summary>
+    /// Video recorded using Canon-proprietary codec profiles (e.g. All-I or IPB).
+    /// </summary>
+    [EnumGuid(0xB1040000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    CanonMOVMP4Video = 0xB104,
 
     #endregion
 
@@ -532,6 +560,52 @@ public enum Formats : ushort
     [EnumGuid(0xB9900000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xc5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
     MKVFile = 0xB990,
 
+
+    #region Apple Formats
+
+    /// <summary>
+    /// Apple Media/Live Photo Link. Identifies the primary photo object and links the components of a Live Photo.
+    /// </summary>
+    [EnumGuid(0xB4010000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    HEICImage = 0xB401,
+
+    /// <summary>
+    /// Apple Metadata/Sidecar File. Non-destructive editing data (typical .AAE files).
+    /// </summary>
+    [EnumGuid(0xB4020000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    AAEFile = 0xB402,
+
+    /// <summary>
+    /// Apple Directory/Index Configuration. Internal database structures for virtual albums and DCIM folder structure.
+    /// </summary>
+    [EnumGuid(0xB4030000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    AppleDirectoryAndIndexConfiguration = 0xB403,
+
+    /// <summary>
+    /// Apple Burst Group Marker. Groups burst shots as a cohesive series.
+    /// </summary>
+    [EnumGuid(0xB4040000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    AppleBurstGroupMarker = 0xB404,
+
+    /// <summary>
+    /// Apple Device Lock and Trust Status. Reports whether the device is unlocked and the computer is trusted.
+    /// </summary>
+    [EnumGuid(0xB4210000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    AppleDeviceLockAndTrustStatus = 0xB421,
+
+    /// <summary>
+    /// Apple Host Connection Mode. Controls whether photos transfer in original format or converted.
+    /// </summary>
+    [EnumGuid(0xB4220000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    AppleHostConnectionMode = 0xB422,
+
+    /// <summary>
+    /// Apple Camera/Continuity Control. Advanced camera interactions (e.g. Continuity Camera).
+    /// </summary>
+    [EnumGuid(0xB4230000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7)]
+    AppleCameraContinuityControl = 0xB423,
+
+    #endregion
 
     #region Android Formats from mtp.h not in Windows Header
 

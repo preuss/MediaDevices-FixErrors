@@ -307,7 +307,7 @@ namespace MediaDevices
 		public bool IsConnected { get; private set; }
 
 		/// <summary>
-		/// Select if path is case-sensitive or not. Default is not. 
+		/// Select if path is case-sensitive or not. Default is not.
 		/// </summary>
 		public bool IsCaseSensitive { get; private set; }
 
@@ -322,6 +322,11 @@ namespace MediaDevices
 		/// </summary>
 		/// <remarks>Readable when not connected.</remarks>
 		public string Description { get; private set; }
+
+		/// <summary>
+		/// True if the friendly name of the portable device can be changed. Set on connect.
+		/// </summary>
+		public bool IsFriendlyNameEditable { get; private set; }
 
 		/// <summary>
 		/// Friendly name of the portable device.
@@ -752,6 +757,14 @@ namespace MediaDevices
 			err = deviceProperties.GetValues(Item.RootId, null, out _deviceValues);
 			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues), DeviceId);
 
+			// check if the friendly name can be changed on this device
+			err = deviceProperties.GetPropertyAttributes(Item.RootId, ref WPD.DEVICE_FRIENDLY_NAME, out IPortableDeviceValues attributes);
+			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetPropertyAttributes), nameof(WPD.DEVICE_FRIENDLY_NAME));
+			if (attributes != null && attributes.TryGetBoolValue(WPD.PROPERTY_ATTRIBUTE_CAN_WRITE, out bool canWrite))
+			{
+				IsFriendlyNameEditable = canWrite;
+			}
+
 			ComTrace.WriteObject(_deviceValues);
 
 			// advice event handler
@@ -783,6 +796,7 @@ namespace MediaDevices
 			int errClose = this._device.Close();
 			MediaDeviceException.ThrowIfComError(errClose, nameof(IPortableDevice), nameof(IPortableDevice.Close));
 			this.IsConnected = false;
+			this.IsFriendlyNameEditable = false;
 		}
 
 		/// <summary>
@@ -1768,6 +1782,30 @@ namespace MediaDevices
 			{
 				return new MediaDirectoryInfo(this, item);
 			}
+		}
+
+		/// <summary>
+		/// Gets the full path of a file or folder from its Persistent Unique Id.
+		/// </summary>
+		/// <param name="persistentUniqueId">Persistent Unique Id of the file or folder.</param>
+		/// <returns>Full path of the file or folder.</returns>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+		/// <exception cref="System.ArgumentNullException">persistentUniqueId is null or empty.</exception>
+		/// <exception cref="System.IO.FileNotFoundException">persistentUniqueId not found.</exception>
+		public string GetPathFromPersistentUniqueId(string persistentUniqueId)
+		{
+			if(string.IsNullOrEmpty(persistentUniqueId))
+			{
+				throw new ArgumentNullException(nameof(persistentUniqueId));
+			}
+			CheckConnected();
+
+			Item? item = Item.GetFromPersistentUniqueId(this, persistentUniqueId);
+			if(item == null)
+			{
+				throw new FileNotFoundException($"{persistentUniqueId} not found.");
+			}
+			return item.GetPath();
 		}
 
 		#endregion 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -49,13 +50,13 @@ namespace MediaDevices.Internal
 		}
 
 		[Conditional("COMTRACE")]
-		public static void WriteObject(IPortableDeviceValues values, [CallerMemberName] string caller = "")
+		public static void WriteObject(IPortableDeviceValues values, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string filePath = "", [CallerMemberName] string caller = "")
 		{
-			InternalWriteObject(values, caller);
+			InternalWriteObject(values, lineNumber, filePath, caller);
 		}
 
 		[Conditional("COMTRACE")]
-		public static void WriteObject(IPortableDeviceProperties deviceProperties, string objectId, [CallerMemberName] string caller = "")
+		public static void WriteObject(IPortableDeviceProperties deviceProperties, string objectId, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string filePath = "", [CallerMemberName] string caller = "")
 		{
 			int err = deviceProperties.GetSupportedProperties(objectId, out IPortableDeviceKeyCollection keys);
 			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetSupportedProperties), objectId);
@@ -63,19 +64,13 @@ namespace MediaDevices.Internal
 			err = deviceProperties.GetValues(objectId, keys, out IPortableDeviceValues values);
 			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceProperties), nameof(IPortableDeviceProperties.GetValues), objectId);
 
-			InternalWriteObject(values, caller);
+			InternalWriteObject(values, lineNumber, filePath, caller);
 		}
 
 		[Conditional("COMTRACE")]
-		private static void InternalWriteObject(IPortableDeviceValues values, string caller)
+		private static void InternalWriteObject(IPortableDeviceValues values, int lineNumber, string filePath, string caller)
 		{
-			string? funcName = caller;
-			if (string.IsNullOrWhiteSpace(caller))
-			{
-				funcName = new StackTrace().GetFrame(2)?.GetMethod()?.Name ?? "Unknown";
-			}
-			
-			Trace.WriteLine($"############################### {funcName}");
+			Trace.WriteLine($"############################### {caller} ({Path.GetFileName(filePath)}:{lineNumber})");
 
 			foreach(var kvp in values.ToKeyValuePair())
 			{
@@ -84,9 +79,9 @@ namespace MediaDevices.Internal
 		}
 
 		[Conditional("COMTRACE")]
-		public static void WriteObject(IPortableDevicePropVariantCollection collection)
+		public static void WriteObject(IPortableDevicePropVariantCollection collection, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string filePath = "", [CallerMemberName] string caller = "")
 		{
-			Trace.WriteLine("###############################");
+			Trace.WriteLine($"############################### {caller} ({Path.GetFileName(filePath)}:{lineNumber})");
 			uint num = 0;
 			int err = collection.GetCount(ref num);
 			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDevicePropVariantCollection), nameof(IPortableDevicePropVariantCollection.GetCount));
@@ -103,9 +98,9 @@ namespace MediaDevices.Internal
 		}
 
 		[Conditional("COMTRACE")]
-		public static void WriteObject(IPortableDeviceKeyCollection collection)
+		public static void WriteObject(IPortableDeviceKeyCollection collection, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string filePath = "", [CallerMemberName] string caller = "")
 		{
-			Trace.WriteLine("###############################");
+			Trace.WriteLine($"############################### {caller} ({Path.GetFileName(filePath)}:{lineNumber})");
 			uint num = 0;
 			int err = collection.GetCount(ref num);
 			MediaDeviceException.ThrowIfComError(err, nameof(IPortableDeviceKeyCollection), nameof(IPortableDeviceKeyCollection.GetCount));
