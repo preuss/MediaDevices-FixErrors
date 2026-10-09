@@ -1,7 +1,8 @@
-﻿using MediaDevices.Internal;
+using MediaDevices.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -22,6 +23,8 @@ namespace MediaDevices
         //protected IPortableDeviceValues values;
         private readonly IPortableDeviceServiceCapabilities _capabilities;
         internal IPortableDeviceContent2 content;
+
+        private const int NUM_OBJECTS_TO_REQUEST = 32;
 
         internal MediaDeviceService(MediaDevice device, string serviceId)
         {
@@ -210,13 +213,37 @@ namespace MediaDevices
         {
             int errEnum = content.EnumObjects(0, objectID, null, out IEnumPortableDeviceObjectIDs enumerator);
             MediaDeviceException.ThrowIfComError(errEnum, nameof(IPortableDeviceContent), nameof(IPortableDeviceContent.EnumObjects), ServiceObjectID);
+            if (enumerator == null)
+            {
+                return new List<MediaDeviceServiceContent>();
+            }
 
-            uint num = 0;
-            string[] objectIdArray = new string[20];
-            errEnum = enumerator.Next(20, objectIdArray, ref num);
-            MediaDeviceException.ThrowIfComError(errEnum, nameof(IEnumPortableDeviceObjectIDs), nameof(IEnumPortableDeviceObjectIDs.Next));
-
-            return objectIdArray.Take((int)num).Select(o => new MediaDeviceServiceContent(this, o));
+            var result = new List<MediaDeviceServiceContent>();
+            try
+            {
+                uint num = 0;
+                var objectIdArray = new string[NUM_OBJECTS_TO_REQUEST];
+                errEnum = enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIdArray, ref num);
+                MediaDeviceException.ThrowIfComError(errEnum, nameof(IEnumPortableDeviceObjectIDs), nameof(IEnumPortableDeviceObjectIDs.Next));
+                while (num > 0)
+                {
+                    for (int index = 0; index < num; index++)
+                    {
+                        result.Add(new MediaDeviceServiceContent(this, objectIdArray[index]));
+                    }
+                    Array.Clear(objectIdArray, 0, objectIdArray.Length);
+                    errEnum = enumerator.Next(NUM_OBJECTS_TO_REQUEST, objectIdArray, ref num);
+                    MediaDeviceException.ThrowIfComError(errEnum, nameof(IEnumPortableDeviceObjectIDs), nameof(IEnumPortableDeviceObjectIDs.Next));
+                }
+            }
+            finally
+            {
+                if (enumerator != null)
+                {
+                    Marshal.ReleaseComObject(enumerator);
+                }
+            }
+            return result;
         }
 
         internal IPortableDeviceValues GetAllProperties(string objectID)
