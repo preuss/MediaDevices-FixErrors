@@ -1,53 +1,42 @@
-﻿using MediaDeviceApp.Mvvm;
+using MediaDeviceApp.Mvvm;
 using MediaDevices;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MediaDeviceApp.ViewModel
 {
     public class VendorViewModel : BaseViewModel
     {
-        MediaDevice device;
-        private string description;
-        private List<uint> opCodes;
-
-
+        private ManufacturerId? manufacturer;
+        private List<VendorOpCode> opCodes;
+        private string vendorExtensionDescription;
 
         public VendorViewModel()
         { }
 
         public void Update(MediaDevice device)
         {
-            this.device = device;
-            try
-            {
-                this.OpCodes = this.device.VendorOpcodes().ToList();
-                this.Description = this.device.VendorExtentionDescription();
-            }
-            catch
-            {
-                this.OpCodes = null;
-                this.Description = null;
-            }
+            this.Manufacturer = device.GetManufacturer();
+            this.OpCodes = VendorOpCodes.From(device, this.Manufacturer).ToList();
+            this.VendorExtensionDescription = device.VendorExtentionDescription();
         }
 
-        public string Description
+        public ManufacturerId? Manufacturer
         {
             get
             {
-                return this.description;
+                return this.manufacturer;
             }
             set
             {
-                if (this.description != value)
+                if (this.manufacturer != value)
                 {
-                    this.description = value;
-                    NotifyPropertyChanged(nameof(Description));
+                    this.manufacturer = value;
+                    NotifyPropertyChanged(nameof(Manufacturer));
                 }
             }
         }
 
-        public List<uint> OpCodes
+        public List<VendorOpCode> OpCodes
         {
             get
             {
@@ -63,5 +52,20 @@ namespace MediaDeviceApp.ViewModel
             }
         }
 
+        public string VendorExtensionDescription
+        {
+            get
+            {
+                return this.vendorExtensionDescription;
+            }
+            set
+            {
+                if (this.vendorExtensionDescription != value)
+                {
+                    this.vendorExtensionDescription = value;
+                    NotifyPropertyChanged(nameof(VendorExtensionDescription));
+                }
+            }
+        }
     }
 }

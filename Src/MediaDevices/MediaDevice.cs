@@ -2251,6 +2251,23 @@ namespace MediaDevices
 		}
 
 		/// <summary>
+		/// Queries for vendor extended operation code, cast to the given vendor enum
+		/// (OpCodesCanon, OpCodesNikon, OpCodesSony, OpCodesPanasonic, OpCodesSamsung, OpCodesLeica, OpCodesFujifilm or OpCodesMicrosoft).
+		/// </summary>
+		/// <typeparam name="TEnum">Vendor-specific opcode enum.</typeparam>
+		/// <returns>List of vendor extended operation codes.</returns>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+		public IEnumerable<TEnum> VendorOpcodes<TEnum>() where TEnum : struct
+		{
+			CheckConnected();
+
+			Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_GET_SUPPORTED_VENDOR_OPCODES);
+			cmd.Send(this._device);
+			var list = cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_VENDOR_OPERATION_CODES);
+			return list.Select(p => (TEnum)Enum.ToObject(typeof(TEnum), p.ToUInt()));
+		}
+
+		/// <summary>
 		/// Execute a vendor command.
 		/// </summary>
 		/// <param name="opCode">Operational code of the vendor command.</param>
@@ -2264,6 +2281,28 @@ namespace MediaDevices
 
 			Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_EXECUTE_COMMAND_WITHOUT_DATA_PHASE);
 			cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_CODE, opCode);
+			cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_PARAMS, inputParams);
+			cmd.Send(this._device);
+			respCode = cmd.GetUInt(WPD.PROPERTY_MTP_EXT_RESPONSE_CODE);
+			return cmd.GetPropVariants(WPD.PROPERTY_MTP_EXT_RESPONSE_PARAMS).Select(p => p.ToUInt());
+		}
+
+		/// <summary>
+		/// Execute a vendor command with a vendor-typed opcode
+		/// (OpCodesCanon, OpCodesNikon, OpCodesSony, OpCodesPanasonic, OpCodesSamsung, OpCodesLeica, OpCodesFujifilm or OpCodesMicrosoft).
+		/// </summary>
+		/// <typeparam name="TEnum">Vendor-specific opcode enum.</typeparam>
+		/// <param name="opCode">Operational code of the vendor command.</param>
+		/// <param name="inputParams">Input parameters.</param>
+		/// <param name="respCode">Response code</param>
+		/// <returns>Output parameters</returns>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+		public IEnumerable<uint> VendorExecute<TEnum>(TEnum opCode, IEnumerable<uint> inputParams, out uint respCode) where TEnum : struct
+		{
+			CheckConnected();
+
+			Command cmd = Command.Create(WPD.COMMAND_MTP_EXT_EXECUTE_COMMAND_WITHOUT_DATA_PHASE);
+			cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_CODE, Convert.ToUInt32(opCode));
 			cmd.Add(WPD.PROPERTY_MTP_EXT_OPERATION_PARAMS, inputParams);
 			cmd.Send(this._device);
 			respCode = cmd.GetUInt(WPD.PROPERTY_MTP_EXT_RESPONSE_CODE);
@@ -2359,6 +2398,41 @@ namespace MediaDevices
 			cmd.Send(this._device);
 			string description = cmd.GetString(WPD.PROPERTY_MTP_EXT_VENDOR_EXTENSION_DESCRIPTION);
 			return description;
+		}
+
+		/// <summary>
+		/// Determines the manufacturer from the PnP device id (USB vendor id).
+		/// </summary>
+		/// <returns>Manufacturer, or null if the vendor id is unknown.</returns>
+		/// <exception cref="MediaDevices.NotConnectedException">device is not connected.</exception>
+		public ManufacturerId? GetManufacturer()
+		{
+			CheckConnected();
+
+			string? pnpDeviceId = PnPDeviceID;
+			if (string.IsNullOrEmpty(pnpDeviceId))
+			{
+				return null;
+			}
+
+			// PnP device ids look like \\?\USB#VID_04B0&PID_1234#...
+			int vidIndex = pnpDeviceId.IndexOf("VID_", StringComparison.OrdinalIgnoreCase);
+			if (vidIndex < 0 || vidIndex + 8 > pnpDeviceId.Length)
+			{
+				return null;
+			}
+
+			ushort vendorId;
+			try
+			{
+				vendorId = Convert.ToUInt16(pnpDeviceId.Substring(vidIndex + 4, 4), 16);
+			}
+			catch (FormatException)
+			{
+				return null;
+			}
+
+			return Enum.IsDefined(typeof(ManufacturerId), vendorId) ? (ManufacturerId)vendorId : (ManufacturerId?)null;
 		}
 
 		#endregion

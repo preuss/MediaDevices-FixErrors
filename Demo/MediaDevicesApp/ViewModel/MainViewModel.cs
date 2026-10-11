@@ -1,4 +1,4 @@
-﻿using MediaDeviceApp.Mvvm;
+using MediaDeviceApp.Mvvm;
 using MediaDevices;
 using System.Collections.Generic;
 using System.Linq;
@@ -151,21 +151,21 @@ namespace MediaDeviceApp.ViewModel
                     }
                     NotifyAllPropertiesChanged();
                     
-                    Info.Update(_selectedDevice);
-                    Capability.Update(_selectedDevice);
-                    ContentLocation.Update(_selectedDevice);
-                    Storage.Update(_selectedDevice);
-                    Drive.Update(_selectedDevice);
-                    Root.Update(_selectedDevice);
-                    Files.Update(_selectedDevice);
-                    StillImage.Update(_selectedDevice);
-                    Sms.Update(_selectedDevice);
-                    Explorer.Update(_selectedDevice);
-                    Vendor.Update(_selectedDevice);
-                    Services.Update(_selectedDevice);
-                    ServiceInfo.Update(_selectedDevice);
-                    ServiceStatus.Update(_selectedDevice);
-                    ServiceMetadata.Update(_selectedDevice);
+                    TryUpdate(() => Info.Update(_selectedDevice));
+                    TryUpdate(() => Capability.Update(_selectedDevice));
+                    TryUpdate(() => ContentLocation.Update(_selectedDevice));
+                    TryUpdate(() => Storage.Update(_selectedDevice));
+                    TryUpdate(() => Drive.Update(_selectedDevice));
+                    TryUpdate(() => Root.Update(_selectedDevice));
+                    TryUpdate(() => Files.Update(_selectedDevice));
+                    TryUpdate(() => StillImage.Update(_selectedDevice));
+                    TryUpdate(() => Sms.Update(_selectedDevice));
+                    TryUpdate(() => Explorer.Update(_selectedDevice));
+                    TryUpdate(() => Vendor.Update(_selectedDevice));
+                    TryUpdate(() => Services.Update(_selectedDevice));
+                    TryUpdate(() => ServiceInfo.Update(_selectedDevice));
+                    TryUpdate(() => ServiceStatus.Update(_selectedDevice));
+                    TryUpdate(() => ServiceMetadata.Update(_selectedDevice));
                     //if (selectedDevice.Description != "My Passport 25E2")
                     //{
                     //    var root = selectedDevice.GetRootDirectory();
@@ -197,6 +197,18 @@ namespace MediaDeviceApp.ViewModel
             get { return _canReset; }
             set { _canReset = value; NotifyPropertyChanged(nameof(CanReset)); }
 
+        }
+
+        private static void TryUpdate(Action update)
+        {
+            try
+            {
+                update();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"View model update failed: {ex}");
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="MediaDeviceApp.View.VendorView"
+<UserControl x:Class="MediaDeviceApp.View.VendorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -32,7 +32,9 @@
         </Grid.RowDefinitions>
         <Label Grid.Column="0" Grid.Row="0" Content="Operational Codes"/>
         <ListBox Grid.Column="1" Grid.Row="0" ItemsSource="{Binding OpCodes}" Margin="3"/>
-        <Label Grid.Column="0" Grid.Row="1" Content="Description"/>
-        <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Description, Mode=OneWay}" IsReadOnly="True" Margin="3"/>    
+        <Label Grid.Column="0" Grid.Row="1" Content="Vendor Extension Description"/>
+        <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding VendorExtensionDescription, Mode=OneWay}" IsReadOnly="True" Margin="3"/>
+        <Label Grid.Column="0" Grid.Row="2" Content="Manufacturer"/>
+        <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding Manufacturer, Mode=OneWay}" IsReadOnly="True" Margin="3"/>
     </Grid>
 </UserControl>
